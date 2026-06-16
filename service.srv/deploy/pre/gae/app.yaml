@@ -1,5 +1,11 @@
-runtime: nodejs20
-service: srv
+runtime: nodejs22
 env: standard
+service: srv
 
-# Backend — ambiente PRE
+# Backend NestJS — ambiente PRE
+# No deploy o GAE corre: npm install && npm run build (nest build -> dist/)
+entrypoint: npm run start:prod
+
+env_variables:
+  NODE_ENV: "production"
+  APP_ENV: "pre"

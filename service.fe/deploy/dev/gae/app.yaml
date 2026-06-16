@@ -1,5 +1,21 @@
-runtime: nodejs20
-service: default
+runtime: nodejs22
 env: standard
+service: default
 
-# Frontend — ambiente DEV
+# Frontend React + Vite (SPA) — ambiente DEV
+# No deploy o GAE corre: npm install && npm run build (vite build -> dist/)
+handlers:
+  - url: /assets
+    static_dir: dist/assets
+    secure: always
+
+  - url: /(.*\.(js|mjs|css|svg|png|jpg|jpeg|ico|json|txt|map|woff2?))$
+    static_files: dist/\1
+    upload: dist/.*\.(js|mjs|css|svg|png|jpg|jpeg|ico|json|txt|map|woff2?)$
+    secure: always
+
+  # SPA fallback: tudo o resto serve o index.html
+  - url: /.*
+    static_files: dist/index.html
+    upload: dist/index\.html
+    secure: always
