@@ -1,0 +1,6 @@
+{
+  "name": "hsj-mmais",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HSJ-MMAIS — repositório base (service.fe e service.srv são independentes)"
+}

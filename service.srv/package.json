@@ -1,0 +1,10 @@
+{
+  "name": "service.srv",
+  "version": "1.0.0",
+  "private": true,
+  "description": "HSJ-MMAIS backend service",
+  "scripts": {
+    "test": "echo \"TODO: add backend tests\" && exit 0",
+    "build": "echo \"TODO: add backend build\""
+  }
+}

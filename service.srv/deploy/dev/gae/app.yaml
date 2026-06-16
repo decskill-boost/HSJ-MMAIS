@@ -1,0 +1,5 @@
+runtime: nodejs20
+service: srv
+env: standard
+
+# Backend — ambiente DEV
