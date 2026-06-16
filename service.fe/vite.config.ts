@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -15,6 +16,18 @@ export default defineConfig(({ mode }) => {
           target: apiTarget,
           changeOrigin: true,
         },
+      },
+    },
+    test: {
+      globals: true,
+      environment: 'jsdom',
+      setupFiles: ['./__tests__/setup.ts'],
+      include: ['__tests__/**/*.{test,spec}.{ts,tsx}'],
+      css: false,
+      coverage: {
+        provider: 'v8',
+        reportsDirectory: './coverage',
+        include: ['src/**/*.{ts,tsx}'],
       },
     },
   }
