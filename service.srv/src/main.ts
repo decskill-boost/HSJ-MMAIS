@@ -9,6 +9,12 @@ async function bootstrap() {
   const apiPrefix = config.get<string>('API_PREFIX', 'api');
   app.setGlobalPrefix(apiPrefix);
 
+  // PERMITIR A LIGAÇÃO DO FRONTEND
+  app.enableCors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+  });
+
   const port = config.get<number>('PORT', 3000);
   await app.listen(port);
 }
