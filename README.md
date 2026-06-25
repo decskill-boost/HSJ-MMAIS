@@ -1,5 +1,16 @@
 # HSJ-MMAIS
 
+link de acesso frontend: 
+https://hsj-mmais.vercel.app/
+
+link de acesso backend: 
+https://hsj-mmais-production.up.railway.app/api
+
+## Conta de Teste 
+
+**E-mail:** "suporte.mmais@gmail.com"
+**Palavra-passe:** "12345"
+
 Repositório base com dois serviços **independentes**:
 
 | Serviço        | Stack               | Descrição        |
