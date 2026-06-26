@@ -3,6 +3,7 @@ import WelcomePage from "./components/WelcomePage";
 import LoginForm from "./components/LoginForm";
 import type { UserProfile } from "./types/user";
 import PersonalInfo from "./components/PersonalInfo/PersonalInfo";
+import { Navbar } from "./components/Navbar";
 
 // Utilizador fictício para testes
 const mockUser: UserProfile = {
@@ -30,23 +31,26 @@ function App() {
     setAutenticar(false); // Volta para a WelcomePage
   };
 
-  // 1. Se o utilizador já está logado, mostra o Perfil
-  if (user) {
-    return (
-      <PersonalInfo user={user} onLogout={handleLogout} onBack={handleLogout} />
-    );
-  }
-
-  // 2. Se não está logado, decide entre o Form de Login ou a WelcomePage
   return (
-    <main>
-      {autenticar ? (
-        // Passas uma prop para o teu LoginForm (quando o fizeres) para ativar o login
-        <LoginForm onLoginSuccess={handleLoginSuccess} />
-      ) : (
-        <WelcomePage onEnter={() => setAutenticar(true)} />
-      )}
-    </main>
+    <div className="flex min-h-screen flex-col bg-slate-50">
+      {/* 1. Navbar Global e Única */}
+      <Navbar
+        user={user}
+        onLoginClick={() => setAutenticar(true)}
+        onLogoutClick={handleLogout}
+      />
+
+      {/* 2. Conteúdo Dinâmico das Páginas */}
+      <main className="flex flex-1 flex-col">
+        {user ? (
+          <PersonalInfo user={user} onBack={handleLogout} />
+        ) : autenticar ? (
+          <LoginForm onLoginSuccess={handleLoginSuccess} />
+        ) : (
+          <WelcomePage onEnter={() => setAutenticar(true)} />
+        )}
+      </main>
+    </div>
   );
 }
 
