@@ -1,4 +1,3 @@
-import React from "react";
 import ClinicalStaffStats from "./ClinicalStaffStats";
 import type { PersonalInfoProps } from "../../types/user";
 
