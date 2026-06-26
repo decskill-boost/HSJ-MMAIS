@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import type { UserProfile } from "../types/user";
+import Footer from "../components/Footer";
 
 // utilizador fictício para testes
 const mockUser: UserProfile = {
@@ -40,6 +41,7 @@ export const Layout = () => {
         {/* O Outlet é onde o React Router vai injetar as páginas (Welcome, Login, Perfil) */}
         <Outlet context={{ user, handleLoginSuccess, handleLogout }} />
       </main>
+      <Footer />
     </div>
   );
 };

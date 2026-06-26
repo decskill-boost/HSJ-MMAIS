@@ -31,7 +31,7 @@ export const LoginForm = () => {
   }, [success, handleLoginSuccess]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+    <div className="flex flex-1 items-center justify-center bg-slate-50 px-4 py-8">
       <div className="w-full max-w-md space-y-8 rounded-2xl bg-white p-10 shadow-xl border border-slate-100">
         <div className="text-center">
           <h2 className="text-4xl font-extrabold tracking-tight text-blue-600">
