@@ -1,8 +1,9 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import { Layout } from "./Layout";
 import WelcomePage from "../components/WelcomePage";
 import LoginForm from "../components/LoginForm";
 import PersonalInfo from "../components/PersonalInfo/PersonalInfo";
+import PageNotFound from "../components/PageNotFound";
 
 export const router = createBrowserRouter([
   {
@@ -23,7 +24,7 @@ export const router = createBrowserRouter([
       },
       {
         path: "*",
-        element: <Navigate to="/" replace />,
+        element: <PageNotFound />,
       },
     ],
   },
