@@ -1,11 +1,13 @@
 import { useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
-interface LoginFormProps {
-  onLoginSuccess: () => void;
+interface OutletContext {
+  handleLoginSuccess: () => void;
 }
 
-export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
+export const LoginForm = () => {
+  const { handleLoginSuccess } = useOutletContext<OutletContext>();
   const {
     email,
     setEmail,
@@ -18,15 +20,15 @@ export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
   } = useAuth();
 
   // Quando o hook do Supabase/Auth mudar o estado 'success' para true,
-  // avisa o App.tsx para trocar de página
+  // avisa o Layout para trocar de página
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => {
-        onLoginSuccess();
+        handleLoginSuccess();
       }, 1500); // Dá tempo para o utilizador ler a mensagem de sucesso
       return () => clearTimeout(timer);
     }
-  }, [success, onLoginSuccess]);
+  }, [success, handleLoginSuccess]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
