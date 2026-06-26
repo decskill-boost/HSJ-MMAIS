@@ -1,15 +1,12 @@
+import { useNavigate } from "react-router-dom";
+
 interface WelcomePageProps {
-  onEnter?: () => void;
-  onStart?: () => void;
   logoSrc?: string;
 }
 
-const WelcomePage = ({
-  onEnter = () => {},
-  onStart,
-  logoSrc,
-}: WelcomePageProps) => {
-  const handleStart = onStart ?? onEnter;
+const WelcomePage = ({ logoSrc }: WelcomePageProps) => {
+  const navigate = useNavigate();
+  const handleStart = () => navigate("/login");
 
   return (
     <div className="flex flex-1 flex-col justify-center px-4 py-16 text-center">

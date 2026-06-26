@@ -1,12 +1,27 @@
+import { useOutletContext } from "react-router-dom";
 import ClinicalStaffStats from "./ClinicalStaffStats";
 import type { UserProfile } from "../../types/user";
 
 interface PersonalInfoProps {
-  user: UserProfile;
   onBack?: () => void;
 }
 
-export const PersonalInfo = ({ user, onBack }: PersonalInfoProps) => {
+interface LayoutContext {
+  user: UserProfile | null;
+  handleLoginSuccess: () => void;
+  handleLogout: () => void;
+}
+
+export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
+  const { user } = useOutletContext<LayoutContext>();
+
+  if (!user) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
+        <p className="text-slate-500">Utilizador não autenticado</p>
+      </div>
+    );
+  }
   // Cores fixas do tema do Corpo Clínico (Índigo)
   const theme = {
     color: "text-indigo-600",
