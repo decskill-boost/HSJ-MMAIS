@@ -1,7 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 
-export const LoginForm: React.FC = () => {
+interface LoginFormProps {
+  onLoginSuccess: () => void;
+}
+
+export const LoginForm = ({ onLoginSuccess }: LoginFormProps) => {
   const {
     email,
     setEmail,
@@ -12,6 +16,17 @@ export const LoginForm: React.FC = () => {
     success,
     handleLogin,
   } = useAuth();
+
+  // Quando o hook do Supabase/Auth mudar o estado 'success' para true,
+  // avisa o App.tsx para trocar de página
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => {
+        onLoginSuccess();
+      }, 1500); // Dá tempo para o utilizador ler a mensagem de sucesso
+      return () => clearTimeout(timer);
+    }
+  }, [success, onLoginSuccess]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
