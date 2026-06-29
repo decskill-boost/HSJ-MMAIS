@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom"; // 1. Importa o Link aqui
+import BtnGlobal from "./BtnGlobal";
 import type { UserProfile } from "../types/user";
 
 interface NavbarProps {
@@ -15,7 +16,7 @@ export const Navbar = ({ user, onLoginClick, onLogoutClick }: NavbarProps) => {
     : "text-blue-600 hover:text-blue-700";
 
   return (
-    <header className="border-b border-slate-200 bg-white">
+    <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur-sm">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
         <Link
           to="/"
@@ -26,20 +27,22 @@ export const Navbar = ({ user, onLoginClick, onLogoutClick }: NavbarProps) => {
 
         {/* Botão Dinâmico */}
         {user ? (
-          <button
+          <BtnGlobal
             onClick={onLogoutClick}
-            className="rounded-xl border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+            variant="secondary"
+            className="focus:ring-2 focus:ring-indigo-500/20"
           >
             Sair
-          </button>
+          </BtnGlobal>
         ) : (
           onLoginClick && (
-            <button
+            <BtnGlobal
               onClick={onLoginClick}
-              className="rounded-xl border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              variant="secondary"
+              className="focus:ring-2 focus:ring-blue-500/20"
             >
               Entrar
-            </button>
+            </BtnGlobal>
           )
         )}
       </div>

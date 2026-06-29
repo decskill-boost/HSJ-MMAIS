@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import BtnGlobal from "./BtnGlobal";
 
 interface WelcomePageProps {
   logoSrc?: string;
@@ -46,12 +47,12 @@ const WelcomePage = ({ logoSrc }: WelcomePageProps) => {
         A tua aplicação para te manteres forte, ativo(a) e te divertires!
       </p>
 
-      <button
+      <BtnGlobal
         onClick={handleStart}
         className="mt-10 mx-auto rounded-xl bg-blue-600 px-10 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500/30"
       >
         Começar!
-      </button>
+      </BtnGlobal>
     </div>
   );
 };

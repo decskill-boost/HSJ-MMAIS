@@ -1,4 +1,6 @@
 import { useNavigate } from "react-router-dom";
+import BtnGlobal from "./BtnGlobal";
+
 const PageNotFound = () => {
   const navigate = useNavigate();
 
@@ -16,12 +18,12 @@ const PageNotFound = () => {
         </p>
       </div>
 
-      <button
+      <BtnGlobal
         onClick={() => navigate("/")}
         className="mt-8 px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl shadow-md shadow-blue-100 hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-200 active:scale-95 transition-all duration-200"
       >
         Voltar para o Início
-      </button>
+      </BtnGlobal>
     </div>
   );
 };

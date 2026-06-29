@@ -1,4 +1,5 @@
 import { useOutletContext } from "react-router-dom";
+import BtnGlobal from "../BtnGlobal";
 import ClinicalStaffStats from "./ClinicalStaffStats";
 import type { UserProfile } from "../../types/user";
 
@@ -93,12 +94,13 @@ export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
       </div>
 
       {onBack && (
-        <button
+        <BtnGlobal
           onClick={onBack}
+          variant="primary"
           className={`mt-8 rounded-xl px-10 py-3.5 text-sm font-bold text-white shadow-lg transition-all ${theme.btn}`}
         >
           Voltar ao Menu
-        </button>
+        </BtnGlobal>
       )}
     </div>
   );

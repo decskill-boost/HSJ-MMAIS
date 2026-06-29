@@ -31,13 +31,13 @@ export const Layout = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
+    <div className="relative flex min-h-screen flex-col bg-slate-50">
       <Navbar
         user={user}
         onLoginClick={() => navigate("/login")}
         onLogoutClick={handleLogout}
       />
-      <main className="flex flex-1 flex-col">
+      <main className="flex flex-1 flex-col pb-16">
         {/* O Outlet é onde o React Router vai injetar as páginas (Welcome, Login, Perfil) */}
         <Outlet context={{ user, handleLoginSuccess, handleLogout }} />
       </main>
