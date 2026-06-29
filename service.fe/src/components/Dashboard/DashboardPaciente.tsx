@@ -1,6 +1,6 @@
 import { useNavigate, useOutletContext } from "react-router-dom";
-import BtnGlobal from "../../BtnGlobal";
-import type { UserProfile } from "../../../types/user";
+import BtnGlobal from "../BtnGlobal";
+import type { UserProfile } from "../../types/user";
 
 interface LayoutContext {
   user: UserProfile | null;

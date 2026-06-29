@@ -5,7 +5,8 @@ import WelcomePage from "../components/WelcomePage";
 import PersonalInfo from "../components/PersonalInfo/PersonalInfo";
 import PageNotFound from "../components/PageNotFound";
 import Login from "../components/Login";
-import DashboardPaciente from "../components/Dashboard/DashboardPaciente/DashboardPaciente";
+import DashboardPaciente from "../components/Dashboard/DashboardPaciente";
+import DashboardCorpoClinico from "../components/Dashboard/DashboardCorpoClinico";
 
 export const router = createBrowserRouter([
   {
@@ -27,6 +28,10 @@ export const router = createBrowserRouter([
       {
         path: "dashboard/paciente",
         element: <DashboardPaciente />,
+      },
+      {
+        path: "dashboard/medico",
+        element: <DashboardCorpoClinico />,
       },
       {
         path: "*",
