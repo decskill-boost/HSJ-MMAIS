@@ -14,12 +14,12 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.108.2",
+    "@supabase/supabase-js": "^2.109.0",
     "@tailwindcss/vite": "^4.3.1",
     "axios": "^1.18.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
-    "react-router-dom": "^7.18.0",
+    "react-router-dom": "^7.18.1",
     "tailwindcss": "^4.3.1"
   },
   "devDependencies": {
