@@ -3,12 +3,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AuthModule } from './auth/auth.module';
-import { SeedModule } from './seed/seed.module';
-import { Perfil } from './users/perfil.entity';
-import { Permissao } from './users/permissao.entity';
-import { Utilizador } from './users/utilizador.entity';
-import { UsersModule } from './users/users.module';
+import { Utilizador } from './entities/utilizador.entity';
+import { Exercicio } from './entities/exercicio.entity';
+import { Prescricao } from './entities/prescricao.entity';
+import { PrescricaoExercicio } from './entities/prescricao-exercicio.entity';
+import { SessaoRealizada } from './entities/sessao-realizada.entity';
 
 @Module({
   imports: [
@@ -21,15 +20,16 @@ import { UsersModule } from './users/users.module';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
-        url: config.getOrThrow('DATABASE_URL'),
-        entities: [Utilizador, Perfil, Permissao],
-        synchronize: false,
+        host: config.get('DB_HOST'),
+        port: config.get<number>('DB_PORT'),
+        username: config.get('DB_USERNAME'),
+        password: config.get('DB_PASSWORD'),
+        database: config.get('DB_NAME'),
+        entities: [Utilizador, Exercicio, Prescricao, PrescricaoExercicio, SessaoRealizada],
+        synchronize: config.get('APP_ENV') === 'dev',
         ssl: { rejectUnauthorized: false },
       }),
     }),
-    AuthModule,
-    UsersModule,
-    SeedModule,
   ],
   controllers: [AppController],
   providers: [AppService],

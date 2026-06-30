@@ -2,13 +2,14 @@ import { useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import BtnGlobal from "./BtnGlobal";
 import { useAuth } from "../hooks/useAuth";
+import type { UserProfile } from "../types/user";
 
 interface OutletContext {
-  handleLoginSuccess: () => void;
+  handleLogin: (userProfile: UserProfile) => boolean;
 }
 
 const Login = () => {
-  const { handleLoginSuccess } = useOutletContext<OutletContext>();
+  const { handleLogin: handleLayoutLogin } = useOutletContext<OutletContext>();
   const {
     email,
     setEmail,
@@ -17,20 +18,27 @@ const Login = () => {
     loading,
     errorMsg,
     success,
-    handleLogin,
+    userProfile,
+    handleLogin: handleAuthLogin,
   } = useAuth();
 
-  // Quando o hook do Supabase/Auth mudar o estado 'success' para true,
-  // avisa o Layout para trocar de página
   useEffect(() => {
-    if (success) {
+    if (success && userProfile) {
       const timer = setTimeout(() => {
-        handleLoginSuccess();
-      }, 1500); // Dá tempo para o utilizador ler a mensagem de sucesso
+        // Executa a função e apanha o resultado (true ou false)
+        const isAllowed = handleLayoutLogin(userProfile);
+
+        if (!isAllowed) {
+          // Se precisares de injetar a mensagem no formulário:
+          window.location.reload(); // refresh e limpa o estado e obriga a novo login
+          alert(
+            "Acesso negado: Perfil de utilizador inválido ou não autorizado.",
+          );
+        }
+      }, 1500);
       return () => clearTimeout(timer);
     }
-  }, [success, handleLoginSuccess]);
-
+  }, [success, userProfile, handleLayoutLogin]);
   return (
     <div className="flex flex-1 items-center justify-center bg-slate-50 px-4 py-8">
       <div className="w-full max-w-md space-y-8 rounded-2xl bg-white p-10 shadow-xl border border-slate-100">
@@ -50,7 +58,8 @@ const Login = () => {
             </p>
           </div>
         ) : (
-          <form className="mt-8 space-y-6" onSubmit={handleLogin}>
+          /* Usa a função vinda do useAuth */
+          <form className="mt-8 space-y-6" onSubmit={handleAuthLogin}>
             <div className="space-y-4">
               <div>
                 <label
@@ -101,7 +110,7 @@ const Login = () => {
               isLoading={loading}
               className="group relative flex w-full justify-center rounded-xl bg-blue-600 py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500/30 disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              {loading ? "A verificar..." : "Entrar na conta"}
+              Entrar na conta
             </BtnGlobal>
           </form>
         )}
