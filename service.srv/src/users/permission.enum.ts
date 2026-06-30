@@ -11,7 +11,7 @@ export enum Permission {
 }
 
 export const ROLE_PERMISSIONS: Record<UserRole, Permission[]> = {
-  [UserRole.MEDICO]: [
+  [UserRole.CORPO_CLINICO]: [
     Permission.VIEW_DASHBOARD,
     Permission.EXPORT_DATA,
     Permission.PRESCRIBE_EXERCISES,
