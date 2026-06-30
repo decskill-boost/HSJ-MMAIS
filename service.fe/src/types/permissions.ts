@@ -1,5 +1,5 @@
 export const UserRole = {
-  MEDICO: 'medico',
+  CORPO_CLINICO: 'corpo_clinico',
   PACIENTE: 'paciente',
   ACOMPANHANTE: 'acompanhante',
 } as const;
