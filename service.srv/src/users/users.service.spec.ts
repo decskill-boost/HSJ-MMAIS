@@ -24,7 +24,7 @@ const mockUser = (overrides: Partial<Utilizador> = {}): Utilizador =>
     idUser: 'user-uuid',
     nome: 'Dr. Test',
     email: 'test@example.com',
-    tipoUtilizador: UserRole.MEDICO,
+    tipoUtilizador: UserRole.CORPO_CLINICO,
     xp: 0,
     nivel: 1,
     streakAtual: 0,
@@ -59,10 +59,10 @@ describe('UsersService', () => {
     perfilRepo = module.get(getRepositoryToken(Perfil));
   });
 
-  it('returns user with correct permissions for medico', async () => {
+  it('returns user with correct permissions for corpo_clinico', async () => {
     utilizadorRepo.findOne.mockResolvedValue(mockUser());
     perfilRepo.findOne.mockResolvedValue(
-      mockPerfil(UserRole.MEDICO, [
+      mockPerfil(UserRole.CORPO_CLINICO, [
         Permission.VIEW_DASHBOARD,
         Permission.PRESCRIBE_EXERCISES,
         Permission.READ_ALL_PATIENTS,
@@ -71,7 +71,7 @@ describe('UsersService', () => {
 
     const result = await service.findByEmail('test@example.com');
 
-    expect(result.role).toBe(UserRole.MEDICO);
+    expect(result.role).toBe(UserRole.CORPO_CLINICO);
     expect(result.permissions).toContain(Permission.READ_ALL_PATIENTS);
     expect(result.permissions).toContain(Permission.PRESCRIBE_EXERCISES);
     expect(result.permissions).not.toContain(Permission.WRITE_OWN_SESSIONS);
