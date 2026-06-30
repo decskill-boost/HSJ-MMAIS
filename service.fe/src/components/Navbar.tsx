@@ -1,5 +1,6 @@
-import { Link } from "react-router-dom"; // 1. Importa o Link aqui
+import { Link } from "react-router-dom";
 import BtnGlobal from "./BtnGlobal";
+import UserMenu from "./UserMenu";
 import type { UserProfile } from "../types/user";
 
 interface NavbarProps {
@@ -9,7 +10,6 @@ interface NavbarProps {
 }
 
 export const Navbar = ({ user, onLoginClick, onLogoutClick }: NavbarProps) => {
-  // Define a cor base dependendo se o utilizador está logado ou não
   const isClinico = user?.tipo_utilizador === "corpo_clinico";
   const brandColor = isClinico
     ? "text-indigo-600 hover:text-indigo-700"
@@ -25,15 +25,9 @@ export const Navbar = ({ user, onLoginClick, onLogoutClick }: NavbarProps) => {
           +MMAis
         </Link>
 
-        {/* Botão Dinâmico */}
+        {/* Canto direito: avatar + dropdown com sessão; senão, "Entrar" */}
         {user ? (
-          <BtnGlobal
-            onClick={onLogoutClick}
-            variant="secondary"
-            className="focus:ring-2 focus:ring-indigo-500/20"
-          >
-            Sair
-          </BtnGlobal>
+          <UserMenu user={user} onLogout={onLogoutClick} />
         ) : (
           onLoginClick && (
             <BtnGlobal
