@@ -7,6 +7,7 @@ import PageNotFound from "../components/PageNotFound";
 import Login from "../components/Login";
 import DashboardPaciente from "../components/Dashboard/DashboardPaciente";
 import DashboardCorpoClinico from "../components/Dashboard/DashboardCorpoClinico";
+import CriarPlano from "../components/CriarPlano";
 
 export const router = createBrowserRouter([
   {
@@ -32,6 +33,10 @@ export const router = createBrowserRouter([
       {
         path: "dashboard/medico",
         element: <DashboardCorpoClinico />,
+      },
+      {
+        path: "plano/criar",
+        element: <CriarPlano />,
       },
       {
         path: "*",
