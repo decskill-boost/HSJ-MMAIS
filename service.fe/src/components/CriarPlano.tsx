@@ -1,40 +1,14 @@
 import { useEffect, useState } from "react";
-// import { apiClient } from "../services/apiClient"; // ← descomentar quando o endpoint /exercicios existir
+import { exerciciosService, type Exercicio } from "../services/exercicios";
 
-// Estrutura de um exercício, conforme a tabela `exercicios`
-interface Exercicio {
-  id_exercicio: string;
-  nome_exercicio: string;
-  categoria: string;
-  duracao_segundos: number;
-  dificuldade_clinica: number;
-  recompensa_xp: number;
-  url_video: string | null;
-  descricao: string | null;
-  ativo: boolean;
-}
-
-
-const EXERCICIOS_FICTICIOS: Exercicio[] = [
-  { id_exercicio: "3302f93f-45dd-42d2-a448-f8fa592bacdb", nome_exercicio: "Braços", categoria: "Superiores", duracao_segundos: 600, dificuldade_clinica: 6, recompensa_xp: 10, url_video: null, descricao: null, ativo: true },
-  { id_exercicio: "7714ddb8-b2d7-4ad7-87d8-d4a17e6cdcb4", nome_exercicio: "Perna", categoria: "Inferiores", duracao_segundos: 60, dificuldade_clinica: 5, recompensa_xp: 10, url_video: null, descricao: null, ativo: false },
-  { id_exercicio: "9c495864-0d70-4458-a2e2-1f7ae99a9847", nome_exercicio: "Perna", categoria: "Inferiores", duracao_segundos: 60, dificuldade_clinica: 4, recompensa_xp: 10, url_video: null, descricao: null, ativo: true },
-  { id_exercicio: "c85c3399-b536-4254-8e55-1409d8b202d0", nome_exercicio: "Lunges", categoria: "Inferiores", duracao_segundos: 300, dificuldade_clinica: 7, recompensa_xp: 10, url_video: null, descricao: null, ativo: true },
-];
-// --------------------------------------------------------------------------
-
-// Utentes fictícios — ainda não há utentes reais na base de dados
+// Paciente real da base de dados (pacienteone).
 const UTENTES = [
-  { id: "11111111-1111-1111-1111-111111111111", nome: "Criança A (8 anos)" },
-  { id: "22222222-2222-2222-2222-222222222222", nome: "Criança B (10 anos)" },
-  { id: "33333333-3333-3333-3333-333333333333", nome: "Criança C (6 anos)" },
+  { id: "892a90f3-2114-4869-a623-0feb0fd4e633", nome: "pacienteone" },
 ];
 
 const formatarDuracao = (s: number) =>
   s < 60 ? `${s} seg` : `${Math.round(s / 60)} min`;
 
-// --- GUARDAR (TEMPORÁRIO) -------------------------------------------------
-// Sem endpoint de prescrições ainda, guarda no browser (localStorage).
 const guardarPlano = (utenteId: string, dados: unknown) => {
   localStorage.setItem(`plano:${utenteId}`, JSON.stringify(dados));
 };
@@ -61,20 +35,16 @@ export const CriarPlano = () => {
   const [notasMedicas, setNotasMedicas] = useState("");
   const [guardado, setGuardado] = useState(false);
 
-  // Carregar exercícios (por agora, os fictícios)
+  // Buscar os exercícios REAIS à API, usando o serviço da biblioteca
   useEffect(() => {
     const buscar = async () => {
       try {
         setLoading(true);
         setErro(null);
-        // --- FICTÍCIO: simula o carregamento ---
-        await new Promise((r) => setTimeout(r, 300));
-        setExercicios(EXERCICIOS_FICTICIOS.filter((e) => e.ativo));
-        // --- REAL (quando o endpoint existir): ---
-        // const { data } = await apiClient.get<Exercicio[]>("/exercicios");
-        // setExercicios(data.filter((e) => e.ativo));
+        const data = await exerciciosService.getAll();
+        setExercicios(data.filter((e) => e.ativo)); // só os ativos
       } catch {
-        setErro("Não foi possível carregar os exercícios.");
+        setErro("Não foi possível carregar os exercícios. O backend está a correr?");
       } finally {
         setLoading(false);
       }
@@ -82,6 +52,7 @@ export const CriarPlano = () => {
     buscar();
   }, []);
 
+  // Ao mudar de utente, restaura o plano guardado (se existir)
   useEffect(() => {
     const plano = carregarPlano(utenteId);
     setSelecionados(plano?.exercicios ?? []);
@@ -231,7 +202,7 @@ export const CriarPlano = () => {
           {guardado && <span className="text-sm font-semibold text-green-600">Plano guardado ✓</span>}
         </div>
         <p className="mt-3 text-xs text-slate-400">
-          Nota: exercícios e gravação são provisórios (protótipo) até existirem os endpoints de exercícios e prescrições.
+          Nota: a gravação do plano é provisória (browser) até existir o endpoint de prescrições.
         </p>
       </div>
     </div>
