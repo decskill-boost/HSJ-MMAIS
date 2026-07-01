@@ -7,6 +7,7 @@ import Login from "../components/Login";
 import DashboardPaciente from "../components/Dashboard/DashboardPaciente";
 import DashboardCorpoClinico from "../components/Dashboard/DashboardCorpoClinico";
 import ExerciciosPage from "../components/Exercicios/ExerciciosPage";
+import CriarPlano from "../components/CriarPlano";
 
 export const router = createBrowserRouter([
   {
@@ -36,6 +37,10 @@ export const router = createBrowserRouter([
       {
         path: "exercicios",
         element: <ExerciciosPage />,
+      },
+      {
+        path: "plano/criar",
+        element: <CriarPlano />,
       },
       {
         path: "*",
