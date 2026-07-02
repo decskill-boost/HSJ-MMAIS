@@ -3,12 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { Utilizador } from './entities/utilizador.entity';
-import { Exercicio } from './entities/exercicio.entity';
-import { Prescricao } from './entities/prescricao.entity';
-import { PrescricaoExercicio } from './entities/prescricao-exercicio.entity';
-import { SessaoRealizada } from './entities/sessao-realizada.entity';
 import { ExerciciosModule } from './exercicios/exercicios.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -26,12 +22,16 @@ import { ExerciciosModule } from './exercicios/exercicios.module';
         username: config.get('DB_USERNAME'),
         password: config.get('DB_PASSWORD'),
         database: config.get('DB_NAME'),
-        entities: [Utilizador, Exercicio, Prescricao, PrescricaoExercicio, SessaoRealizada],
+
+        // Substitui o array manual de entidades para resolver o Erro 500
+        autoLoadEntities: true,
+
         synchronize: config.get('APP_ENV') === 'dev',
         ssl: { rejectUnauthorized: false },
       }),
     }),
     ExerciciosModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

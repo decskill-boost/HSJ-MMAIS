@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import BtnGlobal from "./BtnGlobal";
+import { useUser } from "../contexts/UserContext"; // Lemos DIRETAMENTE do contexto global
 
 interface WelcomePageProps {
   logoSrc?: string;
@@ -7,7 +8,25 @@ interface WelcomePageProps {
 
 const WelcomePage = ({ logoSrc }: WelcomePageProps) => {
   const navigate = useNavigate();
-  const handleStart = () => navigate("/login");
+
+  const { user } = useUser();
+
+  // console.log(
+  //   "[WelcomePage] user recebido do contexto:",
+  //   user?.email || "Nenhum utilizador",
+  // );
+
+  const isAuthenticated = !!user;
+
+  const destination = isAuthenticated
+    ? user.role === "corpo_clinico"
+      ? "/dashboard/medico"
+      : "/dashboard/paciente"
+    : "/login";
+
+  const buttonText = isAuthenticated ? "Ir para o Dashboard" : "Começar!";
+
+  const handleAction = () => navigate(destination);
 
   return (
     <div className="flex flex-1 flex-col justify-center px-4 py-16 text-center">
@@ -48,10 +67,10 @@ const WelcomePage = ({ logoSrc }: WelcomePageProps) => {
       </p>
 
       <BtnGlobal
-        onClick={handleStart}
+        onClick={handleAction}
         className="mt-10 mx-auto rounded-xl bg-blue-600 px-10 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500/30"
       >
-        Começar!
+        {buttonText}
       </BtnGlobal>
     </div>
   );

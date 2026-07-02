@@ -87,7 +87,9 @@ export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
               Membro desde
             </label>
             <p className="text-base font-semibold text-slate-800">
-              {new Date(user.data_registo).toLocaleDateString("pt-PT")}
+              {user.data_registo
+                ? new Date(user.data_registo).toLocaleDateString("pt-PT")
+                : "Sem informação"}
             </p>
           </div>
         </div>

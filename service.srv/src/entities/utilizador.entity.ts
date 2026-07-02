@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
+import { Permissao } from './permissao.entity';
 
 @Entity('utilizadores')
 export class Utilizador {
@@ -28,4 +36,13 @@ export class Utilizador {
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   url_foto_perfil: string;
+
+  // 👇 ESTA É A PARTE QUE FALTAVA PARA O TYPESCRIPT FICAR FELIZ 👇
+  @ManyToMany(() => Permissao, { eager: true })
+  @JoinTable({
+    name: 'utilizadores_permissoes',
+    joinColumn: { name: 'id_user' },
+    inverseJoinColumn: { name: 'id_permissao' },
+  })
+  permissoesDirectas: Permissao[];
 }
