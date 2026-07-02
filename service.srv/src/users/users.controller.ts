@@ -11,6 +11,6 @@ export class UsersController {
   @Get('me')
   @UseGuards(SupabaseAuthGuard)
   getMe(@CurrentUser() payload: SupabaseJwtPayload) {
-    return this.usersService.findByEmail(payload.email!);
+    return this.usersService.findById(payload.sub);
   }
 }

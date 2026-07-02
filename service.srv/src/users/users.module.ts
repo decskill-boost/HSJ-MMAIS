@@ -1,15 +1,20 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from '../auth/auth.module';
-import { Perfil } from './perfil.entity';
-import { Utilizador } from './utilizador.entity';
-import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import { UsersController } from './users.controller';
+
+// 1. Importas as entidades que pertencem a este módulo
+import { Utilizador } from '../entities/utilizador.entity';
+import { Perfil } from '../entities/perfil.entity';
+import { Permissao } from '../entities/permissao.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Utilizador, Perfil]), AuthModule],
-  controllers: [UsersController],
+  imports: [
+    // 2. Colocas todas aqui dentro do forFeature
+    TypeOrmModule.forFeature([Utilizador, Perfil, Permissao]),
+  ],
   providers: [UsersService],
+  controllers: [UsersController],
   exports: [UsersService],
 })
 export class UsersModule {}

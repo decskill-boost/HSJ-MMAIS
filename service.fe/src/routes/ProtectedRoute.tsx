@@ -1,6 +1,6 @@
-import { Navigate, Outlet } from 'react-router-dom';
-import type { Permission } from '../types/permissions';
-import { useUser } from '../contexts/UserContext';
+import { Navigate, Outlet } from "react-router-dom";
+import type { Permission } from "../types/permissions";
+import { useUser } from "../contexts/UserContext";
 
 interface ProtectedRouteProps {
   permission?: Permission;
@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({
   permission,
-  redirectTo = '/login',
+  redirectTo = "/login",
 }: ProtectedRouteProps) {
   const { isAuthenticated, permissions, isLoading } = useUser();
 

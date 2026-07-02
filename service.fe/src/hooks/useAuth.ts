@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { authService } from "../services/Auth";
-import type { UserProfile } from "../types/user";
+import { useAuthActions } from "./useAuthActions";
 
 export const useAuth = () => {
   const [email, setEmail] = useState<string>("");
@@ -9,7 +9,8 @@ export const useAuth = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
 
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  // Importamos a ação global que acabámos de limpar
+  const { handleLogin: loginAndSetGlobalState } = useAuthActions();
 
   const handleLogin = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -17,11 +18,12 @@ export const useAuth = () => {
     setErrorMsg(null);
 
     try {
-      // 1. Recebemos o perfil que o serviço agora devolve
+      // 1. O serviço faz a comunicação com o Supabase e o NestJS
       const profile = await authService.login({ email, password });
 
-      // 2. Guardamos o perfil no estado
-      setUserProfile(profile);
+      // 2. Passamos o perfil para a ação global (que atualiza o UserContext e redireciona)
+      loginAndSetGlobalState(profile);
+
       setSuccess(true);
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -33,7 +35,7 @@ export const useAuth = () => {
       setLoading(false);
     }
   };
-  //  função para expor os resets:
+
   const resetAuthError = (msg: string) => {
     setSuccess(false);
     setLoading(false);
@@ -48,7 +50,6 @@ export const useAuth = () => {
     loading,
     errorMsg,
     success,
-    userProfile,
     handleLogin,
     resetAuthError,
   };
