@@ -22,4 +22,9 @@ export class Exercicio {
 
   @Column({ type: 'int' })
   dificuldade_clinica: number;
+
+  @Column({ type: 'text', nullable: true }) descricao: string;
+
+  @Column({ type: 'boolean', default: true })
+  ativo: boolean;
 }
