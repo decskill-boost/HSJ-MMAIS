@@ -1,5 +1,6 @@
 import { NavLink } from "react-router-dom";
 
+// Ícones inline (sem dependências)
 const IconHome = (props: React.SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <path d="M3 10.5 12 3l9 7.5" />
@@ -21,13 +22,24 @@ const IconPlus = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const links = [
-  { to: "/dashboard/medico", label: "Início", Icon: IconHome, end: true },
-  { to: "/exercicios", label: "Biblioteca de Exercícios", Icon: IconLibrary, end: false },
-  { to: "/plano/criar", label: "Criar Plano", Icon: IconPlus, end: false },
-];
+// Um link da sidebar
+export interface SidebarLink {
+  to: string;
+  label: string;
+  Icon: (props: React.SVGProps<SVGSVGElement>) => React.ReactElement;
+  end?: boolean;
+}
 
-export const Sidebar = () => {
+// Links pré-definidos, para reutilizar no Layout
+export const IconeInicio = IconHome;
+export const IconeBiblioteca = IconLibrary;
+export const IconePlano = IconPlus;
+
+interface SidebarProps {
+  links: SidebarLink[];
+}
+
+export const Sidebar = ({ links }: SidebarProps) => {
   return (
     <aside className="hidden w-60 shrink-0 border-r border-slate-200 bg-white md:block">
       <nav className="sticky top-16 flex flex-col gap-1 p-4">
