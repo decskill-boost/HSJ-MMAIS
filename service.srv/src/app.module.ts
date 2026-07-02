@@ -8,7 +8,6 @@ import { Exercicio } from './entities/exercicio.entity';
 import { Prescricao } from './entities/prescricao.entity';
 import { PrescricaoExercicio } from './entities/prescricao-exercicio.entity';
 import { SessaoRealizada } from './entities/sessao-realizada.entity';
-import { ExerciciosModule } from './exercicios/exercicios.module';
 
 @Module({
   imports: [
@@ -31,7 +30,6 @@ import { ExerciciosModule } from './exercicios/exercicios.module';
         ssl: { rejectUnauthorized: false },
       }),
     }),
-    ExerciciosModule,
   ],
   controllers: [AppController],
   providers: [AppService],
