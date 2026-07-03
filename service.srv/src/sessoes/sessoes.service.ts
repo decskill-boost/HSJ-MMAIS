@@ -7,6 +7,7 @@ import { SessaoRealizada } from '../entities/sessao-realizada.entity';
 import { Utilizador } from '../entities/utilizador.entity';
 import { ConcluirExercicioDto } from './dto/concluir-exercicio.dto';
 import { calculateLevelProgress } from './level.util';
+import { computeStreakUpdate } from './streak.util';
 
 export interface ConclusaoResultado {
   xpGained: number;
@@ -15,6 +16,7 @@ export interface ConclusaoResultado {
   leveledUp: boolean;
   xpForNextLevel: number;
   progressToNextLevel: number;
+  streakAtual: number;
   sessionId: string;
   alreadyCompletedToday: boolean;
 }
@@ -72,6 +74,7 @@ export class SessoesService {
         leveledUp: false,
         xpForNextLevel: levelInfo.xpForNextLevel,
         progressToNextLevel: levelInfo.progressToNextLevel,
+        streakAtual: user.streak_atual,
         sessionId: existing.id_sessao,
         alreadyCompletedToday: true,
       };
@@ -103,6 +106,14 @@ export class SessoesService {
 
       user.xp = totalXp;
       user.nivel = levelInfo.level;
+
+      const streakResult = computeStreakUpdate(
+        { streakAtual: user.streak_atual, ultimaAtividade: user.streak_ultima_atividade },
+        now,
+      );
+      user.streak_atual = streakResult.streakAtual;
+      user.streak_ultima_atividade = streakResult.ultimaAtividade;
+
       await manager.save(user);
 
       return {
@@ -112,6 +123,7 @@ export class SessoesService {
         leveledUp: levelInfo.level > oldLevel,
         xpForNextLevel: levelInfo.xpForNextLevel,
         progressToNextLevel: levelInfo.progressToNextLevel,
+        streakAtual: user.streak_atual,
         sessionId: sessao.id_sessao,
         alreadyCompletedToday: false,
       };

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Perfil } from '../entities/perfil.entity';
 import { Utilizador } from '../entities/utilizador.entity';
+import { getEffectiveStreak } from '../sessoes/streak.util';
 
 @Injectable()
 export class UsersService {
@@ -40,7 +41,7 @@ export class UsersService {
       role: user.tipo_utilizador,
       xp: user.xp,
       nivel: user.nivel,
-      streakAtual: user.streak_atual,
+      streakAtual: getEffectiveStreak(user.streak_atual, user.streak_ultima_atividade, new Date()),
       urlFotoPerfil: user.url_foto_perfil,
       permissions,
     };
@@ -73,7 +74,7 @@ export class UsersService {
       role: user.tipo_utilizador,
       xp: user.xp,
       nivel: user.nivel,
-      streakAtual: user.streak_atual,
+      streakAtual: getEffectiveStreak(user.streak_atual, user.streak_ultima_atividade, new Date()),
       urlFotoPerfil: user.url_foto_perfil,
       permissions,
     };

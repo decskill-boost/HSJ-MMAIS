@@ -28,6 +28,7 @@ const mockUser = (overrides: Partial<Utilizador> = {}): Utilizador =>
     xp: 0,
     nivel: 1,
     streak_atual: 0,
+    streak_ultima_atividade: null,
     data_registo: new Date(),
     url_foto_perfil: null,
     permissoesDirectas: [],
@@ -128,5 +129,30 @@ describe('UsersService', () => {
     const result = await service.findByEmail('test@example.com');
 
     expect(result.permissions).toEqual([]);
+  });
+
+  it('returns the stored streak when the last activity was today or yesterday', async () => {
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    utilizadorRepo.findOne.mockResolvedValue(
+      mockUser({ streak_atual: 5, streak_ultima_atividade: yesterday }),
+    );
+    perfilRepo.findOne.mockResolvedValue(null);
+
+    const result = await service.findByEmail('test@example.com');
+
+    expect(result.streakAtual).toBe(5);
+  });
+
+  it('reflects a decayed streak (0) after a multi-day gap, without persisting anything', async () => {
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+    utilizadorRepo.findOne.mockResolvedValue(
+      mockUser({ streak_atual: 7, streak_ultima_atividade: threeDaysAgo }),
+    );
+    perfilRepo.findOne.mockResolvedValue(null);
+
+    const result = await service.findByEmail('test@example.com');
+
+    expect(result.streakAtual).toBe(0);
+    expect(utilizadorRepo.findOne).toHaveBeenCalledTimes(1);
   });
 });
