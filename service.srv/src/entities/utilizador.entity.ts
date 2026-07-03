@@ -31,6 +31,9 @@ export class Utilizador {
   @Column({ type: 'int', default: 0 })
   streak_atual: number;
 
+  @Column({ type: 'timestamp', nullable: true, default: null })
+  streak_ultima_atividade: Date | null;
+
   @CreateDateColumn()
   data_registo: Date;
 
