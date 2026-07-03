@@ -1,4 +1,4 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import Footer from "../components/Footer";
 import Sidebar, {
@@ -19,18 +19,27 @@ const linksPaciente: SidebarLink[] = [
   { to: "/dashboard/paciente", label: "Início", Icon: IconeInicio, end: true },
 ];
 
+// Páginas onde a sidebar NÃO deve aparecer
+const paginasSemSidebar = ["/", "/login"];
+
 export const Layout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, handleLogin, handleLogout } = useAuthActions();
+  console.log("USER no Layout:", user);
 
   // Escolhe os links da sidebar conforme o tipo de utilizador
-  const isClinico = user?.tipo_utilizador === "corpo_clinico";
-  const isPaciente = user?.tipo_utilizador === "paciente";
-  const sidebarLinks = isClinico
+const isClinico = user?.role === "corpo_clinico";
+  const isPaciente = user?.role === "paciente";
+  const linksDoUtilizador = isClinico
     ? linksMedico
     : isPaciente
       ? linksPaciente
       : null;
+
+  // Só mostra a sidebar se houver links E a página atual não estiver na lista de exceções
+  const mostrarSidebar =
+    linksDoUtilizador && !paginasSemSidebar.includes(location.pathname);
 
   return (
     <div className="relative flex min-h-screen flex-col bg-slate-50">
@@ -40,7 +49,7 @@ export const Layout = () => {
         onLogoutClick={handleLogout}
       />
       <div className="flex flex-1">
-        {sidebarLinks && <Sidebar links={sidebarLinks} />}
+        {mostrarSidebar && <Sidebar links={linksDoUtilizador} />}
         <main className="flex flex-1 flex-col pb-16">
           <Outlet context={{ user, handleLogin, handleLogout }} />
         </main>
