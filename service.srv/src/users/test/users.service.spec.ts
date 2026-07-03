@@ -2,12 +2,12 @@ import { NotFoundException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Test } from '@nestjs/testing';
 import { Repository } from 'typeorm';
-import { Permission } from './permission.enum';
-import { Perfil } from './perfil.entity';
-import { Permissao } from './permissao.entity';
-import { Utilizador } from './utilizador.entity';
-import { UserRole } from './user-role.enum';
-import { UsersService } from './users.service';
+import { Permission } from '../permission.enum';
+import { Perfil } from '../perfil.entity';
+import { Permissao } from '../permissao.entity';
+import { Utilizador } from '../../entities/utilizador.entity';
+import { UserRole } from '../user-role.enum';
+import { UsersService } from '../users.service';
 
 const mockPermissao = (nome: Permission): Permissao =>
   ({ id: `perm-${nome}`, nome }) as Permissao;
@@ -21,15 +21,15 @@ const mockPerfil = (role: UserRole, perms: Permission[]): Perfil =>
 
 const mockUser = (overrides: Partial<Utilizador> = {}): Utilizador =>
   ({
-    idUser: 'user-uuid',
+    id_user: 'user-uuid',
     nome: 'Dr. Test',
     email: 'test@example.com',
-    tipoUtilizador: UserRole.CORPO_CLINICO,
+    tipo_utilizador: UserRole.CORPO_CLINICO,
     xp: 0,
     nivel: 1,
-    streakAtual: 0,
-    dataRegisto: new Date(),
-    urlFotoPerfil: null,
+    streak_atual: 0,
+    data_registo: new Date(),
+    url_foto_perfil: null,
     permissoesDirectas: [],
     ...overrides,
   }) as Utilizador;
@@ -79,7 +79,7 @@ describe('UsersService', () => {
 
   it('returns user with correct permissions for paciente', async () => {
     utilizadorRepo.findOne.mockResolvedValue(
-      mockUser({ tipoUtilizador: UserRole.PACIENTE }),
+      mockUser({ tipo_utilizador: UserRole.PACIENTE }),
     );
     perfilRepo.findOne.mockResolvedValue(
       mockPerfil(UserRole.PACIENTE, [
@@ -96,7 +96,7 @@ describe('UsersService', () => {
 
   it('returns user with correct permissions for acompanhante', async () => {
     utilizadorRepo.findOne.mockResolvedValue(
-      mockUser({ tipoUtilizador: UserRole.ACOMPANHANTE }),
+      mockUser({ tipo_utilizador: UserRole.ACOMPANHANTE }),
     );
     perfilRepo.findOne.mockResolvedValue(
       mockPerfil(UserRole.ACOMPANHANTE, [
@@ -121,7 +121,7 @@ describe('UsersService', () => {
 
   it('returns empty permissions when perfil is not found', async () => {
     utilizadorRepo.findOne.mockResolvedValue(
-      mockUser({ tipoUtilizador: 'invalid_role' }),
+      mockUser({ tipo_utilizador: 'invalid_role' }),
     );
     perfilRepo.findOne.mockResolvedValue(null);
 
