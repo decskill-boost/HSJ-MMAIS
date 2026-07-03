@@ -41,7 +41,11 @@ export class UsersService {
       role: user.tipo_utilizador,
       xp: user.xp,
       nivel: user.nivel,
-      streakAtual: getEffectiveStreak(user.streak_atual, user.streak_ultima_atividade, new Date()),
+      streakAtual: getEffectiveStreak(
+        user.streak_atual,
+        user.streak_ultima_atividade,
+        new Date(),
+      ),
       urlFotoPerfil: user.url_foto_perfil,
       permissions,
     };
@@ -74,7 +78,11 @@ export class UsersService {
       role: user.tipo_utilizador,
       xp: user.xp,
       nivel: user.nivel,
-      streakAtual: getEffectiveStreak(user.streak_atual, user.streak_ultima_atividade, new Date()),
+      streakAtual: getEffectiveStreak(
+        user.streak_atual,
+        user.streak_ultima_atividade,
+        new Date(),
+      ),
       urlFotoPerfil: user.url_foto_perfil,
       permissions,
     };
