@@ -5,6 +5,7 @@ import Sidebar, {
   IconeInicio,
   IconeBiblioteca,
   IconePlano,
+  IconePlanos,
   type SidebarLink,
 } from "../components/Sidebar";
 import { useAuthActions } from "../hooks/useAuthActions";
@@ -30,6 +31,7 @@ const linksMedico: SidebarLink[] = [
 
 const linksPaciente: SidebarLink[] = [
   { to: "/dashboard/paciente", label: "Início", Icon: IconeInicio, end: true },
+  { to: "/paciente/planos", label: "Ver Planos", Icon: IconePlanos },
 ];
 
 // Páginas onde a sidebar NÃO deve aparecer
@@ -39,7 +41,6 @@ export const Layout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, handleLogin, handleLogout } = useAuthActions();
-  console.log("USER no Layout:", user);
 
   // Escolhe os links da sidebar conforme o tipo de utilizador
   const isClinico = user?.role === "corpo_clinico";
