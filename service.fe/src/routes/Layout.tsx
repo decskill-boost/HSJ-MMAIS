@@ -9,9 +9,22 @@ import Sidebar, {
 } from "../components/Sidebar";
 import { useAuthActions } from "../hooks/useAuthActions";
 
+const linksAdmin: SidebarLink[] = [
+  {
+    to: "/dashboard/admin",
+    label: "Gestão de Utilizadores",
+    Icon: IconePlano,
+    end: true,
+  },
+];
+
 const linksMedico: SidebarLink[] = [
   { to: "/dashboard/medico", label: "Início", Icon: IconeInicio, end: true },
-  { to: "/exercicios", label: "Biblioteca de Exercícios", Icon: IconeBiblioteca },
+  {
+    to: "/exercicios",
+    label: "Biblioteca de Exercícios",
+    Icon: IconeBiblioteca,
+  },
   { to: "/plano/criar", label: "Criar Plano", Icon: IconePlano },
 ];
 
@@ -29,13 +42,16 @@ export const Layout = () => {
   console.log("USER no Layout:", user);
 
   // Escolhe os links da sidebar conforme o tipo de utilizador
-const isClinico = user?.role === "corpo_clinico";
+  const isClinico = user?.role === "corpo_clinico";
   const isPaciente = user?.role === "paciente";
-  const linksDoUtilizador = isClinico
-    ? linksMedico
-    : isPaciente
-      ? linksPaciente
-      : null;
+  const isAdmin = user?.role === "admin";
+  const linksDoUtilizador = isAdmin
+    ? linksAdmin
+    : isClinico
+      ? linksMedico
+      : isPaciente
+        ? linksPaciente
+        : null;
 
   // Só mostra a sidebar se houver links E a página atual não estiver na lista de exceções
   const mostrarSidebar =

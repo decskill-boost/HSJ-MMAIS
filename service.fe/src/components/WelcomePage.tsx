@@ -19,9 +19,11 @@ const WelcomePage = ({ logoSrc }: WelcomePageProps) => {
   const isAuthenticated = !!user;
 
   const destination = isAuthenticated
-    ? user.role === "corpo_clinico"
-      ? "/dashboard/medico"
-      : "/dashboard/paciente"
+    ? user.role === "admin"
+      ? "/dashboard/admin"
+      : user.role === "corpo_clinico"
+        ? "/dashboard/medico"
+        : "/dashboard/paciente"
     : "/login";
 
   const buttonText = isAuthenticated ? "Ir para o Dashboard" : "Começar!";

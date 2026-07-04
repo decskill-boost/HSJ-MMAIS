@@ -1,6 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import { Layout } from "./Layout";
-import { UserRole } from "../types/permissions"; // <-- Nova importação
+import { UserRole } from "../types/permissions";
 
 import WelcomePage from "../components/WelcomePage";
 import PersonalInfo from "../components/PersonalInfo/PersonalInfo";
@@ -8,8 +8,10 @@ import PageNotFound from "../components/PageNotFound";
 import Login from "../components/Login";
 import DashboardPaciente from "../components/Dashboard/DashboardPaciente";
 import DashboardCorpoClinico from "../components/Dashboard/DashboardCorpoClinico";
+import DashboardAdmin from "../components/Dashboard/DashboardAdmin/DashboardAdmin";
 import ExerciciosPage from "../components/Exercicios/ExerciciosPage";
 import CriarPlano from "../components/CriarPlano";
+
 import { ProtectedRoute } from "./ProtectedRoute";
 
 export const router = createBrowserRouter([
@@ -40,7 +42,7 @@ export const router = createBrowserRouter([
 
       // 🔴 ROTAS CORPO CLÍNICO (Protegidas por perfil)
       {
-        element: <ProtectedRoute role={UserRole.CORPO_CLINICO} />, // <-- Corrigido aqui
+        element: <ProtectedRoute role={UserRole.CORPO_CLINICO} />,
         children: [
           {
             path: "dashboard/medico",
@@ -53,6 +55,17 @@ export const router = createBrowserRouter([
           {
             path: "plano/criar",
             element: <CriarPlano />,
+          },
+        ],
+      },
+
+      // 🟣 ROTAS ADMIN (Protegidas por Admin)
+      {
+        element: <ProtectedRoute role={UserRole.ADMIN} />,
+        children: [
+          {
+            path: "dashboard/admin",
+            element: <DashboardAdmin />,
           },
         ],
       },
