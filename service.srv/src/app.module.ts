@@ -5,6 +5,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ExerciciosModule } from './exercicios/exercicios.module';
 import { UsersModule } from './users/users.module';
+import { PrescricoesModule } from './prescricoes/prescricoes.module';
 
 @Module({
   imports: [
@@ -22,16 +23,14 @@ import { UsersModule } from './users/users.module';
         username: config.get('DB_USERNAME'),
         password: config.get('DB_PASSWORD'),
         database: config.get('DB_NAME'),
-
-        // Substitui o array manual de entidades para resolver o Erro 500
         autoLoadEntities: true,
-
         synchronize: config.get('APP_ENV') === 'dev',
         ssl: { rejectUnauthorized: false },
       }),
     }),
     ExerciciosModule,
     UsersModule,
+    PrescricoesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

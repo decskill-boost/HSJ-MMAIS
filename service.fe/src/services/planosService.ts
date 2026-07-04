@@ -1,6 +1,7 @@
 import { supabase } from "./supabaseClient";
+import { apiClient } from "./apiClient";
 
-// --- INTERFACES DE TIPOS (Mudou para Plano) ---
+// --- INTERFACES DE TIPOS ---
 export interface ExercicioDoPlano {
   id_exercicio: string;
   nome_exercicio: string;
@@ -17,12 +18,11 @@ export interface PlanoAtivo {
   exercicios: ExercicioDoPlano[];
 }
 
-// --- SERVIÇO COM NOMES DE PLANO ---
 export const planosService = {
+  // LER o plano ativo de um paciente (via Supabase)
   getPlanoAtivoPorPaciente: async (
     idPaciente: string,
   ): Promise<PlanoAtivo | null> => {
-    // ATENÇÃO: O .from() e o .select() mantêm os nomes físicos da BD
     const { data, error } = await supabase
       .from("prescricoes")
       .select(
@@ -57,5 +57,17 @@ export const planosService = {
       notas_medicas: data.notas_medicas,
       exercicios: (data.exercicios as unknown as ExercicioDoPlano[]) || [],
     };
+  },
+
+  // CRIAR um plano (prescrição) através do backend
+  criarPlano: async (dados: {
+    id_paciente: string;
+    id_medico: string;
+    frequencia_semanal: number;
+    data_validade: string | null;
+    notas_medicas: string;
+    exercicios: string[]; // lista de id_exercicio
+  }): Promise<void> => {
+    await apiClient.post("/prescricoes", dados);
   },
 };
