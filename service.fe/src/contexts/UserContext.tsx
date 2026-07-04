@@ -22,6 +22,7 @@ interface UserContextValue {
   permissions: Permission[];
   isLoading: boolean;
   isAuthenticated: boolean;
+  setUser: (user: UserProfile | null) => void;
 }
 
 const UserContext = createContext<UserContextValue>({
@@ -29,6 +30,7 @@ const UserContext = createContext<UserContextValue>({
   permissions: [],
   isLoading: true,
   isAuthenticated: false,
+  setUser: () => {},
 });
 
 // Só limpamos a sessão local quando o backend confirma que o token
@@ -167,6 +169,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         permissions: user?.permissions ?? [],
         isLoading,
         isAuthenticated: user !== null,
+        setUser,
       }}
     >
       {children}
