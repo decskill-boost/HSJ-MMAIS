@@ -1,6 +1,6 @@
 import BtnGlobal from "../../../BtnGlobal";
 import type { UserProfile } from "../../../../types/permissions";
-import ConfirmDialog from "../../../ConfirmDialog";
+import ConfirmDialog from "./ConfirmDialog";
 import { useState } from "react";
 
 interface Props {

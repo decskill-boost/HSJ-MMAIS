@@ -1,6 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import { Layout } from "./Layout";
-import { UserRole } from "../types/permissions"; // <-- Nova importação
+import { UserRole } from "../types/permissions";
 
 import WelcomePage from "../components/WelcomePage";
 import PersonalInfo from "../components/PersonalInfo/PersonalInfo";
@@ -11,7 +11,7 @@ import DashboardCorpoClinico from "../components/Dashboard/DashboardCorpoClinico
 import DashboardAdmin from "../components/Dashboard/DashboardAdmin/DashboardAdmin";
 import ExerciciosPage from "../components/Exercicios/ExerciciosPage";
 import CriarPlano from "../components/CriarPlano";
-import UserManagement from "../components/Dashboard/DashboardAdmin/UserManagement/UserManagement";
+
 import { ProtectedRoute } from "./ProtectedRoute";
 
 export const router = createBrowserRouter([
@@ -58,6 +58,8 @@ export const router = createBrowserRouter([
           },
         ],
       },
+
+      // 🟣 ROTAS ADMIN (Protegidas por Admin)
       {
         element: <ProtectedRoute role={UserRole.ADMIN} />,
         children: [
