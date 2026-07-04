@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ExerciciosModule } from './exercicios/exercicios.module';
+import { SessoesModule } from './sessoes/sessoes.module';
 import { UsersModule } from './users/users.module';
 import { PrescricoesModule } from './prescricoes/prescricoes.module';
 
@@ -29,6 +30,7 @@ import { PrescricoesModule } from './prescricoes/prescricoes.module';
       }),
     }),
     ExerciciosModule,
+    SessoesModule,
     UsersModule,
     PrescricoesModule,
   ],

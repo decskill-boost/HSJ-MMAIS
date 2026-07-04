@@ -15,6 +15,7 @@ export const useAuthActions = () => {
     console.log("[useAuthActions] handleLogin chamado", userProfile.email);
 
     if (
+      userProfile.role !== "admin" &&
       userProfile.role !== "corpo_clinico" &&
       userProfile.role !== "paciente"
     ) {
@@ -24,12 +25,13 @@ export const useAuthActions = () => {
       return false;
     }
 
-    // 2. Atualiza DIRETAMENTE o estado global. Não há useState local aqui!
     if (setUser) {
       setUser(userProfile);
     }
 
-    if (userProfile.role === "corpo_clinico") {
+    if (userProfile.role === "admin") {
+      navigate("/dashboard/admin");
+    } else if (userProfile.role === "corpo_clinico") {
       navigate("/dashboard/medico");
     } else if (userProfile.role === "paciente") {
       navigate("/dashboard/paciente");

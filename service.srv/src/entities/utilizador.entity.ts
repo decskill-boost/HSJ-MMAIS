@@ -31,11 +31,14 @@ export class Utilizador {
   @Column({ type: 'int', default: 0 })
   streak_atual: number;
 
+  @Column({ type: 'timestamp', nullable: true, default: null })
+  streak_ultima_atividade: Date | null;
+
   @CreateDateColumn()
   data_registo: Date;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
-  url_foto_perfil: string;
+  url_foto_perfil: string | null;
 
   // 👇 ESTA É A PARTE QUE FALTAVA PARA O TYPESCRIPT FICAR FELIZ 👇
   @ManyToMany(() => Permissao, { eager: true })

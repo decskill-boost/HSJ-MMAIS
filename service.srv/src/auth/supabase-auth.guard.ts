@@ -8,6 +8,9 @@ import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 import * as jwt from 'jsonwebtoken';
 import jwksClient from 'jwks-rsa';
+import type { SupabaseJwtPayload } from './supabase-jwt-payload.interface';
+import type { AuthenticatedRequest } from './authenticated-request.interface';
+
 @Injectable()
 export class SupabaseAuthGuard implements CanActivate {
   private readonly client: jwksClient.JwksClient;
@@ -31,14 +34,17 @@ export class SupabaseAuthGuard implements CanActivate {
 
     try {
       const payload = await this.verifyToken(token);
-      request['user'] = payload;
-    } catch {
+      (request as AuthenticatedRequest).user = payload;
+    } catch (err) {
+      // Não logamos o token nem o payload - apenas a falha em si, para
+      // não deixar dados sensíveis em ficheiros de log.
+      console.error('[SupabaseAuthGuard] falha ao verificar token', err);
       throw new UnauthorizedException();
     }
     return true;
   }
 
-  private verifyToken(token: string): Promise<jwt.JwtPayload> {
+  private verifyToken(token: string): Promise<SupabaseJwtPayload> {
     return new Promise((resolve, reject) => {
       jwt.verify(
         token,
@@ -55,13 +61,15 @@ export class SupabaseAuthGuard implements CanActivate {
             callback(null, key.getPublicKey());
           });
         },
+        // ES256: chave atual (assimétrica). HS256/RS256: mantidos para
+        // cobrir tokens antigos ainda não expirados durante a transição.
         { algorithms: ['ES256', 'RS256', 'HS256'] },
         (err, decoded) => {
           if (err || !decoded || typeof decoded === 'string') {
             reject(err ?? new Error('Token inválido'));
             return;
           }
-          resolve(decoded);
+          resolve(decoded as SupabaseJwtPayload);
         },
       );
     });
