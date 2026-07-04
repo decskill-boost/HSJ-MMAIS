@@ -11,6 +11,7 @@ import DashboardCorpoClinico from "../components/Dashboard/DashboardCorpoClinico
 import DashboardAdmin from "../components/Dashboard/DashboardAdmin/DashboardAdmin";
 import ExerciciosPage from "../components/Exercicios/ExerciciosPage";
 import CriarPlano from "../components/CriarPlano";
+import PlanosPaciente from "../components/PlanosPaciente";
 
 import { ProtectedRoute } from "./ProtectedRoute";
 
@@ -72,11 +73,15 @@ export const router = createBrowserRouter([
 
       // 🔵 ROTAS PACIENTE (Protegidas por perfil)
       {
-        element: <ProtectedRoute role={UserRole.PACIENTE} />, // <-- Corrigido aqui
+        element: <ProtectedRoute role={UserRole.PACIENTE} />,
         children: [
           {
             path: "dashboard/paciente",
             element: <DashboardPaciente />,
+          },
+          {
+            path: "paciente/planos",
+            element: <PlanosPaciente />,
           },
         ],
       },
