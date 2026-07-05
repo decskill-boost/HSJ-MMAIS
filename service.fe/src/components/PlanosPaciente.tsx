@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
-import { planosService, type PlanoAtivo, type ExercicioDoPlano } from "../services/planosService";
+import {
+  planosService,
+  type PlanoAtivo,
+  type ExercicioDoPlano,
+} from "../services/planosService";
 import type { UserProfile } from "../types/user";
 import ExercicioPlayer from "./Planos/ExercicioPlayer";
 import ExercicioPreview from "./Planos/ExercicioPreview";
@@ -14,7 +18,6 @@ type View = "list" | "preview" | "playing";
 
 export const PlanosPaciente = () => {
   const { user } = useOutletContext<LayoutContext>();
-
   const [planoAtivo, setPlanoAtivo] = useState<PlanoAtivo | null>(null);
   const [historico, setHistorico] = useState<PlanoAtivo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,30 +36,23 @@ export const PlanosPaciente = () => {
       .finally(() => setLoading(false));
   }, [user?.idUser]);
 
-  const handleSelecionarExercicio = (ex: ExercicioDoPlano) => {
-    setExercicioSelecionado(ex);
-    setView("preview");
-  };
+  if (view === "playing" && exercicioSelecionado) return (
+    <ExercicioPlayer
+      exercicio={exercicioSelecionado}
+      idPrescricao={planoAtivo?.id_plano ?? ""}
+      idPaciente={user?.idUser ?? ""}
+      onVoltar={() => setView("preview")}
+      onConcluir={() => { setView("list"); setExercicioSelecionado(null); }}
+    />
+  );
 
-  if (view === "playing" && exercicioSelecionado) {
-    return (
-      <ExercicioPlayer
-        exercicio={exercicioSelecionado}
-        onVoltar={() => setView("preview")}
-        onConcluir={() => { setView("list"); setExercicioSelecionado(null); }}
-      />
-    );
-  }
-
-  if (view === "preview" && exercicioSelecionado) {
-    return (
-      <ExercicioPreview
-        exercicio={exercicioSelecionado}
-        onVoltar={() => setView("list")}
-        onComecar={() => setView("playing")}
-      />
-    );
-  }
+  if (view === "preview" && exercicioSelecionado) return (
+    <ExercicioPreview
+      exercicio={exercicioSelecionado}
+      onVoltar={() => setView("list")}
+      onComecar={() => setView("playing")}
+    />
+  );
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-10">
@@ -70,7 +66,10 @@ export const PlanosPaciente = () => {
         planoAtivo={planoAtivo}
         historico={historico}
         loading={loading}
-        onSelecionarExercicio={handleSelecionarExercicio}
+        onSelecionarExercicio={(ex) => {
+          setExercicioSelecionado(ex);
+          setView("preview");
+        }}
       />
     </div>
   );

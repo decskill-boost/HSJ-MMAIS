@@ -1,0 +1,176 @@
+import { useState } from "react";
+import { sessoesService } from "../../services/sessoesService";
+
+interface Props {
+  idPaciente: string;
+  idExercicio: string;
+  idPrescricao: string;
+  duracaoSegundos: number;
+  recompensaXp: number;
+  onConcluir: () => void;
+}
+
+const DIVERSAO = [
+  { valor: 1, emoji: "😴", label: "Nada divertido" },
+  { valor: 2, emoji: "😕", label: "Pouco divertido" },
+  { valor: 3, emoji: "😊", label: "Fixe!" },
+  { valor: 4, emoji: "😄", label: "Muito divertido!" },
+  { valor: 5, emoji: "🤩", label: "Incrível!!" },
+];
+
+const ESFORCO = [
+  { min: 1, max: 2, emoji: "🌱", label: "Muito fácil" },
+  { min: 3, max: 4, emoji: "😌", label: "Fácil" },
+  { min: 5, max: 6, emoji: "😅", label: "Normal" },
+  { min: 7, max: 8, emoji: "😤", label: "Difícil" },
+  { min: 9, max: 10, emoji: "🥵", label: "Muito difícil" },
+];
+
+const getEsforcoInfo = (val: number) =>
+  ESFORCO.find((e) => val >= e.min && val <= e.max) ?? ESFORCO[2];
+
+const AvaliacaoExercicio = ({
+  idPaciente,
+  idExercicio,
+  idPrescricao,
+  duracaoSegundos,
+  recompensaXp,
+  onConcluir,
+}: Props) => {
+  const [diversao, setDiversao] = useState(3);
+  const [esforco, setEsforco] = useState(5);
+  const [diversaoTouched, setDiversaoTouched] = useState(false);
+  const [esforcoTouched, setEsforcoTouched] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [concluido, setConcluido] = useState(false);
+
+  const diversaoInfo = DIVERSAO[diversao - 1];
+  const esforcoInfo = getEsforcoInfo(esforco);
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    try {
+      await sessoesService.registarSessao({
+        id_paciente: idPaciente,
+        id_exercicio: idExercicio,
+        id_prescricao: idPrescricao,
+        duracao: duracaoSegundos,
+        diversao_1_a_5: diversao,
+        esforco_1_a_10: esforco,
+      });
+      setConcluido(true);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (concluido) {
+    return (
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/80 backdrop-blur-sm">
+        <span className="animate-bounce text-7xl">🎉</span>
+        <h3 className="text-3xl font-extrabold text-white">Muito bem!</h3>
+        <p className="text-slate-300">Avaliação registada com sucesso!</p>
+        <div className="rounded-full bg-blue-500/20 px-5 py-2">
+          <p className="text-lg font-bold text-blue-400">+{recompensaXp} XP ganhos! ⭐</p>
+        </div>
+        <button
+          onClick={onConcluir}
+          className="mt-2 flex items-center gap-3 rounded-2xl bg-emerald-500 px-8 py-4 text-xl font-extrabold text-white shadow-lg transition hover:bg-emerald-400 active:scale-95"
+        >
+          🏆 Voltar ao plano
+        </button>
+      </div>
+    );
+  }
+
+  return (
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 overflow-hidden bg-black/80 px-6 py-4 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-1">
+              <span className="text-3xl">✅</span>
+              <h3 className="text-2xl font-extrabold text-white">Exercício concluído!</h3>
+              <p className="text-sm text-slate-300">Diz-nos como foi...</p>
+      </div>
+
+      {/* Slider Diversão */}
+      <div className="w-full max-w-sm rounded-2xl bg-white/10 p-5 backdrop-blur-sm">
+        <p className="mb-4 text-center text-base font-bold text-white">Foi divertido?</p>
+
+        <div className="flex flex-col items-center gap-3">
+          <span className="text-4xl transition-all duration-200">
+            {diversaoInfo.emoji}
+          </span>
+          <p className="text-sm font-semibold text-slate-300">{diversaoInfo.label}</p>
+
+          <input
+            type="range"
+            min={1}
+            max={5}
+            step={1}
+            value={diversao}
+            onChange={(e) => {
+              setDiversao(Number(e.target.value));
+              setDiversaoTouched(true);
+            }}
+            className="w-full cursor-pointer accent-yellow-400"
+            style={{ height: "6px" }}
+          />
+          <div className="flex w-full justify-between text-lg">
+            {DIVERSAO.map((d) => (
+              <span key={d.valor} className={diversao === d.valor ? "opacity-100" : "opacity-30"}>
+                {d.emoji}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Slider Esforço */}
+      <div className="w-full max-w-sm rounded-2xl bg-white/10 p-5 backdrop-blur-sm">
+        <p className="mb-4 text-center text-base font-bold text-white">Foi difícil?</p>
+
+        <div className="flex flex-col items-center gap-3">
+          <span className="text-4xl transition-all duration-200">
+            {esforcoInfo.emoji}
+          </span>
+          <p className="text-sm font-semibold text-slate-300">{esforcoInfo.label}</p>
+
+          <input
+            type="range"
+            min={1}
+            max={10}
+            step={1}
+            value={esforco}
+            onChange={(e) => {
+              setEsforco(Number(e.target.value));
+              setEsforcoTouched(true);
+            }}
+            className="w-full cursor-pointer accent-blue-400"
+            style={{ height: "6px" }}
+          />
+          <div className="flex w-full justify-between text-lg">
+            {ESFORCO.map((e) => (
+              <span key={e.min} className={esforcoInfo.emoji === e.emoji ? "opacity-100" : "opacity-30"}>
+                {e.emoji}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <button
+        onClick={handleSubmit}
+        disabled={!diversaoTouched || !esforcoTouched || loading}
+        className="flex items-center gap-3 rounded-xl bg-green-500 px-6 py-3 text-base font-extrabold text-white shadow-lg transition hover:bg-green-400 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+      >
+        {loading ? "A guardar..." : "Enviar avaliação"}
+      </button>
+      {(!diversaoTouched || !esforcoTouched) && (
+        <p className="text-xs text-slate-400">Move os dois sliders para poderes enviar</p>
+      )}
+    </div>
+  );
+};
+
+export default AvaliacaoExercicio;
