@@ -111,7 +111,7 @@ const DashboardCorpoClinico = () => {
                 </p>
               </div>
               <BtnGlobal
-                onClick={() => navigate("/dashboard/medico/pacientes")}
+                onClick={() => navigate("/dashboard/medico/adesao")}
                 className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700"
               >
                 Ver todos os pacientes

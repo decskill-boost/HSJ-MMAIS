@@ -41,7 +41,7 @@ const PacientePerfil = () => {
       <div className="mx-auto w-full max-w-5xl px-4 py-10">
         <p className="text-sm text-red-600">{erro ?? "Paciente não encontrado."}</p>
         <Link
-          to="/dashboard/medico/pacientes"
+          to="/dashboard/medico/adesao"
           className="mt-4 inline-block text-sm text-blue-600 hover:underline"
         >
           ← Voltar à lista de pacientes
@@ -53,7 +53,7 @@ const PacientePerfil = () => {
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-10">
       <Link
-        to="/dashboard/medico/pacientes"
+        to="/dashboard/medico/adesao"
         className="text-sm font-medium text-slate-500 transition hover:text-slate-900"
       >
         ← Voltar à lista de pacientes

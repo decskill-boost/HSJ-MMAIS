@@ -145,12 +145,12 @@ const PacientesList = () => {
                     {pacientesOrdenados.map((paciente) => (
                       <tr
                         key={paciente.idUser}
-                        onClick={() => navigate(`/dashboard/medico/pacientes/${paciente.idUser}`)}
+                        onClick={() => navigate(`/dashboard/medico/adesao/${paciente.idUser}`)}
                         className="cursor-pointer hover:bg-slate-50"
                       >
                         <td className="px-4 py-4 font-semibold text-slate-900">
                           <Link
-                            to={`/dashboard/medico/pacientes/${paciente.idUser}`}
+                            to={`/dashboard/medico/adesao/${paciente.idUser}`}
                             className="hover:underline"
                             onClick={(e) => e.stopPropagation()}
                           >
