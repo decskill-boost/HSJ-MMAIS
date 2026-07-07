@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -22,6 +23,11 @@ const linksAdmin: SidebarLink[] = [
 const linksMedico: SidebarLink[] = [
   { to: "/dashboard/medico", label: "Início", Icon: IconeInicio, end: true },
   {
+    to: "/dashboard/medico/pacientes",
+    label: "Gerir Planos",
+    Icon: IconePlanos,
+  },
+  {
     to: "/exercicios",
     label: "Biblioteca de Exercícios",
     Icon: IconeBiblioteca,
@@ -42,10 +48,14 @@ export const Layout = () => {
   const location = useLocation();
   const { user, handleLogin, handleLogout } = useAuthActions();
 
+  // Estado do menu mobile (hamburger + sidebar flutuante)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   // Escolhe os links da sidebar conforme o tipo de utilizador
   const isClinico = user?.role === "corpo_clinico";
   const isPaciente = user?.role === "paciente";
   const isAdmin = user?.role === "admin";
+
   const linksDoUtilizador = isAdmin
     ? linksAdmin
     : isClinico
@@ -59,19 +69,34 @@ export const Layout = () => {
     linksDoUtilizador && !paginasSemSidebar.includes(location.pathname);
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-slate-50">
-      <Navbar
-        user={user}
-        onLoginClick={() => navigate("/login")}
-        onLogoutClick={handleLogout}
-      />
-      <div className="flex flex-1">
-        {mostrarSidebar && <Sidebar links={linksDoUtilizador} />}
-        <main className="flex flex-1 flex-col pb-16">
+    <div className="flex min-h-screen bg-slate-50">
+      {/* 1. COLUNA ESQUERDA: Sidebar ocupa a altura inteira */}
+      {mostrarSidebar && (
+        <Sidebar
+          links={linksDoUtilizador}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
+        />
+      )}
+
+      {/* 2. COLUNA DIREITA: Navbar, Main Content e Footer empilhados */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        <Navbar
+          user={user}
+          onLoginClick={() => navigate("/login")}
+          onLogoutClick={handleLogout}
+          isMenuOpen={isSidebarOpen}
+          onMenuToggle={() => setIsSidebarOpen((prev) => !prev)}
+        />
+
+        <main className="flex-1 overflow-y-auto pb-16">
           <Outlet context={{ user, handleLogin, handleLogout }} />
         </main>
+
+        <Footer />
       </div>
-      <Footer />
     </div>
   );
 };
+
+export default Layout;
