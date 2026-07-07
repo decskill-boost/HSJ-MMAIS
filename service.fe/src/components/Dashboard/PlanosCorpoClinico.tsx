@@ -52,7 +52,8 @@ const PlanosCorpoClinico = () => {
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-10">
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      {/* Cabeçalho: empilhado em mobile, em linha a partir de sm */}
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
             Gestão de planos clínicos
@@ -64,7 +65,7 @@ const PlanosCorpoClinico = () => {
         </div>
         <BtnGlobal
           onClick={() => navigate("/plano/criar")}
-          className="rounded-xl bg-indigo-600 px-4 py-3 text-sm text-white hover:bg-indigo-700"
+          className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm text-white hover:bg-indigo-700 sm:w-auto"
         >
           Criar plano novo
         </BtnGlobal>
@@ -137,23 +138,21 @@ const PlanosCorpoClinico = () => {
                       {paciente.nome}
                     </td>
 
-                    {/* Coluna 1: Planos Ativos */}
+                    {/* Planos Ativos */}
                     <td className="px-4 py-4">
-                      <div className="space-y-1">
-                        <span
-                          className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${
-                            temPlanoAtivo
-                              ? "bg-emerald-50 text-emerald-700 ring-emerald-600/10"
-                              : "bg-slate-50 text-slate-600 ring-slate-500/10"
-                          }`}
-                        >
-                          {planosAtivos.length}{" "}
-                          {planosAtivos.length === 1 ? "ativo" : "ativos"}
-                        </span>
-                      </div>
+                      <span
+                        className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${
+                          temPlanoAtivo
+                            ? "bg-emerald-50 text-emerald-700 ring-emerald-600/10"
+                            : "bg-slate-50 text-slate-600 ring-slate-500/10"
+                        }`}
+                      >
+                        {planosAtivos.length}{" "}
+                        {planosAtivos.length === 1 ? "ativo" : "ativos"}
+                      </span>
                     </td>
 
-                    {/* Coluna 2: Planos Totais */}
+                    {/* Planos Totais */}
                     <td className="px-4 py-4">
                       <span className="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">
                         {planosTotais} {planosTotais === 1 ? "total" : "totais"}
@@ -167,9 +166,9 @@ const PlanosCorpoClinico = () => {
                       )}
                     </td>
 
-                    {/* Coluna de Ações: Alinhada à esquerda como o resto da tabela */}
-                    <td className="whitespace-nowrap px-6 py-4">
-                      <div className="flex flex-row items-center justify-start gap-2">
+                    {/* Ações — alinhadas à esquerda, empilham em ecrãs muito pequenos */}
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:whitespace-nowrap">
                         <BtnGlobal
                           onClick={() =>
                             navigate(

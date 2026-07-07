@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import type { UserProfile } from "../types/user";
 
 interface UserMenuProps {
@@ -17,7 +18,10 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
     : "focus:ring-blue-500/30";
 
   // Inicial a partir do nome (ou do email, se não houver nome)
-  const initial = (user.nome || user.email || "?").trim().charAt(0).toUpperCase();
+  const initial = (user.nome || user.email || "?")
+    .trim()
+    .charAt(0)
+    .toUpperCase();
 
   // Fechar o dropdown ao clicar fora ou ao carregar Escape
   useEffect(() => {
@@ -62,7 +66,7 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 mt-2 w-60 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
+          className="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
         >
           <div className="border-b border-slate-100 px-4 py-3">
             <p className="truncate text-sm font-semibold text-slate-900">
@@ -70,6 +74,16 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
             </p>
             <p className="truncate text-sm text-slate-500">{user.email}</p>
           </div>
+
+          <Link
+            to="/perfil"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="block w-full px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+          >
+            Informação pessoal
+          </Link>
+
           <button
             type="button"
             role="menuitem"
@@ -77,7 +91,7 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
               setOpen(false);
               onLogout?.();
             }}
-            className="block w-full px-4 py-3 text-left text-sm font-medium text-red-600 transition hover:bg-slate-50"
+            className="block w-full border-t border-slate-100 px-4 py-3 text-left text-sm font-medium text-red-600 transition hover:bg-slate-50"
           >
             Terminar sessão
           </button>

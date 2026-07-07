@@ -43,21 +43,6 @@ const UserManagement = () => {
     [editingUserId, users],
   );
 
-  useEffect(() => {
-    void loadUsers();
-  }, []);
-
-  useEffect(() => {
-    if (selectedUser) {
-      setForm({
-        nome: selectedUser.nome,
-        email: selectedUser.email,
-        password: "",
-        tipo_utilizador: selectedUser.role,
-      });
-    }
-  }, [selectedUser]);
-
   const loadUsers = async () => {
     setLoading(true);
     try {
@@ -70,6 +55,22 @@ const UserManagement = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    void loadUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (selectedUser) {
+      setForm({
+        nome: selectedUser.nome,
+        email: selectedUser.email,
+        password: "",
+        tipo_utilizador: selectedUser.role,
+      });
+    }
+  }, [selectedUser]);
 
   const resetForm = () => {
     setEditingUserId(null);
