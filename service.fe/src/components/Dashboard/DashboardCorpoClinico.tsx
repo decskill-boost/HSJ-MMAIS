@@ -52,7 +52,6 @@ const DashboardCorpoClinico = () => {
     [planos],
   );
 
-  // Nova métrica: Conta todos os planos que já não estão ativos (histórico)
   const totalPlanosInativos = useMemo(
     () =>
       planos.reduce(
@@ -68,8 +67,9 @@ const DashboardCorpoClinico = () => {
   );
 
   return (
-    <div className="flex-1 bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+        {/* Cabeçalho Gradiente que o Claude apagou */}
         <section className="rounded-3xl border border-slate-200 bg-gradient-to-br from-indigo-600 to-slate-900 p-6 text-white shadow-sm sm:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
@@ -104,6 +104,7 @@ const DashboardCorpoClinico = () => {
           </div>
         </section>
 
+        {/* As tuas 3 métricas novas e limpas */}
         <section className="grid gap-4 lg:grid-cols-3">
           <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
@@ -117,7 +118,6 @@ const DashboardCorpoClinico = () => {
             </p>
           </article>
 
-          {/* Cartão substituído */}
           <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
               Planos concluídos
@@ -143,6 +143,7 @@ const DashboardCorpoClinico = () => {
           </article>
         </section>
 
+        {/* Tabela de pacientes e botões de ação que o Claude apagou */}
         <section className="grid gap-6 xl:grid-cols-[1.6fr_0.9fr]">
           <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-3">
