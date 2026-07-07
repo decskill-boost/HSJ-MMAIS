@@ -20,6 +20,44 @@ export function diffInCalendarDays(from: Date, to: Date): number {
   return Math.round((toMs - fromMs) / MS_PER_DAY);
 }
 
+const lisbonWallClockFormatter = new Intl.DateTimeFormat('en-US', {
+  timeZone: LISBON_TIMEZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+  hourCycle: 'h23',
+});
+
+/** How far Europe/Lisbon is ahead of UTC at `instant`, in ms (0 in winter, +1h in summer/DST). */
+function lisbonOffsetMs(instant: Date): number {
+  const parts = Object.fromEntries(
+    lisbonWallClockFormatter.formatToParts(instant).map((p) => [p.type, p.value]),
+  );
+  const asIfUtc = Date.UTC(
+    Number(parts.year),
+    Number(parts.month) - 1,
+    Number(parts.day),
+    Number(parts.hour),
+    Number(parts.minute),
+    Number(parts.second),
+  );
+  return asIfUtc - instant.getTime();
+}
+
+/** UTC instant of 00:00:00 in Europe/Lisbon on the calendar day `date` falls on there. */
+export function startOfLisbonDay(date: Date): Date {
+  const utcMidnightGuess = new Date(`${toLisbonDateKey(date)}T00:00:00.000Z`);
+  return new Date(utcMidnightGuess.getTime() - lisbonOffsetMs(utcMidnightGuess));
+}
+
+/** UTC instant of 24:00:00 (next midnight) in Europe/Lisbon on the calendar day `date` falls on there. */
+export function endOfLisbonDay(date: Date): Date {
+  return new Date(startOfLisbonDay(date).getTime() + MS_PER_DAY);
+}
+
 export interface StreakState {
   streakAtual: number;
   ultimaAtividade: Date | null;

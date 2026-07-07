@@ -13,7 +13,8 @@ describe("auth persistence", () => {
   it("guarda e restaura o estado de autenticação no localStorage", () => {
     const payload = {
       accessToken: "token-123",
-      expiresAt: 1710000000,
+      // expiresAt tem de estar no futuro, senão loadStoredAuth descarta a sessão
+      expiresAt: Math.floor(Date.now() / 1000) + 3600,
       user: {
         idUser: "user-1",
         nome: "Ana",

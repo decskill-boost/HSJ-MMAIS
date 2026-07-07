@@ -1,4 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Test } from '@nestjs/testing';
 import { Repository } from 'typeorm';
@@ -52,6 +53,16 @@ describe('UsersService', () => {
           provide: getRepositoryToken(Perfil),
           useValue: { findOne: jest.fn() },
         },
+        {
+          provide: ConfigService,
+          useValue: {
+            getOrThrow: jest.fn((key: string) =>
+              key === 'SUPABASE_URL'
+                ? 'http://localhost:54321'
+                : 'service-role-key-de-teste',
+            ),
+          },
+        },
       ],
     }).compile();
 
@@ -70,7 +81,7 @@ describe('UsersService', () => {
       ]),
     );
 
-    const result = await service.findByEmail('test@example.com');
+    const result = await service.findById('user-uuid');
 
     expect(result.role).toBe(UserRole.CORPO_CLINICO);
     expect(result.permissions).toContain(Permission.READ_ALL_PATIENTS);
@@ -89,7 +100,7 @@ describe('UsersService', () => {
       ]),
     );
 
-    const result = await service.findByEmail('test@example.com');
+    const result = await service.findById('user-uuid');
 
     expect(result.permissions).toContain(Permission.WRITE_OWN_SESSIONS);
     expect(result.permissions).not.toContain(Permission.READ_ALL_PATIENTS);
@@ -106,7 +117,7 @@ describe('UsersService', () => {
       ]),
     );
 
-    const result = await service.findByEmail('test@example.com');
+    const result = await service.findById('user-uuid');
 
     expect(result.permissions).toContain(Permission.READ_OWN_SESSIONS);
     expect(result.permissions).not.toContain(Permission.PRESCRIBE_EXERCISES);
@@ -115,7 +126,7 @@ describe('UsersService', () => {
   it('throws NotFoundException when user does not exist', async () => {
     utilizadorRepo.findOne.mockResolvedValue(null);
 
-    await expect(service.findByEmail('unknown@example.com')).rejects.toThrow(
+    await expect(service.findById('unknown-uuid')).rejects.toThrow(
       NotFoundException,
     );
   });
@@ -126,7 +137,7 @@ describe('UsersService', () => {
     );
     perfilRepo.findOne.mockResolvedValue(null);
 
-    const result = await service.findByEmail('test@example.com');
+    const result = await service.findById('user-uuid');
 
     expect(result.permissions).toEqual([]);
   });
@@ -138,7 +149,7 @@ describe('UsersService', () => {
     );
     perfilRepo.findOne.mockResolvedValue(null);
 
-    const result = await service.findByEmail('test@example.com');
+    const result = await service.findById('user-uuid');
 
     expect(result.streakAtual).toBe(5);
   });
@@ -150,7 +161,7 @@ describe('UsersService', () => {
     );
     perfilRepo.findOne.mockResolvedValue(null);
 
-    const result = await service.findByEmail('test@example.com');
+    const result = await service.findById('user-uuid');
 
     expect(result.streakAtual).toBe(0);
     expect(utilizadorRepo.findOne).toHaveBeenCalledTimes(1);
