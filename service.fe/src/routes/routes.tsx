@@ -70,11 +70,11 @@ export const router = createBrowserRouter([
             element: <CriarPlano />,
           },
           {
-            path: "dashboard/medico/pacientes",
+            path: "dashboard/medico/adesao",
             element: <PacientesList />,
           },
           {
-            path: "dashboard/medico/pacientes/:idPaciente",
+            path: "dashboard/medico/adesao/:idPaciente",
             element: <PacientePerfil />,
           },
         ],
