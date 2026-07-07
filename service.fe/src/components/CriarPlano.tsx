@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { exerciciosService, type Exercicio } from "../services/exercicios";
 import { pacientesService, type Paciente } from "../services/pacientes";
 import { useUser } from "../contexts/UserContext";
@@ -28,6 +29,7 @@ export const CriarPlano = () => {
   const [exercicios, setExercicios] = useState<Exercicio[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
 
   const [selecionados, setSelecionados] = useState<string[]>([]);
   const [frequenciaSemanal, setFrequenciaSemanal] = useState(3);
@@ -59,7 +61,9 @@ export const CriarPlano = () => {
         const data = await exerciciosService.getAll();
         setExercicios(data.filter((e) => e.ativo));
       } catch {
-        setErro("Não foi possível carregar os exercícios. O backend está a correr?");
+        setErro(
+          "Não foi possível carregar os exercícios. O backend está a correr?",
+        );
       } finally {
         setLoading(false);
       }
@@ -73,13 +77,18 @@ export const CriarPlano = () => {
       try {
         const lista = await pacientesService.getPacientes();
         setUtentes(lista);
-        if (lista.length > 0) setUtenteId(lista[0].id_user);
+        const pacienteQuery = searchParams.get("paciente");
+        if (pacienteQuery && lista.some((u) => u.id_user === pacienteQuery)) {
+          setUtenteId(pacienteQuery);
+        } else if (lista.length > 0) {
+          setUtenteId(lista[0].id_user);
+        }
       } catch (e) {
         console.error("Falha ao carregar pacientes:", e);
       }
     };
     buscar();
-  }, []);
+  }, [searchParams]);
 
   const categorias = useMemo(() => {
     const set = new Set(exercicios.map((e) => e.categoria).filter(Boolean));
@@ -88,9 +97,18 @@ export const CriarPlano = () => {
 
   const exerciciosFiltrados = useMemo(() => {
     return exercicios.filter((ex) => {
-      if (filtroCategoria !== "todas" && ex.categoria !== filtroCategoria) return false;
-      if (filtroDificuldade !== "todas" && faixaDificuldade(ex.dificuldade_clinica) !== filtroDificuldade) return false;
-      if (filtroDuracao !== "todas" && faixaDuracao(ex.duracao_segundos) !== filtroDuracao) return false;
+      if (filtroCategoria !== "todas" && ex.categoria !== filtroCategoria)
+        return false;
+      if (
+        filtroDificuldade !== "todas" &&
+        faixaDificuldade(ex.dificuldade_clinica) !== filtroDificuldade
+      )
+        return false;
+      if (
+        filtroDuracao !== "todas" &&
+        faixaDuracao(ex.duracao_segundos) !== filtroDuracao
+      )
+        return false;
       return true;
     });
   }, [exercicios, filtroCategoria, filtroDificuldade, filtroDuracao]);
@@ -113,7 +131,9 @@ export const CriarPlano = () => {
         id_paciente: utenteId,
         id_medico: user.idUser,
         frequencia_semanal: frequenciaSemanal,
-        data_validade: dataValidade ? new Date(dataValidade).toISOString() : null,
+        data_validade: dataValidade
+          ? new Date(dataValidade).toISOString()
+          : null,
         notas_medicas: notasMedicas,
         exercicios: selecionados,
       });
@@ -145,7 +165,9 @@ export const CriarPlano = () => {
 
       {/* Utente */}
       <div className="mt-6 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-        <label className="block text-sm font-semibold text-slate-700">Utente</label>
+        <label className="block text-sm font-semibold text-slate-700">
+          Utente
+        </label>
         <select
           value={utenteId}
           onChange={(e) => setUtenteId(e.target.value)}
@@ -155,7 +177,9 @@ export const CriarPlano = () => {
             <option value="">A carregar pacientes…</option>
           ) : (
             utentes.map((u) => (
-              <option key={u.id_user} value={u.id_user}>{u.nome}</option>
+              <option key={u.id_user} value={u.id_user}>
+                {u.nome}
+              </option>
             ))
           )}
         </select>
@@ -163,21 +187,37 @@ export const CriarPlano = () => {
 
       {/* Biblioteca + Filtros */}
       <div className="mt-6 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-        <h2 className="text-base font-bold text-slate-900">Biblioteca de exercícios</h2>
+        <h2 className="text-base font-bold text-slate-900">
+          Biblioteca de exercícios
+        </h2>
 
         <div className="mt-4 flex flex-wrap items-end gap-3">
           <div className="min-w-[140px] flex-1">
-            <label className="block text-xs font-semibold text-slate-600">Categoria</label>
-            <select value={filtroCategoria} onChange={(e) => setFiltroCategoria(e.target.value)} className={estiloSelect}>
+            <label className="block text-xs font-semibold text-slate-600">
+              Categoria
+            </label>
+            <select
+              value={filtroCategoria}
+              onChange={(e) => setFiltroCategoria(e.target.value)}
+              className={estiloSelect}
+            >
               <option value="todas">Todas</option>
               {categorias.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>
+                  {c}
+                </option>
               ))}
             </select>
           </div>
           <div className="min-w-[130px] flex-1">
-            <label className="block text-xs font-semibold text-slate-600">Duração</label>
-            <select value={filtroDuracao} onChange={(e) => setFiltroDuracao(e.target.value)} className={estiloSelect}>
+            <label className="block text-xs font-semibold text-slate-600">
+              Duração
+            </label>
+            <select
+              value={filtroDuracao}
+              onChange={(e) => setFiltroDuracao(e.target.value)}
+              className={estiloSelect}
+            >
               <option value="todas">Todas</option>
               <option value="ate5">Até 5 min</option>
               <option value="5a15">5–15 min</option>
@@ -185,8 +225,14 @@ export const CriarPlano = () => {
             </select>
           </div>
           <div className="min-w-[120px] flex-1">
-            <label className="block text-xs font-semibold text-slate-600">Dificuldade</label>
-            <select value={filtroDificuldade} onChange={(e) => setFiltroDificuldade(e.target.value)} className={estiloSelect}>
+            <label className="block text-xs font-semibold text-slate-600">
+              Dificuldade
+            </label>
+            <select
+              value={filtroDificuldade}
+              onChange={(e) => setFiltroDificuldade(e.target.value)}
+              className={estiloSelect}
+            >
               <option value="todas">Todas</option>
               <option value="facil">Fácil</option>
               <option value="medio">Médio</option>
@@ -202,9 +248,13 @@ export const CriarPlano = () => {
           </button>
         </div>
 
-        {loading && <p className="mt-4 text-sm text-slate-500">A carregar exercícios…</p>}
+        {loading && (
+          <p className="mt-4 text-sm text-slate-500">A carregar exercícios…</p>
+        )}
         {erro && (
-          <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm font-medium text-red-700">{erro}</p>
+          <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm font-medium text-red-700">
+            {erro}
+          </p>
         )}
 
         {!loading && !erro && (
@@ -224,7 +274,9 @@ export const CriarPlano = () => {
                     <li key={ex.id_exercicio}>
                       <label
                         className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3 transition ${
-                          ativo ? "border-indigo-300 bg-indigo-50" : "border-slate-200 hover:bg-slate-50"
+                          ativo
+                            ? "border-indigo-300 bg-indigo-50"
+                            : "border-slate-200 hover:bg-slate-50"
                         }`}
                       >
                         <input
@@ -238,7 +290,9 @@ export const CriarPlano = () => {
                             {ex.nome_exercicio}
                           </span>
                           <span className="block text-xs text-slate-500">
-                            {ex.categoria} · {formatarDuracao(ex.duracao_segundos)} · {textoDificuldade(ex.dificuldade_clinica)}
+                            {ex.categoria} ·{" "}
+                            {formatarDuracao(ex.duracao_segundos)} ·{" "}
+                            {textoDificuldade(ex.dificuldade_clinica)}
                           </span>
                         </span>
                       </label>
@@ -254,7 +308,9 @@ export const CriarPlano = () => {
       {/* Detalhes do plano */}
       <div className="mt-6 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
         <h2 className="text-base font-bold text-slate-900">
-          Detalhes do plano ({selecionados.length} exercício{selecionados.length === 1 ? "" : "s"} selecionado{selecionados.length === 1 ? "" : "s"})
+          Detalhes do plano ({selecionados.length} exercício
+          {selecionados.length === 1 ? "" : "s"} selecionado
+          {selecionados.length === 1 ? "" : "s"})
         </h2>
 
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -263,29 +319,44 @@ export const CriarPlano = () => {
               Frequência semanal (vezes por semana)
             </label>
             <input
-              type="number" min={1} max={7}
+              type="number"
+              min={1}
+              max={7}
               value={frequenciaSemanal}
-              onChange={(e) => { setFrequenciaSemanal(Number(e.target.value)); setGuardado(false); }}
+              onChange={(e) => {
+                setFrequenciaSemanal(Number(e.target.value));
+                setGuardado(false);
+              }}
               className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-slate-700">Data de validade</label>
+            <label className="block text-sm font-semibold text-slate-700">
+              Data de validade
+            </label>
             <input
               type="date"
               value={dataValidade}
-              onChange={(e) => { setDataValidade(e.target.value); setGuardado(false); }}
+              onChange={(e) => {
+                setDataValidade(e.target.value);
+                setGuardado(false);
+              }}
               className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
             />
           </div>
         </div>
 
         <div className="mt-4">
-          <label className="block text-sm font-semibold text-slate-700">Notas médicas</label>
+          <label className="block text-sm font-semibold text-slate-700">
+            Notas médicas
+          </label>
           <textarea
             rows={3}
             value={notasMedicas}
-            onChange={(e) => { setNotasMedicas(e.target.value); setGuardado(false); }}
+            onChange={(e) => {
+              setNotasMedicas(e.target.value);
+              setGuardado(false);
+            }}
             placeholder="Indicações ou observações para este plano…"
             className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
           />
@@ -300,10 +371,16 @@ export const CriarPlano = () => {
           >
             {aGuardar ? "A guardar…" : "Guardar plano"}
           </button>
-          {guardado && <span className="text-sm font-semibold text-green-600">Plano guardado ✓</span>}
+          {guardado && (
+            <span className="text-sm font-semibold text-green-600">
+              Plano guardado ✓
+            </span>
+          )}
         </div>
         {erroGuardar && (
-          <p className="mt-3 rounded-lg bg-red-50 p-3 text-sm font-medium text-red-700">{erroGuardar}</p>
+          <p className="mt-3 rounded-lg bg-red-50 p-3 text-sm font-medium text-red-700">
+            {erroGuardar}
+          </p>
         )}
       </div>
     </div>
