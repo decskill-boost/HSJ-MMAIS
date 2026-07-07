@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   ManyToOne,
   JoinColumn,
+  CreateDateColumn,
 } from 'typeorm';
 import { Utilizador } from './utilizador.entity';
 
@@ -27,8 +28,14 @@ export class Prescricao {
   @Column({ type: 'int' })
   frequencia_semanal: number;
 
-  @Column({ type: 'timestamp' })
-  data_validade: Date;
+  @CreateDateColumn({ type: 'timestamp' })
+  data_inicio: Date;
+
+  @Column({ type: 'timestamp', nullable: true, default: null })
+  data_fim: Date | null;
+
+  @Column({ type: 'timestamp', nullable: true, default: null })
+  data_validade: Date | null;
 
   @Column({ type: 'boolean', default: true })
   ativo: boolean;
