@@ -22,6 +22,11 @@ const linksAdmin: SidebarLink[] = [
 const linksMedico: SidebarLink[] = [
   { to: "/dashboard/medico", label: "Início", Icon: IconeInicio, end: true },
   {
+    to: "/dashboard/medico/pacientes",
+    label: "Gerir Planos",
+    Icon: IconePlanos,
+  },
+  {
     to: "/exercicios",
     label: "Biblioteca de Exercícios",
     Icon: IconeBiblioteca,
