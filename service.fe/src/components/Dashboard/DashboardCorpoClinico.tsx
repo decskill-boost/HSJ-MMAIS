@@ -60,7 +60,7 @@ const DashboardCorpoClinico = () => {
               <BtnGlobal
                 variant="secondary"
                 onClick={() => navigate("/perfil")}
-                className="rounded-xl border-slate-200 px-4 py-2 text-sm font-semibold text-white/90 hover:text-white hover:bg-indigo-700"
+                className="rounded-xl border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
               >
                 Informação pessoal
               </BtnGlobal>

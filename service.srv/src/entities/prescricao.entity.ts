@@ -2,6 +2,7 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
+  CreateDateColumn,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
@@ -11,6 +12,9 @@ import { Utilizador } from './utilizador.entity';
 export class Prescricao {
   @PrimaryGeneratedColumn('uuid')
   id_prescricao: string;
+
+  @CreateDateColumn({ type: 'timestamp' })
+  data_inicio: Date;
 
   @ManyToOne(() => Utilizador)
   @JoinColumn({ name: 'id_paciente' })

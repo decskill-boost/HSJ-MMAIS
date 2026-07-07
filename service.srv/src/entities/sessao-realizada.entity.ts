@@ -9,6 +9,12 @@ import { Utilizador } from './utilizador.entity';
 import { Exercicio } from './exercicio.entity';
 import { Prescricao } from './prescricao.entity';
 
+export enum SessaoStatus {
+  INICIADO = 'iniciado',
+  CONCLUIDO = 'concluido',
+  FALHADO = 'falhado',
+}
+
 @Entity('sessoes_realizadas')
 export class SessaoRealizada {
   @PrimaryGeneratedColumn('uuid')
@@ -36,6 +42,14 @@ export class SessaoRealizada {
 
   @Column({ type: 'boolean', default: false })
   concluido: boolean;
+
+  @Column({
+    type: 'enum',
+    enum: SessaoStatus,
+    enumName: 'sessao_status',
+    default: SessaoStatus.CONCLUIDO,
+  })
+  status: SessaoStatus;
 
   @ManyToOne(() => Prescricao)
   @JoinColumn({ name: 'id_prescricao' })

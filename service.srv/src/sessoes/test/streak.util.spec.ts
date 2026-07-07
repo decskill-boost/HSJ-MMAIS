@@ -1,7 +1,9 @@
 import {
   computeStreakUpdate,
   diffInCalendarDays,
+  endOfLisbonDay,
   getEffectiveStreak,
+  startOfLisbonDay,
   toLisbonDateKey,
 } from '../streak.util';
 
@@ -35,6 +37,32 @@ describe('diffInCalendarDays', () => {
     const beforeTransition = new Date('2024-03-30T23:30:00Z'); // Lisbon: 2024-03-30
     const afterTransition = new Date('2024-03-31T23:30:00Z'); // Lisbon: 2024-04-01
     expect(diffInCalendarDays(beforeTransition, afterTransition)).toBe(2);
+  });
+});
+
+describe('startOfLisbonDay / endOfLisbonDay', () => {
+  it('returns UTC midnight in winter (WET, UTC+0)', () => {
+    const date = new Date('2026-01-15T10:00:00Z');
+    expect(startOfLisbonDay(date).toISOString()).toBe('2026-01-15T00:00:00.000Z');
+    expect(endOfLisbonDay(date).toISOString()).toBe('2026-01-16T00:00:00.000Z');
+  });
+
+  it('returns 23:00 UTC the previous day in summer (WEST, UTC+1)', () => {
+    // Lisbon midnight on 2026-07-16 is 23:00 UTC on 2026-07-15.
+    const date = new Date('2026-07-15T23:30:00Z'); // already Lisbon 2026-07-16 00:30
+    expect(startOfLisbonDay(date).toISOString()).toBe('2026-07-15T23:00:00.000Z');
+    expect(endOfLisbonDay(date).toISOString()).toBe('2026-07-16T23:00:00.000Z');
+  });
+
+  it('agrees with toLisbonDateKey: a session just inside the bounds keys to the same day, just outside keys to a different day', () => {
+    const date = new Date('2026-07-15T23:30:00Z');
+    const key = toLisbonDateKey(date);
+    const start = startOfLisbonDay(date);
+    const end = endOfLisbonDay(date);
+
+    expect(toLisbonDateKey(start)).toBe(key);
+    expect(toLisbonDateKey(new Date(end.getTime() - 1))).toBe(key);
+    expect(toLisbonDateKey(end)).not.toBe(key);
   });
 });
 

@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { sessoesService } from "../../services/sessoesService";
+import { sessoesService, type ConclusaoResultado } from "../../services/sessoesService";
 
 interface Props {
-  idPaciente: string;
   idExercicio: string;
   idPrescricao: string;
+  idSessao?: string;
   duracaoSegundos: number;
   recompensaXp: number;
   onConcluir: () => void;
@@ -30,9 +30,9 @@ const getEsforcoInfo = (val: number) =>
   ESFORCO.find((e) => val >= e.min && val <= e.max) ?? ESFORCO[2];
 
 const AvaliacaoExercicio = ({
-  idPaciente,
   idExercicio,
   idPrescricao,
+  idSessao,
   duracaoSegundos,
   recompensaXp,
   onConcluir,
@@ -43,6 +43,7 @@ const AvaliacaoExercicio = ({
   const [esforcoTouched, setEsforcoTouched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [concluido, setConcluido] = useState(false);
+  const [resultado, setResultado] = useState<ConclusaoResultado | null>(null);
 
   const diversaoInfo = DIVERSAO[diversao - 1];
   const esforcoInfo = getEsforcoInfo(esforco);
@@ -50,14 +51,15 @@ const AvaliacaoExercicio = ({
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      await sessoesService.registarSessao({
-        id_paciente: idPaciente,
+      const resposta = await sessoesService.registarSessao({
         id_exercicio: idExercicio,
         id_prescricao: idPrescricao,
+        id_sessao: idSessao,
         duracao: duracaoSegundos,
         diversao_1_a_5: diversao,
         esforco_1_a_10: esforco,
       });
+      setResultado(resposta);
       setConcluido(true);
     } catch (err) {
       console.error(err);
@@ -72,9 +74,15 @@ const AvaliacaoExercicio = ({
         <span className="animate-bounce text-7xl">🎉</span>
         <h3 className="text-3xl font-extrabold text-white">Muito bem!</h3>
         <p className="text-slate-300">Avaliação registada com sucesso!</p>
-        <div className="rounded-full bg-blue-500/20 px-5 py-2">
-          <p className="text-lg font-bold text-blue-400">+{recompensaXp} XP ganhos! ⭐</p>
-        </div>
+        {resultado?.alreadyCompletedToday ? (
+          <p className="text-slate-300">Já tinhas concluído este exercício hoje!</p>
+        ) : (
+          <div className="rounded-full bg-blue-500/20 px-5 py-2">
+            <p className="text-lg font-bold text-blue-400">
+              +{resultado?.xpGained ?? recompensaXp} XP ganhos! ⭐
+            </p>
+          </div>
+        )}
         <button
           onClick={onConcluir}
           className="mt-2 flex items-center gap-3 rounded-2xl bg-emerald-500 px-8 py-4 text-xl font-extrabold text-white shadow-lg transition hover:bg-emerald-400 active:scale-95"

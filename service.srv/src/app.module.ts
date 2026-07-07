@@ -7,6 +7,7 @@ import { ExerciciosModule } from './exercicios/exercicios.module';
 import { SessoesModule } from './sessoes/sessoes.module';
 import { UsersModule } from './users/users.module';
 import { PrescricoesModule } from './prescricoes/prescricoes.module';
+import { PacientesModule } from './pacientes/pacientes.module';
 
 @Module({
   imports: [
@@ -26,13 +27,16 @@ import { PrescricoesModule } from './prescricoes/prescricoes.module';
         database: config.get('DB_NAME'),
         autoLoadEntities: true,
         synchronize: config.get('APP_ENV') === 'dev',
-        ssl: { rejectUnauthorized: false },
+        ssl: ['localhost', '127.0.0.1'].includes(config.get('DB_HOST') ?? '')
+          ? false
+          : { rejectUnauthorized: false },
       }),
     }),
     ExerciciosModule,
     SessoesModule,
     UsersModule,
     PrescricoesModule,
+    PacientesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

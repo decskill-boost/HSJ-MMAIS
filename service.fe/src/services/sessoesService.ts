@@ -1,27 +1,67 @@
+import { apiClient } from "./apiClient";
 import { supabase } from "./supabaseClient";
 
-export interface AvaliacaoSessao {
-  id_paciente: string;
+async function getAccessToken(): Promise<string> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session?.access_token) {
+    throw new Error("Sessão inválida. Por favor, faça login novamente.");
+  }
+
+  return session.access_token;
+}
+
+export interface IniciarSessao {
   id_exercicio: string;
   id_prescricao: string;
+}
+
+export interface IniciarSessaoResultado {
+  sessionId: string;
+  alreadyCompletedToday: boolean;
+}
+
+export interface AvaliacaoSessao {
+  id_exercicio: string;
+  id_prescricao: string;
+  id_sessao?: string;
   duracao: number;
   diversao_1_a_5: number;
   esforco_1_a_10: number;
 }
 
+export interface ConclusaoResultado {
+  xpGained: number;
+  totalXp: number;
+  level: number;
+  leveledUp: boolean;
+  xpForNextLevel: number;
+  progressToNextLevel: number;
+  streakAtual: number;
+  sessionId: string;
+  alreadyCompletedToday: boolean;
+}
+
 export const sessoesService = {
-  registarSessao: async (dados: AvaliacaoSessao): Promise<void> => {
-    const { error } = await supabase.from("sessoes_realizadas").insert({
-      id_sessao: crypto.randomUUID(),
-      id_paciente: dados.id_paciente,
-      id_exercicio: dados.id_exercicio,
-      id_prescricao: dados.id_prescricao,
-      data_hora: new Date().toISOString(),
-      duracao: dados.duracao,
-      concluido: true,
-      diversao_1_a_5: dados.diversao_1_a_5,
-      esforco_1_a_10: dados.esforco_1_a_10,
-    });
-    if (error) throw new Error(error.message);
+  iniciarSessao: async (dados: IniciarSessao): Promise<IniciarSessaoResultado> => {
+    const token = await getAccessToken();
+    const response = await apiClient.post<IniciarSessaoResultado>(
+      "/sessoes/iniciar",
+      dados,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return response.data;
+  },
+
+  registarSessao: async (dados: AvaliacaoSessao): Promise<ConclusaoResultado> => {
+    const token = await getAccessToken();
+    const response = await apiClient.post<ConclusaoResultado>(
+      "/sessoes/concluir",
+      dados,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return response.data;
   },
 };

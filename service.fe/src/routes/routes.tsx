@@ -12,6 +12,8 @@ import DashboardAdmin from "../components/Dashboard/DashboardAdmin/DashboardAdmi
 import ExerciciosPage from "../components/Exercicios/ExerciciosPage";
 import CriarPlano from "../components/CriarPlano";
 import PlanosPaciente from "../components/PlanosPaciente";
+import PacientesList from "../components/Pacientes/PacientesList";
+import PacientePerfil from "../components/Pacientes/PacientePerfil";
 
 import { ProtectedRoute } from "./ProtectedRoute";
 
@@ -56,6 +58,14 @@ export const router = createBrowserRouter([
           {
             path: "plano/criar",
             element: <CriarPlano />,
+          },
+          {
+            path: "dashboard/medico/pacientes",
+            element: <PacientesList />,
+          },
+          {
+            path: "dashboard/medico/pacientes/:idPaciente",
+            element: <PacientePerfil />,
           },
         ],
       },

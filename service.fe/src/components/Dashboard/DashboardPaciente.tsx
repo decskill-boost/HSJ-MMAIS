@@ -25,13 +25,14 @@ const DashboardPaciente = () => {
   const { user } = useOutletContext<LayoutContext>();
   const displayName = user?.nome?.split(" ")[0] ?? "Paciente";
 
-  const [plano] = useState<PlanoAtivo | null>(null);
+  const [plano, setPlano] = useState<PlanoAtivo | null>(null);
   const [loadingPlano, setLoadingPlano] = useState(true);
 
   useEffect(() => {
     if (!user?.idUser) return;
     planosService
-      planosService.getTodosPlanosPorPaciente(user.idUser).then(({ ativo }) => ativo)
+      .getTodosPlanosPorPaciente(user.idUser)
+      .then(({ ativo }) => setPlano(ativo))
       .catch(console.error)
       .finally(() => setLoadingPlano(false));
   }, [user?.idUser]);
