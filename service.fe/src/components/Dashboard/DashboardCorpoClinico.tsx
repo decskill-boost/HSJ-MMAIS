@@ -108,7 +108,7 @@ const DashboardCorpoClinico = () => {
         <section className="grid gap-4 lg:grid-cols-3">
           <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
-              Prescrições ativas
+              Planos ativos
             </p>
             <p className="mt-4 text-3xl font-bold text-slate-900">
               {loading ? "…" : totalPlanosAtivos}
@@ -255,7 +255,7 @@ const DashboardCorpoClinico = () => {
               </BtnGlobal>
               <BtnGlobal
                 onClick={() => navigate("/exercicios")}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold !text-slate-700 hover:bg-slate-50"
               >
                 Biblioteca de exercícios
               </BtnGlobal>
