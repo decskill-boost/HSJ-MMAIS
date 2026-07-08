@@ -3,7 +3,7 @@ import { Layout } from "./Layout";
 import { UserRole } from "../types/permissions";
 
 import WelcomePage from "../components/WelcomePage";
-import PersonalInfo from "../components/PersonalInfo/PersonalInfo";
+import PersonalInfo from "../components/PersonalInfo";
 import PageNotFound from "../components/PageNotFound";
 import Login from "../components/Login";
 import DashboardPaciente from "../components/Dashboard/DashboardPaciente";
