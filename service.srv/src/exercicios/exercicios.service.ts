@@ -24,8 +24,10 @@ export class ExerciciosService {
     });
   }
 
-  async create(dados: Partial<Exercicio>) { const ex = this.exercicioRepository.create(dados); return this.exercicioRepository.save(ex); }
-
+  async create(dados: Partial<Exercicio>) {
+    const ex = this.exercicioRepository.create(dados);
+    return this.exercicioRepository.save(ex);
+  }
 
   // Atualizar um exercício
   async update(id: string, dados: Partial<Exercicio>) {

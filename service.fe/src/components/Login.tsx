@@ -1,15 +1,7 @@
-import { useEffect } from "react";
-import { useOutletContext } from "react-router-dom";
 import BtnGlobal from "./BtnGlobal";
 import { useAuth } from "../hooks/useAuth";
-import type { UserProfile } from "../types/user";
-
-interface OutletContext {
-  handleLogin: (userProfile: UserProfile) => boolean;
-}
 
 const Login = () => {
-  const { handleLogin: handleLayoutLogin } = useOutletContext<OutletContext>();
   const {
     email,
     setEmail,
@@ -18,27 +10,9 @@ const Login = () => {
     loading,
     errorMsg,
     success,
-    userProfile,
-    handleLogin: handleAuthLogin,
+    handleLogin,
   } = useAuth();
 
-  useEffect(() => {
-    if (success && userProfile) {
-      const timer = setTimeout(() => {
-        // Executa a função e apanha o resultado (true ou false)
-        const isAllowed = handleLayoutLogin(userProfile);
-
-        if (!isAllowed) {
-          // Se precisares de injetar a mensagem no formulário:
-          window.location.reload(); // refresh e limpa o estado e obriga a novo login
-          alert(
-            "Acesso negado: Perfil de utilizador inválido ou não autorizado.",
-          );
-        }
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [success, userProfile, handleLayoutLogin]);
   return (
     <div className="flex flex-1 items-center justify-center bg-slate-50 px-4 py-8">
       <div className="w-full max-w-md space-y-8 rounded-2xl bg-white p-10 shadow-xl border border-slate-100">
@@ -58,8 +32,7 @@ const Login = () => {
             </p>
           </div>
         ) : (
-          /* Usa a função vinda do useAuth */
-          <form className="mt-8 space-y-6" onSubmit={handleAuthLogin}>
+          <form className="mt-8 space-y-6" onSubmit={handleLogin}>
             <div className="space-y-4">
               <div>
                 <label

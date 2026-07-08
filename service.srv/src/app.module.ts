@@ -3,12 +3,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { Utilizador } from './entities/utilizador.entity';
-import { Exercicio } from './entities/exercicio.entity';
-import { Prescricao } from './entities/prescricao.entity';
-import { PrescricaoExercicio } from './entities/prescricao-exercicio.entity';
-import { SessaoRealizada } from './entities/sessao-realizada.entity';
 import { ExerciciosModule } from './exercicios/exercicios.module';
+import { SessoesModule } from './sessoes/sessoes.module';
+import { UsersModule } from './users/users.module';
+import { PrescricoesModule } from './prescricoes/prescricoes.module';
+import { PacientesModule } from './pacientes/pacientes.module';
 
 @Module({
   imports: [
@@ -26,12 +25,18 @@ import { ExerciciosModule } from './exercicios/exercicios.module';
         username: config.get('DB_USERNAME'),
         password: config.get('DB_PASSWORD'),
         database: config.get('DB_NAME'),
-        entities: [Utilizador, Exercicio, Prescricao, PrescricaoExercicio, SessaoRealizada],
+        autoLoadEntities: true,
         synchronize: config.get('APP_ENV') === 'dev',
-        ssl: { rejectUnauthorized: false },
+        ssl: ['localhost', '127.0.0.1'].includes(config.get('DB_HOST') ?? '')
+          ? false
+          : { rejectUnauthorized: false },
       }),
     }),
     ExerciciosModule,
+    SessoesModule,
+    UsersModule,
+    PrescricoesModule,
+    PacientesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

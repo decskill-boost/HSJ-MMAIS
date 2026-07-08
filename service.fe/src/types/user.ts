@@ -1,14 +1,6 @@
-export interface UserProfile {
-  id_user: string;
-  nome: string;
-  email: string;
-  tipo_utilizador: string;
-  xp: number;
-  nivel: number;
-  streak_atual: number;
-  data_registo: string;
-  url_foto_perfil?: string;
-}
+import type { UserProfile as BaseUserProfile } from "./permissions";
+
+export type UserProfile = BaseUserProfile;
 
 export interface PatientStatsProps {
   nivel: number;

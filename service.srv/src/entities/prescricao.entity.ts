@@ -1,10 +1,20 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { Utilizador } from './utilizador.entity';
 
 @Entity('prescricoes')
 export class Prescricao {
   @PrimaryGeneratedColumn('uuid')
   id_prescricao: string;
+
+  @CreateDateColumn({ type: 'timestamp' })
+  data_inicio: Date;
 
   @ManyToOne(() => Utilizador)
   @JoinColumn({ name: 'id_paciente' })
@@ -17,8 +27,11 @@ export class Prescricao {
   @Column({ type: 'int' })
   frequencia_semanal: number;
 
-  @Column({ type: 'timestamp' })
-  data_validade: Date;
+  @Column({ type: 'timestamp', nullable: true, default: null })
+  data_fim: Date | null;
+
+  @Column({ type: 'timestamp', nullable: true, default: null })
+  data_validade: Date | null;
 
   @Column({ type: 'boolean', default: true })
   ativo: boolean;
