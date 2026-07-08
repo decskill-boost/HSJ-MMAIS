@@ -20,16 +20,15 @@ export const authService = {
     try {
       const token = authData.session?.access_token;
 
-      // Ajusta o URL ('http://localhost:3000/users/me') para a rota real do teu backend NestJS
+      // Ajusta o URL dinamicamente usando a variável de ambiente do Vercel/Vite
       const backendResponse = await fetch(
-        "http://localhost:3000/api/users/me",
+        `${import.meta.env.VITE_API_URL}/users/me`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         },
       );
-
       if (!backendResponse.ok) {
         throw new Error(
           "O servidor backend não está a responder corretamente.",
