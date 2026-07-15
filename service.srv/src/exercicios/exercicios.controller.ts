@@ -1,4 +1,12 @@
-import { Controller, Get, Put, Delete, Param, Body, Post } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Put,
+  Delete,
+  Param,
+  Body,
+  Post,
+} from '@nestjs/common';
 import { ExerciciosService } from './exercicios.service';
 import { Exercicio } from '../entities/exercicio.entity';
 
@@ -18,8 +26,10 @@ export class ExerciciosController {
     return this.exerciciosService.findOne(id);
   }
 
-  @Post() create(@Body() body: any) { return this.exerciciosService.create(body); }
-
+  @Post()
+  create(@Body() body: Exercicio) {
+    return this.exerciciosService.create(body);
+  }
   // PUT /api/exercicios/:id
   @Put(':id')
   update(@Param('id') id: string, @Body() dados: Partial<Exercicio>) {
