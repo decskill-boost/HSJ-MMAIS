@@ -31,6 +31,10 @@ export interface SessaoResumo {
   diversao: number | null;
   duracaoSegundos: number | null;
   hora: string;
+  teveProblemas?: boolean;
+  participacaoFamiliares?: boolean;
+  fcMaxima?: number | null;
+  fcMedia?: number | null;
 }
 
 export interface DiaHistorico {

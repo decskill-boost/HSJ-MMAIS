@@ -100,6 +100,10 @@ export class PacientesService {
       diversao: s.diversao_1_a_5 ?? null,
       duracaoSegundos: s.duracao ?? null,
       dataHora: s.data_hora,
+      teveProblemas: s.teve_problemas ?? false,
+      participacaoFamiliares: s.participacao_familiares ?? false,
+      fcMaxima: s.fc_maxima ?? null,
+      fcMedia: s.fc_media ?? null,
     }));
 
     const hoje = toLisbonDateKey(new Date());
@@ -142,6 +146,7 @@ export class PacientesService {
 
     const prescricoesPorPaciente = new Map<string, Prescricao[]>();
     for (const p of prescricoes) {
+      if (!p.id_paciente) continue;
       const idPaciente = p.id_paciente.id_user;
       const lista = prescricoesPorPaciente.get(idPaciente) ?? [];
       lista.push(p);
