@@ -3,6 +3,7 @@ import { Layout } from "./Layout";
 import { UserRole } from "../types/permissions";
 
 import WelcomePage from "../components/WelcomePage";
+import MissaoProposito from "../components/MissaoProposito";
 import PersonalInfo from "../components/PersonalInfo";
 import PageNotFound from "../components/PageNotFound";
 import Login from "../components/Login";
@@ -28,6 +29,10 @@ export const router = createBrowserRouter([
       {
         path: "",
         element: <WelcomePage />,
+      },
+      {
+        path: "missao",
+        element: <MissaoProposito />,
       },
       {
         path: "login",
