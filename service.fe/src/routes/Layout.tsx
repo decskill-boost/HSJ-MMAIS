@@ -41,7 +41,7 @@ const linksPaciente: SidebarLink[] = [
 ];
 
 // Páginas onde a sidebar NÃO deve aparecer
-const paginasSemSidebar = ["/", "/login"];
+const paginasSemSidebar = ["/", "/login", "/missao"];
 
 export const Layout = () => {
   const navigate = useNavigate();
