@@ -17,6 +17,10 @@ export interface SessaoParaHistorico {
   diversao: number | null;
   duracaoSegundos: number | null;
   dataHora: Date;
+  teveProblemas?: boolean;
+  participacaoFamiliares?: boolean;
+  fcMaxima?: number | null;
+  fcMedia?: number | null;
 }
 
 /** A prescription's active window, in Lisbon calendar-date keys (YYYY-MM-DD). */
@@ -34,6 +38,10 @@ export interface SessaoResumo {
   diversao: number | null;
   duracaoSegundos: number | null;
   hora: string;
+  teveProblemas?: boolean;
+  participacaoFamiliares?: boolean;
+  fcMaxima?: number | null;
+  fcMedia?: number | null;
 }
 
 export interface DiaHistorico {
@@ -145,6 +153,10 @@ export function deriveHistorico(
         diversao: s.diversao,
         duracaoSegundos: s.duracaoSegundos,
         hora: s.dataHora.toISOString(),
+        teveProblemas: s.teveProblemas ?? false,
+        participacaoFamiliares: s.participacaoFamiliares ?? false,
+        fcMaxima: s.fcMaxima ?? null,
+        fcMedia: s.fcMedia ?? null,
       })),
     };
   });

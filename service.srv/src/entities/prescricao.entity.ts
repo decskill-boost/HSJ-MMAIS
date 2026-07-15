@@ -16,9 +16,9 @@ export class Prescricao {
   @CreateDateColumn({ type: 'timestamp' })
   data_inicio: Date;
 
-  @ManyToOne(() => Utilizador)
+  @ManyToOne(() => Utilizador, { nullable: true })
   @JoinColumn({ name: 'id_paciente' })
-  id_paciente: Utilizador;
+  id_paciente: Utilizador | null;
 
   @ManyToOne(() => Utilizador)
   @JoinColumn({ name: 'id_medico' })
@@ -38,4 +38,13 @@ export class Prescricao {
 
   @Column({ type: 'text', nullable: true })
   notas_medicas: string;
+
+  @Column({ type: 'boolean', default: false })
+  is_standard: boolean;
+
+  @Column({ type: 'varchar', length: 1, default: 'A', nullable: true })
+  dificuldade: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true, default: null })
+  condicao_clinica: string | null;
 }

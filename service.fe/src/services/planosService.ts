@@ -19,6 +19,9 @@ export interface PlanoAtivo {
   data_validade?: string | null;
   data_fim?: string | null;
   ativo?: boolean;
+  dificuldade?: string; // 'A' | 'B' | 'C'
+  condicao_clinica?: string | null;
+  is_standard?: boolean;
   exercicios: ExercicioDoPlano[];
 }
 
@@ -89,7 +92,7 @@ export const planosService = {
     const { data: prescricoes, error: errP } = await supabase
       .from("prescricoes")
       .select(
-        "id_prescricao, frequencia_semanal, notas_medicas, data_inicio, data_validade, data_fim, ativo",
+        "id_prescricao, frequencia_semanal, notas_medicas, data_inicio, data_validade, data_fim, ativo, dificuldade",
       )
       .eq("id_paciente", idPaciente);
 
@@ -101,7 +104,7 @@ export const planosService = {
     const ids = prescricoes.map((p) => p.id_prescricao);
     const { data: peData, error: errPE } = await supabase
       .from("prescricoes_exercicios")
-      .select("id_prescricao, id_exercicio")
+      .select("id_prescricao, id_exercicio, duracao_segundos")
       .in("id_prescricao", ids);
 
     if (errPE) throw new Error(errPE.message);
@@ -114,6 +117,7 @@ export const planosService = {
               id_plano: ativos[0].id_prescricao,
               frequencia_semanal: ativos[0].frequencia_semanal,
               notas_medicas: ativos[0].notas_medicas,
+              dificuldade: ativos[0].dificuldade ?? "A",
               exercicios: [],
             }
           : null,
@@ -121,6 +125,7 @@ export const planosService = {
           id_plano: p.id_prescricao,
           frequencia_semanal: p.frequencia_semanal,
           notas_medicas: p.notas_medicas,
+          dificuldade: p.dificuldade ?? "A",
           exercicios: [],
         })),
       };
@@ -147,13 +152,20 @@ export const planosService = {
         data_validade: p.data_validade,
         data_fim: p.data_fim,
         ativo: isPlanoAtivo(p),
+        dificuldade: p.dificuldade ?? "A",
         exercicios: peData
           .filter((pe) => pe.id_prescricao === p.id_prescricao)
-          .map((pe) =>
-            (exerciciosData ?? []).find(
-              (e) => e.id_exercicio === pe.id_exercicio,
-            ),
-          )
+          .map((pe) => {
+            const e = (exerciciosData ?? []).find(
+              (ex) => ex.id_exercicio === pe.id_exercicio,
+            );
+            if (!e) return null;
+            return {
+              ...e,
+              // Override exercise duration if custom duration exists in prescription relation
+              duracao_segundos: pe.duracao_segundos ?? e.duracao_segundos,
+            };
+          })
           .filter(Boolean) as ExercicioDoPlano[],
       };
     };
@@ -162,6 +174,78 @@ export const planosService = {
     const historico = prescricoes.filter((p) => !isPlanoAtivo(p)).map(mapPlano);
 
     return { ativo: ativos[0] ?? null, historico };
+  },
+
+  getPlanosStandard: async (): Promise<PlanoAtivo[]> => {
+    // 1. Buscar prescrições standard
+    const { data: prescricoes, error: errP } = await supabase
+      .from("prescricoes")
+      .select(
+        "id_prescricao, frequencia_semanal, notas_medicas, data_inicio, data_validade, data_fim, ativo, dificuldade, condicao_clinica, is_standard",
+      )
+      .is("id_paciente", null)
+      .eq("ativo", true);
+
+    if (errP) throw new Error(errP.message);
+    if (!prescricoes || prescricoes.length === 0) return [];
+
+    // 2. Buscar relações prescrição-exercício
+    const ids = prescricoes.map((p) => p.id_prescricao);
+    const { data: peData, error: errPE } = await supabase
+      .from("prescricoes_exercicios")
+      .select("id_prescricao, id_exercicio, duracao_segundos")
+      .in("id_prescricao", ids);
+
+    if (errPE) throw new Error(errPE.message);
+    if (!peData || peData.length === 0) {
+      return prescricoes.map((p) => ({
+        id_plano: p.id_prescricao,
+        frequencia_semanal: p.frequencia_semanal,
+        notas_medicas: p.notas_medicas,
+        dificuldade: p.dificuldade ?? "A",
+        condicao_clinica: p.condicao_clinica ?? null,
+        is_standard: p.is_standard,
+        exercicios: [],
+      }));
+    }
+
+    // 3. Buscar exercícios pelos IDs
+    const exercicioIds = [...new Set(peData.map((pe) => pe.id_exercicio))];
+    const { data: exerciciosData, error: errE } = await supabase
+      .from("exercicios")
+      .select(
+        "id_exercicio, nome_exercicio, duracao_segundos, dificuldade_clinica, recompensa_xp, url_video",
+      )
+      .in("id_exercicio", exercicioIds);
+
+    if (errE) throw new Error(errE.message);
+
+    // 4. Juntar tudo
+    return prescricoes.map((p) => ({
+      id_plano: p.id_prescricao,
+      frequencia_semanal: p.frequencia_semanal,
+      notas_medicas: p.notas_medicas,
+      data_inicio: p.data_inicio,
+      data_validade: p.data_validade,
+      data_fim: p.data_fim,
+      ativo: p.ativo === true,
+      dificuldade: p.dificuldade ?? "A",
+      condicao_clinica: p.condicao_clinica ?? null,
+      is_standard: p.is_standard,
+      exercicios: peData
+        .filter((pe) => pe.id_prescricao === p.id_prescricao)
+        .map((pe) => {
+          const e = (exerciciosData ?? []).find(
+            (ex) => ex.id_exercicio === pe.id_exercicio,
+          );
+          if (!e) return null;
+          return {
+            ...e,
+            duracao_segundos: pe.duracao_segundos ?? e.duracao_segundos,
+          };
+        })
+        .filter(Boolean) as ExercicioDoPlano[],
+    }));
   },
 
   getPlanosPorPacientes: fetchPlanosPorPacientes,
@@ -181,12 +265,15 @@ export const planosService = {
 
   // CRIAR um plano (prescrição) através do backend
   criarPlano: async (dados: {
-    id_paciente: string;
+    id_paciente: string | null;
     id_medico: string;
     frequencia_semanal: number;
     data_validade: string | null;
     notas_medicas: string;
-    exercicios: string[];
+    is_standard?: boolean;
+    dificuldade?: string;
+    condicao_clinica?: string | null;
+    exercicios: (string | { id_exercicio: string; duracao_segundos?: number })[];
   }): Promise<void> => {
     await apiClient.post("/prescricoes", dados);
   },

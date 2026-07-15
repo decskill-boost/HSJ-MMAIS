@@ -107,14 +107,63 @@ const HistoricoCalendario = ({ historico }: Props) => {
           {diaSelecionado.sessoes.length === 0 ? (
             <p className="mt-2 text-sm text-slate-500">Sem exercícios registados neste dia.</p>
           ) : (
-            <ul className="mt-2 space-y-2">
-              {diaSelecionado.sessoes.map((sessao) => (
-                <li key={sessao.idSessao} className="text-sm text-slate-600">
-                  {sessao.nomeExercicio} — {SESSAO_STATUS_LABELS[sessao.status]}
-                  {sessao.esforco != null && ` · esforço ${sessao.esforco}/10`}
-                  {sessao.diversao != null && ` · diversão ${sessao.diversao}/5`}
-                </li>
-              ))}
+            <ul className="mt-4 space-y-4">
+              {diaSelecionado.sessoes.map((sessao) => {
+                const duracaoMinutos = sessao.duracaoSegundos ? Math.round(sessao.duracaoSegundos / 60) : "-";
+                const esforcoTexto = sessao.esforco != null ? `${sessao.esforco}/10` : "-";
+                const diversaoEmojis = ["😴", "😕", "😊", "😄", "🤩"];
+                const diversaoEmoji = sessao.diversao != null ? diversaoEmojis[sessao.diversao - 1] ?? "❓" : null;
+
+                return (
+                  <li key={sessao.idSessao} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                      <h4 className="font-bold text-slate-800 text-sm">{sessao.nomeExercicio}</h4>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${sessao.status === "concluido" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}>
+                        {SESSAO_STATUS_LABELS[sessao.status]}
+                      </span>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                      <div>
+                        <p className="text-slate-400 font-medium">⏱️ DURAÇÃO DA SESSÃO</p>
+                        <p className="font-bold text-slate-800 mt-0.5">{duracaoMinutos} min</p>
+                      </div>
+
+                      <div>
+                        <p className="text-slate-400 font-medium">💪 ESFORÇO (RPE OMNI)</p>
+                        <p className="font-bold text-slate-800 mt-0.5">{esforcoTexto}</p>
+                      </div>
+
+                      <div>
+                        <p className="text-slate-400 font-medium">😊 DIVERSÃO / MOTIVAÇÃO</p>
+                        <p className="font-bold text-slate-800 mt-0.5">{diversaoEmoji ? `${diversaoEmoji} (${sessao.diversao}/5)` : "-"}</p>
+                      </div>
+
+                      <div>
+                        <p className="text-slate-400 font-medium">⚠️ PROBLEMAS DURANTE O TREINO</p>
+                        <p className="font-bold mt-0.5 text-slate-800">
+                          {sessao.teveProblemas ? <span className="text-red-600">Sim ⚠️</span> : <span className="text-slate-500">Não ✓</span>}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-slate-400 font-medium">👥 ENVOLVIMENTO FAMILIAR</p>
+                        <p className="font-bold mt-0.5 text-slate-800">
+                          {sessao.participacaoFamiliares ? <span className="text-emerald-600">Sim (Amigos ou Familiares) 👥</span> : <span className="text-slate-500">Não 👤</span>}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-slate-400 font-medium">⌚ DADOS BIOMÉTRICOS (SMARTWATCH)</p>
+                        <p className="font-bold text-slate-800 mt-0.5">
+                          {sessao.fcMedia ? `FC Média: ${sessao.fcMedia} bpm` : "-"}
+                          {sessao.fcMaxima ? ` · FC Máxima: ${sessao.fcMaxima} bpm` : ""}
+                        </p>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>

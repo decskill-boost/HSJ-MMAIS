@@ -32,4 +32,7 @@ export class Exercicio {
 
   @Column({ type: 'boolean', default: true })
   ativo: boolean;
+
+  @Column({ type: 'varchar', length: 1, default: 'A', nullable: true })
+  dificuldade: string;
 }

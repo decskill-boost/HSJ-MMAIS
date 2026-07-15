@@ -41,6 +41,10 @@ const AvaliacaoExercicio = ({
   const [esforco, setEsforco] = useState(5);
   const [diversaoTouched, setDiversaoTouched] = useState(false);
   const [esforcoTouched, setEsforcoTouched] = useState(false);
+  const [teveProblemas, setTeveProblemas] = useState(false);
+  const [participacaoFamiliares, setParticipacaoFamiliares] = useState(false);
+  const [fcMedia, setFcMedia] = useState(125);
+  const [fcMaxima, setFcMaxima] = useState(160);
   const [loading, setLoading] = useState(false);
   const [concluido, setConcluido] = useState(false);
   const [resultado, setResultado] = useState<ConclusaoResultado | null>(null);
@@ -58,6 +62,10 @@ const AvaliacaoExercicio = ({
         duracao: duracaoSegundos,
         diversao_1_a_5: diversao,
         esforco_1_a_10: esforco,
+        teve_problemas: teveProblemas,
+        participacao_familiares: participacaoFamiliares,
+        fc_media: fcMedia,
+        fc_maxima: fcMaxima,
       });
       setResultado(resposta);
       setConcluido(true);
@@ -94,11 +102,11 @@ const AvaliacaoExercicio = ({
   }
 
   return (
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 overflow-hidden bg-black/80 px-6 py-4 backdrop-blur-sm">
-          <div className="flex flex-col items-center gap-1">
-              <span className="text-3xl">✅</span>
-              <h3 className="text-2xl font-extrabold text-white">Exercício concluído!</h3>
-              <p className="text-sm text-slate-300">Diz-nos como foi...</p>
+    <div className="absolute inset-0 flex flex-col items-center gap-4 overflow-y-auto bg-black/90 px-6 py-8 backdrop-blur-md">
+      <div className="flex flex-col items-center gap-1 text-center">
+        <span className="text-3xl">✅</span>
+        <h3 className="text-2xl font-extrabold text-white">Exercício concluído!</h3>
+        <p className="text-sm text-slate-300">Diz-nos como foi...</p>
       </div>
 
       {/* Slider Diversão */}
@@ -163,6 +171,80 @@ const AvaliacaoExercicio = ({
                 {e.emoji}
               </span>
             ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Smartwatch & Monitorização */}
+      <div className="w-full max-w-sm rounded-2xl bg-white/10 p-5 backdrop-blur-sm text-white">
+        <h4 className="text-center font-bold mb-3 text-sm tracking-wide">📡 MONITORIZAÇÃO E SMARTWATCH</h4>
+        
+        {/* Teve problemas */}
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-xs font-semibold text-slate-200">Houve algum problema?</span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setTeveProblemas(true)}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition ${teveProblemas ? "bg-red-500 text-white" : "bg-white/10 text-slate-300 hover:bg-white/20"}`}
+            >
+              Sim
+            </button>
+            <button
+              type="button"
+              onClick={() => setTeveProblemas(false)}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition ${!teveProblemas ? "bg-slate-500 text-white" : "bg-white/10 text-slate-300 hover:bg-white/20"}`}
+            >
+              Não
+            </button>
+          </div>
+        </div>
+
+        {/* Participação Familiares */}
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-xs font-semibold text-slate-200">Participação de familiares/amigos?</span>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setParticipacaoFamiliares(true)}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition ${participacaoFamiliares ? "bg-emerald-500 text-white" : "bg-white/10 text-slate-300 hover:bg-white/20"}`}
+            >
+              Sim
+            </button>
+            <button
+              type="button"
+              onClick={() => setParticipacaoFamiliares(false)}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition ${!participacaoFamiliares ? "bg-slate-500 text-white" : "bg-white/10 text-slate-300 hover:bg-white/20"}`}
+            >
+              Não
+            </button>
+          </div>
+        </div>
+
+        {/* Smartwatch FC */}
+        <div className="border-t border-white/10 pt-3">
+          <p className="text-[11px] text-slate-400 mb-2 flex items-center gap-1">
+            <span>⌚ Smartwatch (Simulação de Dados)</span>
+          </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[10px] text-slate-300 mb-1">FC Média (bpm)</label>
+              <input
+                type="number"
+                value={fcMedia}
+                onChange={(e) => setFcMedia(Number(e.target.value))}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-yellow-400"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] text-slate-300 mb-1">FC Máxima (bpm)</label>
+              <input
+                type="number"
+                value={fcMaxima}
+                onChange={(e) => setFcMaxima(Number(e.target.value))}
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-yellow-400"
+              />
+            </div>
           </div>
         </div>
       </div>

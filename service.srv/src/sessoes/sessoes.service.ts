@@ -157,6 +157,10 @@ export class SessoesService {
         sessaoIniciada.esforco_1_a_10 = dto.esforco_1_a_10 as number;
         sessaoIniciada.diversao_1_a_5 = dto.diversao_1_a_5 as number;
         sessaoIniciada.duracao = dto.duracao as number;
+        sessaoIniciada.teve_problemas = dto.teve_problemas ?? false;
+        sessaoIniciada.participacao_familiares = dto.participacao_familiares ?? false;
+        sessaoIniciada.fc_maxima = dto.fc_maxima ?? null;
+        sessaoIniciada.fc_media = dto.fc_media ?? null;
         sessao = await manager.save(sessaoIniciada);
       } else {
         // Fallback for clients that never called /sessoes/iniciar (e.g. older builds).
@@ -168,6 +172,10 @@ export class SessoesService {
           esforco_1_a_10: dto.esforco_1_a_10,
           diversao_1_a_5: dto.diversao_1_a_5,
           duracao: dto.duracao,
+          teve_problemas: dto.teve_problemas ?? false,
+          participacao_familiares: dto.participacao_familiares ?? false,
+          fc_maxima: dto.fc_maxima ?? null,
+          fc_media: dto.fc_media ?? null,
           concluido: true,
           status: SessaoStatus.CONCLUIDO,
         });
