@@ -1,73 +1,94 @@
 import { useState } from "react";
-import { sessoesService, type ConclusaoResultado } from "../../services/sessoesService";
+import { sessoesService } from "../../services/sessoesService";
 
 interface Props {
+  idPaciente: string;
   idExercicio: string;
   idPrescricao: string;
-  idSessao?: string;
   duracaoSegundos: number;
   recompensaXp: number;
   onConcluir: () => void;
 }
 
 const DIVERSAO = [
-  { valor: 1, emoji: "😴", label: "Nada divertido" },
-  { valor: 2, emoji: "😕", label: "Pouco divertido" },
-  { valor: 3, emoji: "😊", label: "Fixe!" },
-  { valor: 4, emoji: "😄", label: "Muito divertido!" },
-  { valor: 5, emoji: "🤩", label: "Incrível!!" },
+  { valor: 1, emoji: "😴", label: "Nada" },
+  { valor: 2, emoji: "😕", label: "Pouco" },
+  { valor: 3, emoji: "😊", label: "Fixe" },
+  { valor: 4, emoji: "😄", label: "Giro" },
+  { valor: 5, emoji: "🤩", label: "Incrível!" },
 ];
 
-const ESFORCO = [
-  { min: 1, max: 2, emoji: "🌱", label: "Muito fácil" },
-  { min: 3, max: 4, emoji: "😌", label: "Fácil" },
-  { min: 5, max: 6, emoji: "😅", label: "Normal" },
-  { min: 7, max: 8, emoji: "😤", label: "Difícil" },
-  { min: 9, max: 10, emoji: "🥵", label: "Muito difícil" },
+const OMNI_LABELS: Record<number, string> = {
+  1: "Muito fácil", 2: "Fácil", 3: "Fácil", 4: "Normal", 5: "Normal",
+  6: "Difícil", 7: "Difícil", 8: "Muito difícil", 9: "Muito difícil", 10: "Máximo!",
+};
+
+const DIFICULDADE = [
+  { valor: 1, emoji: "🌱", label: "Muito fácil" },
+  { valor: 2, emoji: "😌", label: "Fácil" },
+  { valor: 3, emoji: "😅", label: "Normal" },
+  { valor: 4, emoji: "😤", label: "Difícil" },
+  { valor: 5, emoji: "🥵", label: "Muito difícil" },
 ];
 
-const getEsforcoInfo = (val: number) =>
-  ESFORCO.find((e) => val >= e.min && val <= e.max) ?? ESFORCO[2];
+const TOTAL_STEPS = 6;
 
 const AvaliacaoExercicio = ({
-  idExercicio,
-  idPrescricao,
-  idSessao,
-  duracaoSegundos,
-  recompensaXp,
-  onConcluir,
+  idPaciente, idExercicio, idPrescricao, duracaoSegundos, recompensaXp, onConcluir,
 }: Props) => {
+  const [step, setStep] = useState(1);
   const [diversao, setDiversao] = useState(3);
   const [esforco, setEsforco] = useState(5);
-  const [diversaoTouched, setDiversaoTouched] = useState(false);
-  const [esforcoTouched, setEsforcoTouched] = useState(false);
-  const [teveProblemas, setTeveProblemas] = useState(false);
-  const [participacaoFamiliares, setParticipacaoFamiliares] = useState(false);
-  const [fcMedia, setFcMedia] = useState(125);
-  const [fcMaxima, setFcMaxima] = useState(160);
+  const [dificuldade, setDificuldade] = useState(3);
+  const [bpmMedio, setBpmMedio] = useState("");
+  const [bpmMaximo, setBpmMaximo] = useState("");
+  const [erroBpmMedio, setErroBpmMedio] = useState("");
+  const [erroBpmMaximo, setErroBpmMaximo] = useState("");
+  const [problemas, setProblemas] = useState<boolean | null>(null);
+  const [descricaoProblema, setDescricaoProblema] = useState("");
+  const [companhia, setCompanhia] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
   const [concluido, setConcluido] = useState(false);
-  const [resultado, setResultado] = useState<ConclusaoResultado | null>(null);
 
-  const diversaoInfo = DIVERSAO[diversao - 1];
-  const esforcoInfo = getEsforcoInfo(esforco);
+  const validarBpm = (raw: string, setter: (v: string) => void, setErro: (e: string) => void) => {
+    if (raw === "") { setter(""); setErro(""); return; }
+    if (raw.includes(".") || raw.includes(",")) {
+      setErro("Não podes usar decimais — escreve um número inteiro.");
+      return;
+    }
+    const val = Number(raw);
+    if (val < 0) {
+      setErro("O valor não pode ser negativo.");
+      return;
+    }
+    setErro("");
+    setter(String(Math.floor(val)));
+  };
+
+  const podeAvancar = () => {
+    if (step === 4) return bpmMedio !== "" && bpmMaximo !== "" && !erroBpmMedio && !erroBpmMaximo;
+    if (step === 5) return problemas !== null;
+    if (step === 6) return companhia !== null;
+    return true;
+  };
 
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      const resposta = await sessoesService.registarSessao({
+      await sessoesService.registarSessao({
+        id_paciente: idPaciente,
         id_exercicio: idExercicio,
         id_prescricao: idPrescricao,
-        id_sessao: idSessao,
         duracao: duracaoSegundos,
         diversao_1_a_5: diversao,
         esforco_1_a_10: esforco,
-        teve_problemas: teveProblemas,
-        participacao_familiares: participacaoFamiliares,
-        fc_media: fcMedia,
-        fc_maxima: fcMaxima,
+        dificuldade_crianca: dificuldade,
+        bpm_medio: parseInt(bpmMedio),
+        bpm_maximo: parseInt(bpmMaximo),
+        problemas_treino: problemas,
+        companhia,
+        descricao_problema: problemas ? descricaoProblema : null,
       });
-      setResultado(resposta);
       setConcluido(true);
     } catch (err) {
       console.error(err);
@@ -82,15 +103,9 @@ const AvaliacaoExercicio = ({
         <span className="animate-bounce text-7xl">🎉</span>
         <h3 className="text-3xl font-extrabold text-white">Muito bem!</h3>
         <p className="text-slate-300">Avaliação registada com sucesso!</p>
-        {resultado?.alreadyCompletedToday ? (
-          <p className="text-slate-300">Já tinhas concluído este exercício hoje!</p>
-        ) : (
-          <div className="rounded-full bg-blue-500/20 px-5 py-2">
-            <p className="text-lg font-bold text-blue-400">
-              +{resultado?.xpGained ?? recompensaXp} XP ganhos! ⭐
-            </p>
-          </div>
-        )}
+        <div className="rounded-full bg-blue-500/20 px-5 py-2">
+          <p className="text-lg font-bold text-blue-400">+{recompensaXp} XP ganhos! ⭐</p>
+        </div>
         <button
           onClick={onConcluir}
           className="mt-2 flex items-center gap-3 rounded-2xl bg-emerald-500 px-8 py-4 text-xl font-extrabold text-white shadow-lg transition hover:bg-emerald-400 active:scale-95"
@@ -102,163 +117,227 @@ const AvaliacaoExercicio = ({
   }
 
   return (
-    <div className="absolute inset-0 flex flex-col items-center gap-4 overflow-y-auto bg-black/90 px-6 py-8 backdrop-blur-md">
-      <div className="flex flex-col items-center gap-1 text-center">
-        <span className="text-3xl">✅</span>
-        <h3 className="text-2xl font-extrabold text-white">Exercício concluído!</h3>
-        <p className="text-sm text-slate-300">Diz-nos como foi...</p>
-      </div>
-
-      {/* Slider Diversão */}
-      <div className="w-full max-w-sm rounded-2xl bg-white/10 p-5 backdrop-blur-sm">
-        <p className="mb-4 text-center text-base font-bold text-white">Foi divertido?</p>
-
-        <div className="flex flex-col items-center gap-3">
-          <span className="text-4xl transition-all duration-200">
-            {diversaoInfo.emoji}
-          </span>
-          <p className="text-sm font-semibold text-slate-300">{diversaoInfo.label}</p>
-
-          <input
-            type="range"
-            min={1}
-            max={5}
-            step={1}
-            value={diversao}
-            onChange={(e) => {
-              setDiversao(Number(e.target.value));
-              setDiversaoTouched(true);
-            }}
-            className="w-full cursor-pointer accent-yellow-400"
-            style={{ height: "6px" }}
-          />
-          <div className="flex w-full justify-between text-lg">
-            {DIVERSAO.map((d) => (
-              <span key={d.valor} className={diversao === d.valor ? "opacity-100" : "opacity-30"}>
-                {d.emoji}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Slider Esforço */}
-      <div className="w-full max-w-sm rounded-2xl bg-white/10 p-5 backdrop-blur-sm">
-        <p className="mb-4 text-center text-base font-bold text-white">Foi difícil?</p>
-
-        <div className="flex flex-col items-center gap-3">
-          <span className="text-4xl transition-all duration-200">
-            {esforcoInfo.emoji}
-          </span>
-          <p className="text-sm font-semibold text-slate-300">{esforcoInfo.label}</p>
-
-          <input
-            type="range"
-            min={1}
-            max={10}
-            step={1}
-            value={esforco}
-            onChange={(e) => {
-              setEsforco(Number(e.target.value));
-              setEsforcoTouched(true);
-            }}
-            className="w-full cursor-pointer accent-blue-400"
-            style={{ height: "6px" }}
-          />
-          <div className="flex w-full justify-between text-lg">
-            {ESFORCO.map((e) => (
-              <span key={e.min} className={esforcoInfo.emoji === e.emoji ? "opacity-100" : "opacity-30"}>
-                {e.emoji}
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Smartwatch & Monitorização */}
-      <div className="w-full max-w-sm rounded-2xl bg-white/10 p-5 backdrop-blur-sm text-white">
-        <h4 className="text-center font-bold mb-3 text-sm tracking-wide">📡 MONITORIZAÇÃO E SMARTWATCH</h4>
-        
-        {/* Teve problemas */}
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-semibold text-slate-200">Houve algum problema?</span>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setTeveProblemas(true)}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition ${teveProblemas ? "bg-red-500 text-white" : "bg-white/10 text-slate-300 hover:bg-white/20"}`}
-            >
-              Sim
-            </button>
-            <button
-              type="button"
-              onClick={() => setTeveProblemas(false)}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition ${!teveProblemas ? "bg-slate-500 text-white" : "bg-white/10 text-slate-300 hover:bg-white/20"}`}
-            >
-              Não
-            </button>
-          </div>
-        </div>
-
-        {/* Participação Familiares */}
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-semibold text-slate-200">Participação de familiares/amigos?</span>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setParticipacaoFamiliares(true)}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition ${participacaoFamiliares ? "bg-emerald-500 text-white" : "bg-white/10 text-slate-300 hover:bg-white/20"}`}
-            >
-              Sim
-            </button>
-            <button
-              type="button"
-              onClick={() => setParticipacaoFamiliares(false)}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition ${!participacaoFamiliares ? "bg-slate-500 text-white" : "bg-white/10 text-slate-300 hover:bg-white/20"}`}
-            >
-              Não
-            </button>
-          </div>
-        </div>
-
-        {/* Smartwatch FC */}
-        <div className="border-t border-white/10 pt-3">
-          <p className="text-[11px] text-slate-400 mb-2 flex items-center gap-1">
-            <span>⌚ Smartwatch (Simulação de Dados)</span>
+    <div className="absolute inset-0 flex flex-col bg-black/90 backdrop-blur-sm">
+      {/* Header com progresso */}
+      <div className="flex flex-col gap-3 px-8 pt-6">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-semibold text-slate-400">
+            Passo {step} de {TOTAL_STEPS}
           </p>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[10px] text-slate-300 mb-1">FC Média (bpm)</label>
-              <input
-                type="number"
-                value={fcMedia}
-                onChange={(e) => setFcMedia(Number(e.target.value))}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-yellow-400"
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] text-slate-300 mb-1">FC Máxima (bpm)</label>
-              <input
-                type="number"
-                value={fcMaxima}
-                onChange={(e) => setFcMaxima(Number(e.target.value))}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-yellow-400"
-              />
-            </div>
-          </div>
+          <p className="text-xs font-semibold text-slate-400">
+            {Math.round((step / TOTAL_STEPS) * 100)}%
+          </p>
+        </div>
+        <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
+          <div
+            className="h-2 rounded-full bg-blue-500 transition-all duration-500"
+            style={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
+          />
         </div>
       </div>
 
-      <button
-        onClick={handleSubmit}
-        disabled={!diversaoTouched || !esforcoTouched || loading}
-        className="flex items-center gap-3 rounded-xl bg-green-500 px-6 py-3 text-base font-extrabold text-white shadow-lg transition hover:bg-green-400 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        {loading ? "A guardar..." : "Enviar avaliação"}
-      </button>
-      {(!diversaoTouched || !esforcoTouched) && (
-        <p className="text-xs text-slate-400">Move os dois sliders para poderes enviar</p>
-      )}
+      {/* Conteúdo do passo */}
+      <div className="flex flex-1 flex-col items-center justify-center px-8">
+
+        {/* Passo 1 — Diversão */}
+        {step === 1 && (
+          <div className="flex w-full max-w-md flex-col items-center gap-8">
+            <div className="flex flex-col items-center gap-2">
+              <h2 className="text-2xl font-extrabold text-white">Foi divertido?</h2>
+            </div>
+            <div className="flex w-full flex-col items-center gap-3">
+              <span className="text-7xl transition-all duration-200">{DIVERSAO[diversao - 1].emoji}</span>
+              <p className="text-lg font-semibold text-slate-300">{DIVERSAO[diversao - 1].label}</p>
+              <input
+                type="range" min={1} max={5} step={1} value={diversao}
+                onChange={(e) => setDiversao(Number(e.target.value))}
+                className="w-full cursor-pointer accent-yellow-400"
+              />
+              <div className="flex w-full justify-between text-2xl">
+                {DIVERSAO.map((d) => (
+                  <span key={d.valor} className={`transition-opacity ${diversao === d.valor ? "opacity-100" : "opacity-30"}`}>
+                    {d.emoji}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Passo 2 — Perceção de esforço */}
+        {step === 2 && (
+          <div className="flex w-full max-w-md flex-col items-center gap-8">
+            <div className="flex flex-col items-center gap-2">
+              <h2 className="text-2xl font-extrabold text-white">Indica a tua perceção de esforço! 💪</h2>
+            </div>
+            <div className="flex w-full flex-col items-center gap-3">
+              <span className="text-7xl font-extrabold text-blue-400">{esforco}</span>
+              <p className="text-lg font-semibold text-slate-300">{OMNI_LABELS[esforco]}</p>
+              <input
+                type="range" min={1} max={10} step={1} value={esforco}
+                onChange={(e) => setEsforco(Number(e.target.value))}
+                className="w-full cursor-pointer accent-blue-400"
+              />
+              <div className="flex w-full justify-between text-sm text-slate-400">
+                {[1,2,3,4,5,6,7,8,9,10].map((n) => (
+                  <span key={n} className={esforco === n ? "font-bold text-blue-400" : ""}>{n}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Passo 3 — Dificuldade sentida */}
+        {step === 3 && (
+          <div className="flex w-full max-w-md flex-col items-center gap-8">
+            <div className="flex flex-col items-center gap-2">
+              <h2 className="text-2xl font-extrabold text-white">Dificuldade sentida</h2>
+            </div>
+            <div className="flex w-full flex-col items-center gap-3">
+              <span className="text-7xl transition-all duration-200">{DIFICULDADE[dificuldade - 1].emoji}</span>
+              <p className="text-lg font-semibold text-slate-300">{DIFICULDADE[dificuldade - 1].label}</p>
+              <input
+                type="range" min={1} max={5} step={1} value={dificuldade}
+                onChange={(e) => setDificuldade(Number(e.target.value))}
+                className="w-full cursor-pointer accent-purple-400"
+              />
+              <div className="flex w-full justify-between text-2xl">
+                {DIFICULDADE.map((d) => (
+                  <span key={d.valor} className={`transition-opacity ${dificuldade === d.valor ? "opacity-100" : "opacity-30"}`}>
+                    {d.emoji}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Passo 4 — Batimentos */}
+        {step === 4 && (
+          <div className="flex w-full max-w-md flex-col items-center gap-8">
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-5xl">❤️</span>
+              <h2 className="text-2xl font-extrabold text-white">Batimentos</h2>
+              <p className="text-sm text-slate-400 text-center">
+                Olha para a tua pulseira e escreve os valores que vês!
+              </p>
+            </div>
+            <div className="flex w-full flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-slate-300">BPM Médio *</label>
+                {erroBpmMedio && (
+                  <p className="text-xs font-semibold text-red-400">⚠️ {erroBpmMedio}</p>
+                )}
+                <input
+                  type="number" placeholder="ex: 95" value={bpmMedio}
+                  onChange={(e) => validarBpm(e.target.value, setBpmMedio, setErroBpmMedio)}
+                  min={1} max={300} step={1}
+                  className={`w-full rounded-2xl bg-white/10 px-4 py-4 text-lg text-white placeholder-slate-500 outline-none focus:ring-2 ${erroBpmMedio ? "ring-2 ring-red-400" : "focus:ring-blue-400"}`}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <label className="text-sm font-semibold text-slate-300">BPM Máximo *</label>
+                {erroBpmMaximo && (
+                  <p className="text-xs font-semibold text-red-400">⚠️ {erroBpmMaximo}</p>
+                )}
+                <input
+                  type="number" placeholder="ex: 130" value={bpmMaximo}
+                  onChange={(e) => validarBpm(e.target.value, setBpmMaximo, setErroBpmMaximo)}
+                  min={1} max={300} step={1}
+                  className={`w-full rounded-2xl bg-white/10 px-4 py-4 text-lg text-white placeholder-slate-500 outline-none focus:ring-2 ${erroBpmMaximo ? "ring-2 ring-red-400" : "focus:ring-blue-400"}`}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Passo 5 — Problemas */}
+        {step === 5 && (
+          <div className="flex w-full max-w-md flex-col items-center gap-8">
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-5xl">⚠️</span>
+              <h2 className="text-2xl font-extrabold text-white">Houve problemas?</h2>
+            </div>
+            <div className="flex w-full gap-4">
+              <button
+                onClick={() => setProblemas(true)}
+                className={`flex-1 rounded-2xl py-5 text-lg font-extrabold transition active:scale-95 ${problemas === true ? "bg-red-500 text-white" : "bg-white/10 text-slate-300 hover:bg-white/20"}`}
+              >
+                Sim
+              </button>
+              <button
+                onClick={() => { setProblemas(false); setDescricaoProblema(""); }}
+                className={`flex-1 rounded-2xl py-5 text-lg font-extrabold transition active:scale-95 ${problemas === false ? "bg-green-500 text-white" : "bg-white/10 text-slate-300 hover:bg-white/20"}`}
+              >
+                Não
+              </button>
+            </div>
+            {problemas === true && (
+              <textarea
+                value={descricaoProblema}
+                onChange={(e) => setDescricaoProblema(e.target.value)}
+                placeholder="Descreve o problema..."
+                rows={3}
+                className="w-full resize-none rounded-2xl bg-white/10 px-4 py-3 text-sm text-white placeholder-slate-500 outline-none focus:ring-2 focus:ring-red-400"
+              />
+            )}
+          </div>
+        )}
+
+        {/* Passo 6 — Companhia */}
+        {step === 6 && (
+          <div className="flex w-full max-w-md flex-col items-center gap-8">
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-5xl">👥</span>
+              <h2 className="text-2xl font-extrabold text-white">Fizeste com companhia?</h2>
+            </div>
+            <div className="flex w-full gap-4">
+              <button
+                onClick={() => setCompanhia(true)}
+                className={`flex-1 rounded-2xl py-5 text-lg font-extrabold transition active:scale-95 ${companhia === true ? "bg-blue-500 text-white" : "bg-white/10 text-slate-300 hover:bg-white/20"}`}
+              >
+                Sim
+              </button>
+              <button
+                onClick={() => setCompanhia(false)}
+                className={`flex-1 rounded-2xl py-5 text-lg font-extrabold transition active:scale-95 ${companhia === false ? "bg-slate-500 text-white" : "bg-white/10 text-slate-300 hover:bg-white/20"}`}
+              >
+                Não
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Botões de navegação */}
+      <div className="flex items-center gap-4 px-8 pb-8">
+        {step > 1 && (
+          <button
+            onClick={() => setStep((s) => s - 1)}
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+          >
+            ←
+          </button>
+        )}
+
+        {step < TOTAL_STEPS ? (
+          <button
+            onClick={() => setStep((s) => s + 1)}
+            disabled={!podeAvancar()}
+            className="flex-1 rounded-2xl bg-blue-500 py-4 text-lg font-extrabold text-white transition hover:bg-blue-400 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Próximo →
+          </button>
+        ) : (
+          <button
+            onClick={handleSubmit}
+            disabled={!podeAvancar() || loading}
+            className="flex-1 rounded-2xl bg-green-500 py-4 text-lg font-extrabold text-white transition hover:bg-green-400 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {loading ? "A guardar..." : "Enviar avaliação"}
+          </button>
+        )}
+      </div>
     </div>
   );
 };

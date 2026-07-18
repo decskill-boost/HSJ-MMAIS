@@ -27,10 +27,7 @@ export class Prescricao {
   @Column({ type: 'int' })
   frequencia_semanal: number;
 
-  @Column({ type: 'timestamp', nullable: true, default: null })
-  data_fim: Date | null;
-
-  @Column({ type: 'timestamp', nullable: true, default: null })
+  @Column({ type: 'timestamp', nullable: true })
   data_validade: Date | null;
 
   @Column({ type: 'boolean', default: true })
@@ -47,4 +44,7 @@ export class Prescricao {
 
   @Column({ type: 'varchar', length: 255, nullable: true, default: null })
   condicao_clinica: string | null;
+
+  @Column({ type: 'timestamp', nullable: true })
+  data_fim: Date | null;
 }

@@ -1,11 +1,12 @@
+
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { ExercicioDoPlano } from "../../services/planosService";
-import { sessoesService } from "../../services/sessoesService";
 import AvaliacaoExercicio from "./AvaliacaoExercicio";
 
 interface Props {
   exercicio: ExercicioDoPlano;
   idPrescricao: string;
+  idPaciente: string;
   onVoltar: () => void;
   onConcluir: () => void;
 }
@@ -16,14 +17,13 @@ const formatTime = (seconds: number) => {
   return `${m}:${s}`;
 };
 
-const ExercicioPlayer = ({ exercicio, idPrescricao, onVoltar, onConcluir }: Props) => {
+const ExercicioPlayer = ({ exercicio, idPrescricao, idPaciente, onVoltar, onConcluir }: Props) => {
   const [timeLeft, setTimeLeft] = useState(exercicio.duracao_segundos);
   const [isPaused, setIsPaused] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const idSessaoRef = useRef<string | undefined>(undefined);
 
   const startInterval = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -40,13 +40,6 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, onVoltar, onConcluir }: Prop
   }, []);
 
   useEffect(() => {
-    sessoesService
-      .iniciarSessao({ id_exercicio: exercicio.id_exercicio, id_prescricao: idPrescricao })
-      .then((resultado) => {
-        idSessaoRef.current = resultado.sessionId;
-      })
-      .catch(console.error);
-
     setTimeout(() => {
       videoRef.current?.play().catch(() => {});
       startInterval();
@@ -54,12 +47,14 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, onVoltar, onConcluir }: Prop
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startInterval]);
 
   const handlePausar = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
     videoRef.current?.pause();
-    if (intervalRef.current) clearInterval(intervalRef.current);
     setIsPaused(true);
   };
 
@@ -121,7 +116,6 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, onVoltar, onConcluir }: Prop
               <h3 className="text-2xl font-extrabold text-white">Exercício em Pausa</h3>
               <p className="text-sm text-slate-300">O que queres fazer?</p>
             </div>
-
             <div className="rounded-2xl bg-white/10 px-6 py-3 text-center backdrop-blur-sm">
               <p className="text-xs font-semibold uppercase tracking-widest text-slate-300">
                 Tempo restante
@@ -130,7 +124,6 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, onVoltar, onConcluir }: Prop
                 {formatTime(timeLeft)}
               </p>
             </div>
-
             <div className="flex w-56 flex-col items-center gap-3">
               <button
                 onClick={handleRetomar}
@@ -157,9 +150,9 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, onVoltar, onConcluir }: Prop
         {/* Overlay de avaliação */}
         {isFinished && (
           <AvaliacaoExercicio
+            idPaciente={idPaciente}
             idExercicio={exercicio.id_exercicio}
             idPrescricao={idPrescricao}
-            idSessao={idSessaoRef.current}
             duracaoSegundos={exercicio.duracao_segundos}
             recompensaXp={exercicio.recompensa_xp}
             onConcluir={onConcluir}
@@ -180,7 +173,6 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, onVoltar, onConcluir }: Prop
               {formatTime(timeLeft)}
             </p>
           </div>
-
           <div className="flex items-center gap-4">
             <button
               onClick={handlePausar}

@@ -17,7 +17,7 @@ type View = "list" | "preview" | "playing";
 
 export const PlanosPaciente = () => {
   const { user } = useOutletContext<LayoutContext>();
-  const [planosStandard, setPlanosStandard] = useState<PlanoAtivo[]>([]);
+  const [planos, setPlanos] = useState<PlanoAtivo[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<View>("list");
   const [exercicioSelecionado, setExercicioSelecionado] = useState<ExercicioDoPlano | null>(null);
@@ -25,9 +25,13 @@ export const PlanosPaciente = () => {
 
   useEffect(() => {
     if (!user?.idUser) return;
-    planosService.getPlanosStandard()
-      .then((standard) => {
-        setPlanosStandard(standard);
+    Promise.all([
+      planosService.getTodosPlanosPorPaciente(user.idUser),
+      planosService.getPlanosStandard(),
+    ])
+      .then(([{ ativo, historico }, standard]) => {
+        const pessoais = [ativo, ...historico].filter(Boolean) as PlanoAtivo[];
+        setPlanos([...pessoais, ...standard]);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -37,6 +41,7 @@ export const PlanosPaciente = () => {
     <ExercicioPlayer
       exercicio={exercicioSelecionado}
       idPrescricao={planoSelecionadoId}
+      idPaciente={user?.idUser ?? ""}
       onVoltar={() => setView("preview")}
       onConcluir={() => {
         setView("list");
@@ -60,18 +65,18 @@ export const PlanosPaciente = () => {
         Os meus planos de treino
       </h1>
       <p className="mt-1 text-sm text-slate-500">
-        Escolhe um dos planos de treino gerais recomendados pelo corpo clínico e começa a praticar!
+        Escolhe um plano e começa a praticar!
       </p>
-      
+
       {loading ? (
         <p className="mt-10 text-sm text-slate-400">A carregar planos de treino...</p>
-      ) : planosStandard.length === 0 ? (
+      ) : planos.length === 0 ? (
         <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-8 text-center">
-          <p className="text-slate-500">Ainda não existem planos standard disponíveis.</p>
+          <p className="text-slate-500">Ainda não existem planos disponíveis.</p>
         </div>
       ) : (
         <div className="mt-8 grid gap-6 sm:grid-cols-2">
-          {planosStandard.map((plano) => (
+          {planos.map((plano) => (
             <div key={plano.id_plano} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-bold text-indigo-600 uppercase tracking-wide">
@@ -82,10 +87,10 @@ export const PlanosPaciente = () => {
                     ? "bg-blue-100 text-blue-700"
                     : "bg-purple-100 text-purple-700"
                 }`}>
-                  {plano.is_standard !== false ? "Standard" : plano.condicao_clinica || "Personalizável"}
+                  {plano.is_standard !== false ? "Standard" : plano.condicao_clinica || "Personalizado"}
                 </span>
               </div>
-              
+
               {plano.notas_medicas ? (
                 <p className="text-xs text-slate-600 italic mb-3 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                   {plano.notas_medicas}
