@@ -1,8 +1,11 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { ExercicioDoPlano } from "../../services/planosService";
+import AvaliacaoExercicio from "./AvaliacaoExercicio";
 
 interface Props {
   exercicio: ExercicioDoPlano;
+  idPrescricao: string;
+  idPaciente: string;
   onVoltar: () => void;
   onConcluir: () => void;
 }
@@ -13,7 +16,7 @@ const formatTime = (seconds: number) => {
   return `${m}:${s}`;
 };
 
-const ExercicioPlayer = ({ exercicio, onVoltar, onConcluir }: Props) => {
+const ExercicioPlayer = ({ exercicio, idPrescricao, idPaciente, onVoltar, onConcluir }: Props) => {
   const [timeLeft, setTimeLeft] = useState(exercicio.duracao_segundos);
   const [isPaused, setIsPaused] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
@@ -46,8 +49,11 @@ const ExercicioPlayer = ({ exercicio, onVoltar, onConcluir }: Props) => {
   }, [startInterval]);
 
   const handlePausar = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
     videoRef.current?.pause();
-    if (intervalRef.current) clearInterval(intervalRef.current);
     setIsPaused(true);
   };
 
@@ -71,7 +77,7 @@ const ExercicioPlayer = ({ exercicio, onVoltar, onConcluir }: Props) => {
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black">
-      {/* Barra de cima — branca */}
+      {/* Barra de cima */}
       <div className="flex items-center justify-between bg-white px-5 py-4 shadow-sm">
         <button
           onClick={onVoltar}
@@ -142,47 +148,34 @@ const ExercicioPlayer = ({ exercicio, onVoltar, onConcluir }: Props) => {
           </div>
         )}
 
-        {/* Overlay de conclusão */}
+        {/* Overlay de avaliação */}
         {isFinished && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/70 backdrop-blur-sm">
-            <div className="flex flex-col items-center gap-2">
-              <span className="animate-bounce text-6xl">🎉</span>
-              <h3 className="text-3xl font-extrabold text-white">Muito bem!</h3>
-              <p className="text-slate-300">Exercício concluído!</p>
-              <div className="mt-2 rounded-full bg-blue-500/20 px-4 py-1.5">
-                <p className="text-lg font-bold text-blue-400">
-                  +{exercicio.recompensa_xp} XP ganhos! ⭐
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={onConcluir}
-              className="flex items-center gap-3 rounded-2xl bg-emerald-500 px-8 py-4 text-xl font-extrabold text-white shadow-lg transition hover:bg-emerald-400 active:scale-95"
-            >
-              <span className="text-2xl">🏆</span> Voltar ao plano
-            </button>
-          </div>
+          <AvaliacaoExercicio
+            idPaciente={idPaciente}
+            idExercicio={exercicio.id_exercicio}
+            idPrescricao={idPrescricao}
+            duracaoSegundos={exercicio.duracao_segundos}
+            recompensaXp={exercicio.recompensa_xp}
+            onConcluir={onConcluir}
+          />
         )}
       </div>
 
-      {/* Barra de baixo — branca */}
+      {/* Barra de baixo */}
       {!isPaused && !isFinished && (
         <div className="flex flex-col items-center gap-3 bg-white px-4 pb-5 pt-4 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]">
           <div className="flex flex-col items-center gap-1">
             <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
               Tempo restante
             </p>
-            <p
-              className={`text-5xl font-extrabold tabular-nums transition-colors ${
-                timeLeft <= 10 ? "text-red-500" : "text-slate-900"
-              }`}
-            >
+            <p className={`text-5xl font-extrabold tabular-nums transition-colors ${
+              timeLeft <= 10 ? "text-red-500" : "text-slate-900"
+            }`}>
               {formatTime(timeLeft)}
             </p>
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Pausar */}
             <button
               onClick={handlePausar}
               className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition hover:bg-slate-700"
@@ -194,7 +187,6 @@ const ExercicioPlayer = ({ exercicio, onVoltar, onConcluir }: Props) => {
               </svg>
             </button>
 
-            {/* Recomeçar */}
             <button
               onClick={handleRecomecar}
               className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition hover:bg-slate-700"

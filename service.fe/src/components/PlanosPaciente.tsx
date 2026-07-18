@@ -42,6 +42,8 @@ export const PlanosPaciente = () => {
     return (
       <ExercicioPlayer
         exercicio={exercicioSelecionado}
+        idPrescricao={planoAtivo?.id_plano ?? ""}
+        idPaciente={user?.idUser ?? ""}
         onVoltar={() => setView("preview")}
         onConcluir={() => { setView("list"); setExercicioSelecionado(null); }}
       />

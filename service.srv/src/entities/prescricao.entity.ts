@@ -23,8 +23,8 @@ export class Prescricao {
   @Column({ type: 'int' })
   frequencia_semanal: number;
 
-  @Column({ type: 'timestamp' })
-  data_validade: Date;
+  @Column({ type: 'timestamp', nullable: true })
+  data_validade: Date | null;
 
   @Column({ type: 'boolean', default: true })
   ativo: boolean;
