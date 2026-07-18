@@ -1,3 +1,4 @@
+
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { ExercicioDoPlano } from "../../services/planosService";
 import AvaliacaoExercicio from "./AvaliacaoExercicio";
@@ -115,7 +116,6 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, idPaciente, onVoltar, onConc
               <h3 className="text-2xl font-extrabold text-white">Exercício em Pausa</h3>
               <p className="text-sm text-slate-300">O que queres fazer?</p>
             </div>
-
             <div className="rounded-2xl bg-white/10 px-6 py-3 text-center backdrop-blur-sm">
               <p className="text-xs font-semibold uppercase tracking-widest text-slate-300">
                 Tempo restante
@@ -124,7 +124,6 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, idPaciente, onVoltar, onConc
                 {formatTime(timeLeft)}
               </p>
             </div>
-
             <div className="flex w-56 flex-col items-center gap-3">
               <button
                 onClick={handleRetomar}
@@ -174,7 +173,6 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, idPaciente, onVoltar, onConc
               {formatTime(timeLeft)}
             </p>
           </div>
-
           <div className="flex items-center gap-4">
             <button
               onClick={handlePausar}
@@ -186,7 +184,6 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, idPaciente, onVoltar, onConc
                 <rect x="14" y="4" width="4" height="16" rx="1" />
               </svg>
             </button>
-
             <button
               onClick={handleRecomecar}
               className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition hover:bg-slate-700"

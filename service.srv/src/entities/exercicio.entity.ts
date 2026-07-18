@@ -23,8 +23,16 @@ export class Exercicio {
   @Column({ type: 'int' })
   dificuldade_clinica: number;
 
-  @Column({ type: 'text', nullable: true }) descricao: string;
+  @Column({ type: 'text', nullable: true })
+  descricao: string;
+
+  // ADICIONA ESTA LINHA ABAIXO
+  @Column({ type: 'text', nullable: true })
+  materiais_necessarios: string;
 
   @Column({ type: 'boolean', default: true })
   ativo: boolean;
+
+  @Column({ type: 'varchar', length: 1, default: 'A', nullable: true })
+  dificuldade: string;
 }

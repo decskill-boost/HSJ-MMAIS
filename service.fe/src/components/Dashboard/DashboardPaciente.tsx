@@ -2,10 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import BtnGlobal from "../BtnGlobal";
 import type { UserProfile } from "../../types/user";
-import {
-  planosService,
-  type PlanoAtivo,
-} from "../../services/planosService";
+import { planosService, type PlanoAtivo } from "../../services/planosService";
 
 interface LayoutContext {
   user: UserProfile | null;
@@ -25,13 +22,14 @@ const DashboardPaciente = () => {
   const { user } = useOutletContext<LayoutContext>();
   const displayName = user?.nome?.split(" ")[0] ?? "Paciente";
 
-  const [plano] = useState<PlanoAtivo | null>(null);
+  const [plano, setPlano] = useState<PlanoAtivo | null>(null);
   const [loadingPlano, setLoadingPlano] = useState(true);
 
   useEffect(() => {
     if (!user?.idUser) return;
     planosService
-      planosService.getTodosPlanosPorPaciente(user.idUser).then(({ ativo }) => ativo)
+      .getTodosPlanosPorPaciente(user.idUser)
+      .then(({ ativo }) => setPlano(ativo))
       .catch(console.error)
       .finally(() => setLoadingPlano(false));
   }, [user?.idUser]);
@@ -57,6 +55,7 @@ const DashboardPaciente = () => {
   return (
     <div className="flex-1 bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
+        {/* HERO SECTION */}
         <section className="rounded-3xl border border-slate-200 bg-gradient-to-br from-blue-600 to-indigo-600 p-6 text-white shadow-sm sm:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
@@ -67,7 +66,8 @@ const DashboardPaciente = () => {
                 Olá, {displayName}
               </h1>
               <p className="mt-3 max-w-2xl text-sm text-blue-100 sm:text-base">
-                Aqui tens uma visão rápida do teu progresso e do teu plano de exercícios.
+                Aqui tens uma visão rápida do teu progresso e do teu plano de
+                exercícios.
               </p>
             </div>
             <div className="rounded-2xl bg-white/15 px-4 py-3 backdrop-blur-sm">
@@ -77,13 +77,16 @@ const DashboardPaciente = () => {
           </div>
         </section>
 
+        {/* MÉTRICAS (HIGHLIGHTS) */}
         <section className="grid gap-4 md:grid-cols-3">
           {highlights.map((item) => (
             <article
               key={item.label}
               className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
             >
-              <div className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${item.accent}`}>
+              <div
+                className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${item.accent}`}
+              >
                 {item.label}
               </div>
               <p className="mt-4 text-2xl font-extrabold text-slate-900">
@@ -93,59 +96,75 @@ const DashboardPaciente = () => {
           ))}
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[1.3fr_0.7fr]">
-          <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-3">
+        {/* GRELHA PRINCIPAL (PLANO ATIVO + PROGRESSO) */}
+        <section className="grid items-start gap-6 lg:grid-cols-[1.3fr_0.7fr]">
+          {/* COLUNA ESQUERDA: PLANO ATIVO */}
+          <article className="flex flex-col gap-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
+            {/* Cabeçalho */}
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h2 className="text-xl font-bold text-slate-900">Plano ativo</h2>
-                <p className="mt-1 text-sm text-slate-500">Os teus exercícios de hoje.</p>
+                <h2 className="text-xl font-bold text-slate-900">
+                  Plano ativo
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Os teus exercícios de hoje.
+                </p>
               </div>
               <span className="rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
                 Hoje
               </span>
             </div>
 
-            <div className="mt-6">
+            {/* Conteúdo */}
+            <div>
               {loadingPlano ? (
                 <p className="text-sm text-slate-400">A carregar plano...</p>
               ) : !plano ? (
-                <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-500">
-                  Ainda não tens um plano atribuído pelo médico.
+                <div className="rounded-2xl border border-slate-100 bg-slate-50 p-6 text-center text-sm text-slate-500">
+                  Ainda não tens um plano atribuído pelo teu médico.
                 </div>
               ) : (
                 <div className="flex flex-col gap-3">
                   {plano.notas_medicas && (
-                    <div className="rounded-xl border border-blue-100 bg-blue-50 px-3 py-2 text-sm text-blue-700">
+                    <div className="mb-2 rounded-xl border border-blue-100 bg-blue-50/50 p-4 text-sm text-blue-800">
                       <span className="font-semibold">Nota: </span>
                       {plano.notas_medicas}
                     </div>
                   )}
+
                   {plano.exercicios.slice(0, 3).map((ex) => (
                     <div
                       key={ex.id_exercicio}
-                      className="flex items-center justify-between rounded-2xl bg-slate-50 p-4"
+                      className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 p-4 transition hover:bg-slate-100/80"
                     >
                       <div>
-                        <p className="text-sm font-semibold text-slate-900">{ex.nome_exercicio}</p>
-                        <p className="mt-0.5 text-xs text-slate-500">
-                          {formatTime(ex.duracao_segundos)} ·{" "}
-                          <span className="font-medium text-blue-600">+{ex.recompensa_xp} XP</span>
+                        <p className="font-semibold text-slate-900">
+                          {ex.nome_exercicio}
                         </p>
+                        <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
+                          <span>{formatTime(ex.duracao_segundos)}</span>
+                          <span className="text-slate-300">·</span>
+                          <span className="font-medium text-blue-600">
+                            +{ex.recompensa_xp} XP
+                          </span>
+                        </div>
                       </div>
                     </div>
                   ))}
+
                   {plano.exercicios.length > 3 && (
-                    <p className="text-center text-xs text-slate-400">
-                      +{plano.exercicios.length - 3} exercícios
+                    <p className="mt-2 text-center text-sm font-medium text-slate-400">
+                      + {plano.exercicios.length - 3} exercícios
                     </p>
                   )}
                 </div>
               )}
             </div>
 
-            <div className="mt-6 flex flex-wrap gap-3">
+            {/* Ações */}
+            <div className="flex flex-col gap-3 border-t border-slate-100 pt-6 sm:flex-row">
               <BtnGlobal
-                className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+                className="flex w-full flex-1 justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 sm:w-auto"
                 onClick={() => navigate("/paciente/planos")}
               >
                 Ver plano completo
@@ -153,16 +172,19 @@ const DashboardPaciente = () => {
               <BtnGlobal
                 variant="secondary"
                 onClick={() => navigate("/perfil")}
-                className="rounded-xl border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                className="flex w-full justify-center rounded-xl border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 sm:w-auto"
               >
                 Informação pessoal
               </BtnGlobal>
             </div>
           </article>
 
-          <div className="space-y-4">
+          {/* COLUNA DIREITA: PROGRESSO E STREAK */}
+          <div className="flex flex-col gap-6">
             <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-bold text-slate-900">Progresso semanal</h2>
+              <h2 className="text-lg font-bold text-slate-900">
+                Progresso semanal
+              </h2>
               <p className="mt-2 text-sm text-slate-500">
                 {plano
                   ? `Frequência recomendada: ${plano.frequencia_semanal}x por semana.`
@@ -171,7 +193,9 @@ const DashboardPaciente = () => {
               <div className="mt-4 h-2 rounded-full bg-slate-100">
                 <div className="h-2 w-1/4 rounded-full bg-blue-600" />
               </div>
-              <p className="mt-2 text-sm font-semibold text-slate-700">Mantém a regularidade!</p>
+              <p className="mt-2 text-sm font-semibold text-slate-700">
+                Mantém a regularidade!
+              </p>
             </article>
 
             <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">

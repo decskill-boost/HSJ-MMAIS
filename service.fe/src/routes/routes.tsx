@@ -3,15 +3,20 @@ import { Layout } from "./Layout";
 import { UserRole } from "../types/permissions";
 
 import WelcomePage from "../components/WelcomePage";
-import PersonalInfo from "../components/PersonalInfo/PersonalInfo";
+import MissaoProposito from "../components/MissaoProposito";
+import PersonalInfo from "../components/PersonalInfo";
 import PageNotFound from "../components/PageNotFound";
 import Login from "../components/Login";
 import DashboardPaciente from "../components/Dashboard/DashboardPaciente";
 import DashboardCorpoClinico from "../components/Dashboard/DashboardCorpoClinico";
+import PlanosCorpoClinico from "../components/Dashboard/PlanosCorpoClinico";
+import PacienteDetalhe from "../components/Dashboard/PacienteDetalhe";
 import DashboardAdmin from "../components/Dashboard/DashboardAdmin/DashboardAdmin";
 import ExerciciosPage from "../components/Exercicios/ExerciciosPage";
 import CriarPlano from "../components/CriarPlano";
 import PlanosPaciente from "../components/PlanosPaciente";
+import PacientesList from "../components/Pacientes/PacientesList";
+import PacientePerfil from "../components/Pacientes/PacientePerfil";
 
 import { ProtectedRoute } from "./ProtectedRoute";
 
@@ -24,6 +29,10 @@ export const router = createBrowserRouter([
       {
         path: "",
         element: <WelcomePage />,
+      },
+      {
+        path: "missao",
+        element: <MissaoProposito />,
       },
       {
         path: "login",
@@ -50,12 +59,28 @@ export const router = createBrowserRouter([
             element: <DashboardCorpoClinico />,
           },
           {
+            path: "dashboard/medico/pacientes",
+            element: <PlanosCorpoClinico />,
+          },
+          {
+            path: "dashboard/medico/pacientes/:pacienteId",
+            element: <PacienteDetalhe />,
+          },
+          {
             path: "exercicios",
             element: <ExerciciosPage />,
           },
           {
             path: "plano/criar",
             element: <CriarPlano />,
+          },
+          {
+            path: "dashboard/medico/adesao",
+            element: <PacientesList />,
+          },
+          {
+            path: "dashboard/medico/adesao/:idPaciente",
+            element: <PacientePerfil />,
           },
         ],
       },
