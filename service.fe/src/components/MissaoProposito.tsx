@@ -1,33 +1,38 @@
 import { useEffect, useState } from "react";
+import CapitaoMais from "./CapitaoMais";
 
 // Frases dos meninos (placeholder até termos as reais)
 const FRASES_MENINOS = ["Frase 1", "Frase 2", "Frase 3"];
 
 // Um gradiente de fundo diferente para cada frase, para se notar a rotação
 const GRADIENTES_HERO = [
-  "from-cobalto via-cobalto to-turbo",
-  "from-cobalto via-cobalto to-cobalto-vivo",
-  "from-turbo-escuro via-turbo to-cobalto-vivo",
+  "from-cobalto-vivo via-cobalto to-[#16307F]",
+  "from-cobalto via-[#16307F] to-turbo-escuro",
+  "from-turbo-escuro via-cobalto to-cobalto-vivo",
 ];
 
 const PILARES = [
   {
     titulo: "Missão",
+    cor: "border-cobalto bg-cobalto text-papel",
     texto:
       "Ajudar crianças e jovens em contexto clínico a manterem-se ativos, fortes e motivados durante o seu percurso de tratamento, através de planos de exercício simples e acompanhados por profissionais de saúde.",
   },
   {
     titulo: "Visão",
+    cor: "border-tinta bg-turbo text-tinta",
     texto:
       "Ser uma referência na integração da atividade física no cuidado pediátrico, tornando o movimento parte natural da recuperação de cada criança, dentro e fora do hospital.",
   },
   {
     titulo: "Valores",
+    cor: "border-tinta bg-raio text-tinta",
     texto:
       "Cuidado centrado na criança, rigor clínico, alegria no processo de recuperação, e uma parceria próxima entre profissionais de saúde, crianças e famílias.",
   },
   {
     titulo: "Propósito",
+    cor: "border-tinta bg-capa text-papel",
     texto:
       "Transformar minutos de exercício em minutos de esperança — promovendo não só a recuperação física, mas também o bem-estar emocional e social de cada criança.",
   },
@@ -47,32 +52,35 @@ const MissaoProposito = () => {
     <div className="flex flex-1 flex-col">
       {/* HERO — título fixo + carrossel a mudar o fundo */}
       <section
-        className={`relative overflow-hidden bg-gradient-to-br px-4 py-24 text-center text-papel transition-colors duration-1000 sm:py-32 ${GRADIENTES_HERO[fraseAtual]}`}
+        className={`relative overflow-hidden border-b-[3px] border-tinta bg-gradient-to-br px-4 py-20 text-center text-papel transition-colors duration-1000 sm:py-28 ${GRADIENTES_HERO[fraseAtual]}`}
       >
-        {/* círculos decorativos, para não ficar um bloco de cor liso */}
-        <div className="pointer-events-none absolute -left-16 -top-16 h-64 w-64 rounded-full bg-papel-claro/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -right-10 h-80 w-80 rounded-full bg-papel-claro/10 blur-3xl" />
+        <div className="fundo-raios pointer-events-none absolute -inset-[40%] opacity-10" aria-hidden="true" />
+        <div className="fundo-reticula pointer-events-none absolute inset-0 opacity-40" aria-hidden="true" />
 
         <div className="relative">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-cobalto/10">
-            +MMAis
-          </p>
-          <h1 className="mx-auto mt-4 max-w-3xl text-4xl font-extrabold tracking-tight sm:text-6xl">
+          <div className="flex items-center justify-center gap-3">
+            <div className="animate-flutuar">
+              <CapitaoMais className="h-16 w-auto" title="" />
+            </div>
+            <p className="font-display text-lg tracking-[0.14em] text-raio [text-shadow:1.5px_1.5px_0_#141F3C]">
+              MMAIS+
+            </p>
+          </div>
+          <h1 className="texto-autocolante mx-auto mt-4 max-w-3xl font-display text-4xl tracking-wide sm:text-6xl">
             A nossa missão e propósito
           </h1>
 
-          <p className="mx-auto mt-6 max-w-2xl text-lg font-medium text-cobalto/10 sm:text-2xl">
+          <p className="mx-auto mt-6 max-w-2xl text-lg font-bold text-[#D7DDF4] sm:text-2xl">
             Levamos exercício, alegria e movimento a cada criança em
             tratamento.
           </p>
-
 
           {/* CARROSSEL — dentro do hero */}
           <div className="mx-auto mt-14 max-w-2xl">
             <p className="text-xs font-bold uppercase tracking-widest text-[#C9D2F2]">
               O que dizem as nossas crianças
             </p>
-            <p className="mt-4 text-5xl leading-none text-papel/40">“</p>
+            <p className="mt-4 text-5xl leading-none text-raio">“</p>
             <p className="mx-auto -mt-3 min-h-[4.5rem] max-w-xl text-2xl font-semibold italic leading-relaxed sm:text-3xl">
               {FRASES_MENINOS[fraseAtual]}
             </p>
@@ -82,10 +90,10 @@ const MissaoProposito = () => {
                   key={i}
                   onClick={() => setFraseAtual(i)}
                   aria-label={`Ver frase ${i + 1}`}
-                  className={`h-2.5 rounded-full transition-all ${
+                  className={`h-3 rounded-full border-2 border-tinta transition-all ${
                     i === fraseAtual
-                      ? "w-8 bg-papel-claro"
-                      : "w-2.5 bg-papel-claro/40 hover:bg-papel-claro/60"
+                      ? "w-8 bg-raio"
+                      : "w-3 bg-papel-claro/40 hover:bg-papel-claro/70"
                   }`}
                 />
               ))}
@@ -96,25 +104,28 @@ const MissaoProposito = () => {
 
       {/* MISSÃO · VISÃO · VALORES · PROPÓSITO */}
       <section className="mx-auto w-full max-w-5xl px-4 py-16 sm:py-24">
-        <div className="text-center">
+        <div className="entrada-pop text-center">
           <p className="text-sm font-bold uppercase tracking-widest text-cobalto">
             Quem somos
           </p>
-          <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-tinta sm:text-4xl">
+          <h2 className="mt-2 font-display text-3xl tracking-wide text-tinta sm:text-4xl">
             Porque existimos
           </h2>
         </div>
 
         <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2">
-          {PILARES.map((pilar) => (
+          {PILARES.map((pilar, idx) => (
             <div
               key={pilar.titulo}
-              className="rounded-2xl border border-tinta/10 bg-papel-claro p-8 shadow-sm transition hover:shadow-md"
+              className="entrada-pop rounded-2xl border-2 border-tinta bg-papel-claro p-8 shadow-vinheta transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#141F3C]"
+              style={{ animationDelay: `${idx * 0.08}s` }}
             >
-              <span className="inline-block rounded-full bg-cobalto/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-cobalto">
+              <span
+                className={`inline-block rounded-lg border-2 px-3 py-1 font-display text-sm tracking-widest shadow-[2px_2px_0_#141F3C] ${pilar.cor}`}
+              >
                 {pilar.titulo}
               </span>
-              <p className="mt-4 text-justify text-base leading-relaxed text-aco">
+              <p className="mt-4 text-base leading-relaxed text-aco">
                 {pilar.texto}
               </p>
             </div>
