@@ -118,7 +118,7 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, idPaciente, onVoltar, onConc
             <div className="animate-flutuar relative">
               <CapitaoMais className="h-28 w-auto" title="" />
             </div>
-            <p className="relative text-sm font-bold text-[#C9D2F2]">
+            <p className="relative text-sm font-bold text-[#EAEFFF]">
               Sem vídeo — segue o ritmo do Capitão!
             </p>
           </div>
@@ -135,12 +135,12 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, idPaciente, onVoltar, onConc
               <h3 className="texto-autocolante font-display text-3xl tracking-wide">
                 Pausa de herói!
               </h3>
-              <p className="text-sm font-bold text-[#C9D2F2]">
+              <p className="text-sm font-bold text-[#EAEFFF]">
                 Até os heróis recarregam. O que queres fazer?
               </p>
             </div>
             <div className="relative rounded-2xl border-2 border-tinta bg-tinta/40 px-6 py-3 text-center">
-              <p className="text-xs font-bold uppercase tracking-widest text-[#C9D2F2]">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#EAEFFF]">
                 Tempo restante
               </p>
               <p className="font-display text-4xl tabular-nums tracking-wide text-papel">

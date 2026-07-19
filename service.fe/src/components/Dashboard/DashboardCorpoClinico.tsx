@@ -73,33 +73,32 @@ const DashboardCorpoClinico = () => {
         <section className="rounded-3xl border border-tinta/15 bg-gradient-to-br from-cobalto to-tinta p-6 text-papel shadow-sm sm:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#C9D2F2]">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#EAEFFF]">
                 Painel do Corpo Clínico
               </p>
               <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
                 Olá, Dr. {displayName}
               </h1>
-              <p className="mt-3 max-w-2xl text-sm text-[#C9D2F2] sm:text-base">
+              <p className="mt-3 max-w-2xl text-sm text-[#EAEFFF] sm:text-base">
                 Prescreva programas de exercício para crianças e jovens dos 6
                 aos 18 anos, reveja protocolos e acompanhe o progresso diário.
               </p>
             </div>
             <div className="flex flex-col gap-3 rounded-3xl bg-papel-claro/10 px-4 py-4 text-right backdrop-blur-sm">
               <div>
-                <p className="text-sm font-medium text-[#C9D2F2]">
+                <p className="text-sm font-medium text-[#EAEFFF]">
                   Pacientes registados
                 </p>
                 <p className="mt-1 text-2xl font-bold">
                   {loading ? "…" : planos.length}
                 </p>
               </div>
-              <BtnGlobal
-                variant="secondary"
+              <button
                 onClick={() => navigate("/perfil")}
                 className="rounded-xl border-2 border-tinta bg-papel-claro px-4 py-2 text-sm font-bold text-tinta shadow-[2px_2px_0_#141F3C] transition hover:bg-papel active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
               >
                 Informação pessoal
-              </BtnGlobal>
+              </button>
             </div>
           </div>
         </section>
@@ -107,37 +106,37 @@ const DashboardCorpoClinico = () => {
         {/* As tuas 3 métricas novas e limpas */}
         <section className="grid gap-4 lg:grid-cols-3">
           <article className="rounded-2xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-tinta">
               Planos ativos
             </p>
             <p className="mt-4 text-3xl font-bold text-tinta">
               {loading ? "…" : totalPlanosAtivos}
             </p>
-            <p className="mt-2 text-sm text-aco">
+            <p className="mt-2 text-sm text-tinta/80">
               Programas de exercício em curso.
             </p>
           </article>
 
           <article className="rounded-2xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-tinta">
               Planos concluídos
             </p>
             <p className="mt-4 text-3xl font-bold text-tinta">
               {loading ? "…" : totalPlanosInativos}
             </p>
-            <p className="mt-2 text-sm text-aco">
+            <p className="mt-2 text-sm text-tinta/80">
               Histórico de planos finalizados ou cancelados.
             </p>
           </article>
 
           <article className="rounded-2xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-tinta">
               Sem plano ativo
             </p>
             <p className="mt-4 text-3xl font-bold text-tinta">
               {loading ? "…" : pacientesSemPlano}
             </p>
-            <p className="mt-2 text-sm text-aco">
+            <p className="mt-2 text-sm text-tinta/80">
               Pacientes que necessitam de prescrição.
             </p>
           </article>

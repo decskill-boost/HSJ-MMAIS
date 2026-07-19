@@ -63,14 +63,14 @@ const MissaoProposito = () => {
             A nossa missão e propósito
           </h1>
 
-          <p className="mx-auto mt-6 max-w-2xl text-lg font-bold text-[#D7DDF4] sm:text-2xl">
+          <p className="mx-auto mt-6 max-w-2xl text-lg font-bold text-[#F0F3FF] sm:text-2xl">
             Levamos exercício, alegria e movimento a cada criança em
             tratamento.
           </p>
 
           {/* CARROSSEL — dentro do hero */}
           <div className="mx-auto mt-14 max-w-2xl">
-            <p className="text-xs font-bold uppercase tracking-widest text-[#C9D2F2]">
+            <p className="text-xs font-bold uppercase tracking-widest text-[#EAEFFF]">
               O que dizem as nossas crianças
             </p>
             <p className="mt-4 text-5xl leading-none text-raio">“</p>

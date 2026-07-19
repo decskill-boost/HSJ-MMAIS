@@ -11,13 +11,13 @@ const DashboardAdmin = () => {
         <section className="rounded-3xl border border-tinta/15 bg-gradient-to-br from-tinta via-cobalto to-cobalto-vivo p-6 text-papel shadow-sm sm:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#C9D2F2]">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#EAEFFF]">
                 Painel do Admin
               </p>
               <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
                 Olá, {displayName}
               </h1>
-              <p className="mt-3 max-w-2xl text-sm text-[#D7DDF4] sm:text-base">
+              <p className="mt-3 max-w-2xl text-sm text-[#F0F3FF] sm:text-base">
                 Aqui podes gerir contas de utilizadores, criar novos perfis e
                 aceder às funcionalidades administrativas do sistema.
               </p>

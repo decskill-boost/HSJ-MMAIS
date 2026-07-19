@@ -141,7 +141,7 @@ const AvaliacaoExercicio = ({
         <h3 className="texto-autocolante relative font-display text-4xl tracking-wide">
           Missão completa!
         </h3>
-        <p className="relative text-sm font-bold text-[#C9D2F2]">
+        <p className="relative text-sm font-bold text-[#EAEFFF]">
           A tua avaliação foi registada. O Capitão está orgulhoso!
         </p>
         <div className="entrada-pop-2 relative rounded-2xl border-[3px] border-tinta bg-linear-to-b from-raio to-raio-fundo px-6 py-2 shadow-vinheta">
@@ -166,10 +166,10 @@ const AvaliacaoExercicio = ({
       {/* Header com progresso */}
       <div className="relative flex flex-col gap-2 px-8 pt-6">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-bold uppercase tracking-widest text-[#C9D2F2]">
+          <p className="text-xs font-bold uppercase tracking-widest text-[#EAEFFF]">
             Passo {step} de {TOTAL_STEPS}
           </p>
-          <p className="text-xs font-bold text-[#C9D2F2]">
+          <p className="text-xs font-bold text-[#EAEFFF]">
             {Math.round((step / TOTAL_STEPS) * 100)}%
           </p>
         </div>
@@ -218,7 +218,7 @@ const AvaliacaoExercicio = ({
                   </button>
                 ))}
               </div>
-              <p className="text-xs font-bold text-[#9FB0E8]">Toca na carinha certa!</p>
+              <p className="text-xs font-bold text-[#C9D3F5]">Toca na carinha certa!</p>
             </div>
           </div>
         )}
@@ -230,7 +230,7 @@ const AvaliacaoExercicio = ({
               Quanto esforço fizeste? 💪
             </h2>
             <div className="flex w-full flex-col items-center gap-4">
-              <p className="text-lg font-bold text-[#C9D2F2]">{OMNI_LABELS[esforco]}</p>
+              <p className="text-lg font-bold text-[#EAEFFF]">{OMNI_LABELS[esforco]}</p>
               <div className="grid grid-cols-5 gap-2 sm:gap-3" role="group" aria-label="Perceção de esforço de 1 a 10">
                 {[1,2,3,4,5,6,7,8,9,10].map((n) => (
                   <button
@@ -247,7 +247,7 @@ const AvaliacaoExercicio = ({
                   </button>
                 ))}
               </div>
-              <p className="text-xs font-bold text-[#9FB0E8]">1 = passeio · 10 = esforço máximo</p>
+              <p className="text-xs font-bold text-[#C9D3F5]">1 = passeio · 10 = esforço máximo</p>
             </div>
           </div>
         )}
@@ -279,7 +279,7 @@ const AvaliacaoExercicio = ({
                   </button>
                 ))}
               </div>
-              <p className="text-xs font-bold text-[#9FB0E8]">Toca na carinha certa!</p>
+              <p className="text-xs font-bold text-[#C9D3F5]">Toca na carinha certa!</p>
             </div>
           </div>
         )}
@@ -292,7 +292,7 @@ const AvaliacaoExercicio = ({
               <h2 className="texto-autocolante font-display text-3xl tracking-wide">
                 Batimentos
               </h2>
-              <p className="text-center text-sm font-bold text-[#C9D2F2]">
+              <p className="text-center text-sm font-bold text-[#EAEFFF]">
                 Olha para a tua pulseira e escreve os valores que vês!
               </p>
             </div>
@@ -336,7 +336,7 @@ const AvaliacaoExercicio = ({
               <h2 className="texto-autocolante font-display text-3xl tracking-wide">
                 Correu tudo bem?
               </h2>
-              <p className="text-sm font-bold text-[#C9D2F2]">
+              <p className="text-sm font-bold text-[#EAEFFF]">
                 Doeu alguma coisa, ficaste tonto, algo estranho?
               </p>
             </div>
