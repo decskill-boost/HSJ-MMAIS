@@ -83,6 +83,11 @@ const AvaliacaoExercicio = ({
     return true;
   };
 
+  // Interação simples: um toque escolhe E avança (com pausa para ver a escolha)
+  const avancoAutomatico = () => {
+    setTimeout(() => setStep((s) => Math.min(s + 1, TOTAL_STEPS)), 450);
+  };
+
   const handleSubmit = async () => {
     setLoading(true);
     try {
@@ -192,24 +197,28 @@ const AvaliacaoExercicio = ({
             <h2 className="texto-autocolante font-display text-3xl tracking-wide">
               Foi divertido?
             </h2>
-            <div className="flex w-full flex-col items-center gap-3">
-              <span className="text-7xl transition-all duration-200">{DIVERSAO[diversao - 1].emoji}</span>
+            <div className="flex w-full flex-col items-center gap-4">
               <p className="font-display text-xl tracking-wide text-raio [text-shadow:1.5px_1.5px_0_#141F3C]">
                 {DIVERSAO[diversao - 1].label}
               </p>
-              <input
-                type="range" min={1} max={5} step={1} value={diversao}
-                onChange={(e) => setDiversao(Number(e.target.value))}
-                className="w-full cursor-pointer accent-raio"
-                aria-label="Nível de diversão"
-              />
-              <div className="flex w-full justify-between text-2xl">
+              <div className="flex w-full justify-center gap-2 sm:gap-3">
                 {DIVERSAO.map((d) => (
-                  <span key={d.valor} className={`transition-all ${diversao === d.valor ? "scale-125 opacity-100" : "opacity-40"}`}>
+                  <button
+                    key={d.valor}
+                    onClick={() => { setDiversao(d.valor); avancoAutomatico(); }}
+                    aria-label={d.label}
+                    aria-pressed={diversao === d.valor}
+                    className={`flex h-16 w-16 items-center justify-center rounded-2xl border-[3px] border-tinta text-4xl transition-all active:scale-90 sm:h-20 sm:w-20 sm:text-5xl ${
+                      diversao === d.valor
+                        ? "scale-110 bg-raio shadow-vinheta"
+                        : "bg-papel-claro/15 hover:bg-papel-claro/30"
+                    }`}
+                  >
                     {d.emoji}
-                  </span>
+                  </button>
                 ))}
               </div>
+              <p className="text-xs font-bold text-[#9FB0E8]">Toca na carinha certa!</p>
             </div>
           </div>
         )}
@@ -220,22 +229,25 @@ const AvaliacaoExercicio = ({
             <h2 className="texto-autocolante text-center font-display text-3xl tracking-wide">
               Quanto esforço fizeste? 💪
             </h2>
-            <div className="flex w-full flex-col items-center gap-3">
-              <span className="font-display text-7xl tracking-wide text-raio [text-shadow:3px_3px_0_#141F3C]">
-                {esforco}
-              </span>
+            <div className="flex w-full flex-col items-center gap-4">
               <p className="text-lg font-bold text-[#C9D2F2]">{OMNI_LABELS[esforco]}</p>
-              <input
-                type="range" min={1} max={10} step={1} value={esforco}
-                onChange={(e) => setEsforco(Number(e.target.value))}
-                className="w-full cursor-pointer accent-turbo"
-                aria-label="Perceção de esforço de 1 a 10"
-              />
-              <div className="flex w-full justify-between text-sm font-bold text-[#9FB0E8]">
+              <div className="grid grid-cols-5 gap-2 sm:gap-3" role="group" aria-label="Perceção de esforço de 1 a 10">
                 {[1,2,3,4,5,6,7,8,9,10].map((n) => (
-                  <span key={n} className={esforco === n ? "scale-125 text-raio" : ""}>{n}</span>
+                  <button
+                    key={n}
+                    onClick={() => { setEsforco(n); avancoAutomatico(); }}
+                    aria-pressed={esforco === n}
+                    className={`flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-tinta font-display text-xl tracking-wide transition-all active:scale-90 sm:h-16 sm:w-16 ${
+                      esforco === n
+                        ? "scale-110 bg-turbo text-tinta shadow-vinheta"
+                        : "bg-papel-claro/15 text-papel hover:bg-papel-claro/30"
+                    }`}
+                  >
+                    {n}
+                  </button>
                 ))}
               </div>
+              <p className="text-xs font-bold text-[#9FB0E8]">1 = passeio · 10 = esforço máximo</p>
             </div>
           </div>
         )}
@@ -246,24 +258,28 @@ const AvaliacaoExercicio = ({
             <h2 className="texto-autocolante font-display text-3xl tracking-wide">
               Foi difícil?
             </h2>
-            <div className="flex w-full flex-col items-center gap-3">
-              <span className="text-7xl transition-all duration-200">{DIFICULDADE[dificuldade - 1].emoji}</span>
+            <div className="flex w-full flex-col items-center gap-4">
               <p className="font-display text-xl tracking-wide text-raio [text-shadow:1.5px_1.5px_0_#141F3C]">
                 {DIFICULDADE[dificuldade - 1].label}
               </p>
-              <input
-                type="range" min={1} max={5} step={1} value={dificuldade}
-                onChange={(e) => setDificuldade(Number(e.target.value))}
-                className="w-full cursor-pointer accent-capa"
-                aria-label="Dificuldade sentida"
-              />
-              <div className="flex w-full justify-between text-2xl">
+              <div className="flex w-full justify-center gap-2 sm:gap-3">
                 {DIFICULDADE.map((d) => (
-                  <span key={d.valor} className={`transition-all ${dificuldade === d.valor ? "scale-125 opacity-100" : "opacity-40"}`}>
+                  <button
+                    key={d.valor}
+                    onClick={() => { setDificuldade(d.valor); avancoAutomatico(); }}
+                    aria-label={d.label}
+                    aria-pressed={dificuldade === d.valor}
+                    className={`flex h-16 w-16 items-center justify-center rounded-2xl border-[3px] border-tinta text-4xl transition-all active:scale-90 sm:h-20 sm:w-20 sm:text-5xl ${
+                      dificuldade === d.valor
+                        ? "scale-110 bg-capa shadow-vinheta"
+                        : "bg-papel-claro/15 hover:bg-papel-claro/30"
+                    }`}
+                  >
                     {d.emoji}
-                  </span>
+                  </button>
                 ))}
               </div>
+              <p className="text-xs font-bold text-[#9FB0E8]">Toca na carinha certa!</p>
             </div>
           </div>
         )}
@@ -289,7 +305,7 @@ const AvaliacaoExercicio = ({
                   </p>
                 )}
                 <input
-                  type="number" placeholder="ex: 95" value={bpmMedio}
+                  type="number" inputMode="numeric" placeholder="ex: 95" value={bpmMedio}
                   onChange={(e) => validarBpm(e.target.value, setBpmMedio, setErroBpmMedio)}
                   min={1} max={300} step={1}
                   className={`w-full rounded-2xl border-2 bg-papel-claro px-4 py-4 text-lg font-bold text-tinta placeholder-aco outline-none transition ${erroBpmMedio ? "border-capa ring-2 ring-capa/40" : "border-tinta focus:ring-2 focus:ring-raio"}`}
@@ -303,7 +319,7 @@ const AvaliacaoExercicio = ({
                   </p>
                 )}
                 <input
-                  type="number" placeholder="ex: 130" value={bpmMaximo}
+                  type="number" inputMode="numeric" placeholder="ex: 130" value={bpmMaximo}
                   onChange={(e) => validarBpm(e.target.value, setBpmMaximo, setErroBpmMaximo)}
                   min={1} max={300} step={1}
                   className={`w-full rounded-2xl border-2 bg-papel-claro px-4 py-4 text-lg font-bold text-tinta placeholder-aco outline-none transition ${erroBpmMaximo ? "border-capa ring-2 ring-capa/40" : "border-tinta focus:ring-2 focus:ring-raio"}`}
@@ -332,7 +348,7 @@ const AvaliacaoExercicio = ({
                 Houve algo 😕
               </button>
               <button
-                onClick={() => { setProblemas(false); setDescricaoProblema(""); }}
+                onClick={() => { setProblemas(false); setDescricaoProblema(""); avancoAutomatico(); }}
                 className={`flex-1 rounded-2xl border-[3px] border-tinta py-5 font-display text-xl tracking-wide transition active:scale-95 ${problemas === false ? "bg-turbo text-tinta shadow-vinheta" : "bg-papel-claro/15 text-papel hover:bg-papel-claro/25"}`}
               >
                 Tudo bem! 👍

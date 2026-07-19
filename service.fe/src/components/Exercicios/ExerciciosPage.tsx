@@ -369,7 +369,7 @@ const ExerciciosPage = () => {
           {exerciciosFiltrados.map((ex, idx) => (
             <div
               key={ex.id_exercicio}
-              className="entrada-pop group flex cursor-pointer flex-col overflow-hidden rounded-2xl border-2 border-tinta bg-papel-claro shadow-vinheta transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#141F3C]"
+              className="entrada-pop group flex cursor-pointer flex-col overflow-hidden rounded-2xl border-2 border-tinta bg-papel-claro shadow-vinheta transition-all [content-visibility:auto] [contain-intrinsic-size:auto_360px] hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#141F3C]"
               style={{ animationDelay: `${Math.min(idx * 0.06, 0.42)}s` }}
               onClick={() => setExercicioAberto(ex)}
             >

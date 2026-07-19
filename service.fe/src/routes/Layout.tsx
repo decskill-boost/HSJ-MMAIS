@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
+import CarregandoAcademia from "../components/CarregandoAcademia";
 import Footer from "../components/Footer";
 import Sidebar, {
   IconeInicio,
@@ -90,7 +91,9 @@ export const Layout = () => {
         />
 
         <main className="flex-1 overflow-y-auto pb-16">
-          <Outlet context={{ user, handleLogin, handleLogout }} />
+          <Suspense fallback={<CarregandoAcademia />}>
+            <Outlet context={{ user, handleLogin, handleLogout }} />
+          </Suspense>
         </main>
 
         <Footer />
