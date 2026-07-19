@@ -61,7 +61,7 @@ export const PlanosPaciente = () => {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-10">
-      <h1 className="text-2xl font-extrabold tracking-tight text-tinta">
+      <h1 className="font-display text-3xl tracking-wide text-tinta">
         Os meus planos de treino
       </h1>
       <p className="mt-1 text-sm text-aco">
@@ -85,7 +85,7 @@ export const PlanosPaciente = () => {
                 <span className={`rounded-full px-3 py-0.5 text-xs font-semibold ${
                   plano.is_standard !== false
                     ? "bg-cobalto/15 text-cobalto-vivo"
-                    : "bg-purple-100 text-purple-700"
+                    : "bg-turbo/20 text-turbo-escuro"
                 }`}>
                   {plano.is_standard !== false ? "Standard" : plano.condicao_clinica || "Personalizado"}
                 </span>
@@ -106,7 +106,7 @@ export const PlanosPaciente = () => {
                       setPlanoSelecionadoId(plano.id_plano);
                       setView("preview");
                     }}
-                    className="w-full flex items-center justify-between gap-3 rounded-xl border border-tinta/10 bg-papel hover:bg-tinta/10/80 p-3 text-left transition text-xs font-semibold text-tinta"
+                    className="w-full flex items-center justify-between gap-3 rounded-xl border border-tinta/10 bg-papel hover:bg-tinta/5 p-3 text-left transition text-xs font-semibold text-tinta"
                   >
                     <div>
                       <p className="font-bold text-tinta">{ex.nome_exercicio}</p>

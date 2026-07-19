@@ -5,9 +5,9 @@ const FRASES_MENINOS = ["Frase 1", "Frase 2", "Frase 3"];
 
 // Um gradiente de fundo diferente para cada frase, para se notar a rotação
 const GRADIENTES_HERO = [
-  "from-cobalto via-cobalto to-cyan-400",
-  "from-cobalto via-cobalto to-sky-400",
-  "from-cyan-600 via-sky-500 to-cobalto-vivo",
+  "from-cobalto via-cobalto to-turbo",
+  "from-cobalto via-cobalto to-cobalto-vivo",
+  "from-turbo-escuro via-turbo to-cobalto-vivo",
 ];
 
 const PILARES = [
@@ -69,7 +69,7 @@ const MissaoProposito = () => {
 
           {/* CARROSSEL — dentro do hero */}
           <div className="mx-auto mt-14 max-w-2xl">
-            <p className="text-xs font-bold uppercase tracking-widest text-cobalto/10/80">
+            <p className="text-xs font-bold uppercase tracking-widest text-[#C9D2F2]">
               O que dizem as nossas crianças
             </p>
             <p className="mt-4 text-5xl leading-none text-papel/40">“</p>

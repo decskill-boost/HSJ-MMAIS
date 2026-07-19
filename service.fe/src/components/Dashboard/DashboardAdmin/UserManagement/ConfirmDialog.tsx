@@ -16,7 +16,7 @@ const ConfirmDialog = ({
   onCancel,
 }: Props) => {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-tinta/60">
       <div className="w-full max-w-md rounded-2xl bg-papel-claro p-6 shadow-lg">
         <div className="mb-4">
           <h3 className="text-lg font-semibold text-tinta">{title}</h3>

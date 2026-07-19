@@ -48,7 +48,7 @@ const DashboardPaciente = () => {
     {
       label: "Nível",
       value: `Nível ${user?.nivel ?? 1}`,
-      accent: "bg-violet-50 text-violet-700",
+      accent: "bg-raio/25 text-tinta",
     },
   ];
 
@@ -59,13 +59,13 @@ const DashboardPaciente = () => {
         <section className="rounded-3xl border border-tinta/15 bg-gradient-to-br from-cobalto to-cobalto p-6 text-papel shadow-sm sm:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cobalto/15">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#C9D2F2]">
                 Dashboard do Paciente
               </p>
-              <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
+              <h1 className="mt-2 font-display text-3xl tracking-wide sm:text-4xl">
                 Olá, {displayName}
               </h1>
-              <p className="mt-3 max-w-2xl text-sm text-cobalto/15 sm:text-base">
+              <p className="mt-3 max-w-2xl text-sm text-[#C9D2F2] sm:text-base">
                 Aqui tens uma visão rápida do teu progresso e do teu plano de
                 exercícios.
               </p>
@@ -135,7 +135,7 @@ const DashboardPaciente = () => {
                   {plano.exercicios.slice(0, 3).map((ex) => (
                     <div
                       key={ex.id_exercicio}
-                      className="flex items-center justify-between rounded-2xl border border-tinta/10 bg-papel p-4 transition hover:bg-tinta/10/80"
+                      className="flex items-center justify-between rounded-2xl border border-tinta/10 bg-papel p-4 transition hover:bg-tinta/5"
                     >
                       <div>
                         <p className="font-semibold text-tinta">
