@@ -1,5 +1,21 @@
 # HSJ-MMAIS
 
+**MMAIS — Mais Minutos Ativos · A Academia de Heróis** — aplicação de exercício
+e acompanhamento clínico para a Oncologia Pediátrica da ULS São João.
+
+## Identidade visual — «Versão Heróis»
+
+A mascote é o **Capitão Mais** (um «+» com capa, máscara e luvas — 100% original),
+sobre uma paleta de banda desenhada: Tinta `#141F3C`, Papel `#FAF4E4`, Cobalto
+`#1D42C8`, Raio `#FFCE29`, Capa `#FF3D57`, Turbo `#17C3B2`. Tipografia Bangers
+(display) + Atkinson Hyperlegible (texto), self-hosted.
+
+- Tokens: `service.fe/src/index.css` (`@theme`, Tailwind 4)
+- Mascote: `service.fe/src/components/CapitaoMais.tsx` (plana) e
+  `CapitaoMais25D.tsx` (camadas 2.5D com pirueta ao toque)
+- Regras de ouro: a doença nunca é vilão, a gamificação nunca castiga, e todas
+  as animações respeitam `prefers-reduced-motion`
+
 link de acesso frontend: 
 https://hsj-mmais.vercel.app/
 

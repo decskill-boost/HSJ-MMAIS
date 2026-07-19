@@ -62,6 +62,24 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Seleção de texto e scrollbar com o uniforme da marca */
+::selection {
+  background: var(--color-raio);
+  color: var(--color-tinta);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-cobalto) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-cobalto);
+  border-radius: 8px;
+  border: 2px solid var(--color-papel);
+}
+
 /* Wordmark «autocolante»: letras claras com contorno de tinta (brandbook Heróis, cap. 02) */
 .texto-autocolante {
   color: #faf4e4;
