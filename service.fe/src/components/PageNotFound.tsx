@@ -8,7 +8,7 @@ const PageNotFound = () => {
   return (
     <div className="flex min-h-full flex-1 flex-col items-center justify-center p-6 text-center">
       <div className="animate-flutuar">
-        <CapitaoMais className="h-24 w-auto" title="" />
+        <CapitaoMais className="h-36 w-auto" title="" />
       </div>
       <div className="mt-6 space-y-3">
         <h1 className="font-display text-7xl tracking-wide text-cobalto">404</h1>

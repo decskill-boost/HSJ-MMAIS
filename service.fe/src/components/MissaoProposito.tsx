@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import CapitaoMais from "./CapitaoMais";
+import CapitaoMais25D from "./CapitaoMais25D";
 
 // Frases dos meninos (placeholder até termos as reais)
 const FRASES_MENINOS = ["Frase 1", "Frase 2", "Frase 3"];
@@ -52,21 +52,14 @@ const MissaoProposito = () => {
     <div className="flex flex-1 flex-col">
       {/* HERO — título fixo + carrossel a mudar o fundo */}
       <section
-        className={`relative overflow-hidden border-b-[3px] border-tinta bg-gradient-to-br px-4 py-20 text-center text-papel transition-colors duration-1000 sm:py-28 ${GRADIENTES_HERO[fraseAtual]}`}
+        className={`relative overflow-hidden border-b-[3px] border-tinta bg-gradient-to-br px-4 py-14 text-center text-papel transition-colors duration-1000 sm:py-20 ${GRADIENTES_HERO[fraseAtual]}`}
       >
         <div className="fundo-raios pointer-events-none absolute -inset-[40%] opacity-10" aria-hidden="true" />
         <div className="fundo-reticula pointer-events-none absolute inset-0 opacity-40" aria-hidden="true" />
 
         <div className="relative">
-          <div className="flex items-center justify-center gap-3">
-            <div className="animate-flutuar">
-              <CapitaoMais className="h-16 w-auto" title="" />
-            </div>
-            <p className="font-display text-lg tracking-[0.14em] text-raio [text-shadow:1.5px_1.5px_0_#141F3C]">
-              MMAIS+
-            </p>
-          </div>
-          <h1 className="texto-autocolante mx-auto mt-4 max-w-3xl font-display text-4xl tracking-wide sm:text-6xl">
+          <CapitaoMais25D />
+          <h1 className="texto-autocolante mx-auto mt-6 max-w-3xl font-display text-4xl tracking-wide sm:text-6xl">
             A nossa missão e propósito
           </h1>
 

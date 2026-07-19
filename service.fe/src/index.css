@@ -135,7 +135,7 @@ body {
 .cap3d-l4 { transform: translateZ(46px); }
 .cap3d-l5 { transform: translateZ(60px); }
 .cap3d-sombra {
-  width: 58%;
+  width: 140px;
   height: 20px;
   border-radius: 50%;
   background: #0a0f20;

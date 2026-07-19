@@ -20,7 +20,7 @@ const Login = () => {
         <div className="text-center">
           <div className="flex justify-center">
             <span className="animate-flutuar">
-              <CapitaoMais className="h-20 w-auto" />
+              <CapitaoMais className="h-28 w-auto" />
             </span>
           </div>
           <h2 className="mt-3 font-display text-4xl tracking-wide text-tinta">
