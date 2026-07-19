@@ -1,5 +1,6 @@
 import { useOutletContext } from "react-router-dom";
 import BtnGlobal from "../BtnGlobal";
+import AvatarHeroi from "./AvatarHeroi";
 import ClinicalStaffStats from "./ClinicalStaffStats";
 import { PatientStats } from "./PatientStats";
 import type { UserProfile } from "../../types/user";
@@ -54,18 +55,9 @@ export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
           />
         ) : (
           <div
-            className={`flex h-28 w-28 items-center justify-center rounded-2xl ${theme.bg} shadow-sm`}
+            className={`flex h-28 w-28 items-end justify-center overflow-hidden rounded-2xl border-2 border-tinta ${theme.bg} shadow-vinheta`}
           >
-            <svg
-              className="h-14 w-14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
+            <AvatarHeroi variante={isClinico ? "clinico" : "crianca"} />
           </div>
         )}
       </div>
