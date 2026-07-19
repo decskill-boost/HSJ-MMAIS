@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { exerciciosService } from "../../services/exercicios";
 import type { Exercicio } from "../../services/exercicios";
 import { supabase } from "../../services/supabaseClient";
+import CapitaoMais from "../CapitaoMais";
 import { CriarExercicioModal } from "./CriarExercicioModal";
 
 const CATEGORIAS_OPCOES = [
@@ -44,6 +45,25 @@ function getDificuldadeLabel(value: number): string {
   if (value <= 3) return "Fácil";
   if (value <= 6) return "Médio";
   return "Difícil";
+}
+
+// Cor estável por categoria (a mesma categoria tem sempre a mesma cor)
+const CORES_CATEGORIA = [
+  "bg-cobalto text-papel",
+  "bg-turbo text-tinta",
+  "bg-raio text-tinta",
+  "bg-capa text-papel",
+];
+function corCategoria(nome: string): string {
+  let h = 0;
+  for (let i = 0; i < nome.length; i++) h = (h * 31 + nome.charCodeAt(i)) % 997;
+  return CORES_CATEGORIA[h % CORES_CATEGORIA.length];
+}
+
+function corDificuldade(label: string): string {
+  if (label === "Fácil") return "bg-turbo/15 text-turbo-escuro";
+  if (label === "Médio") return "bg-raio/25 text-tinta";
+  return "bg-capa/15 text-capa-escura";
 }
 
 const FORMATOS_ACEITES = ["video/mp4", "video/quicktime"];
@@ -233,18 +253,33 @@ const ExerciciosPage = () => {
     filtroDificuldade !== "Todas";
 
   if (loading)
-    return <p className="p-8 text-aco">A carregar exercícios...</p>;
+    return (
+      <div className="flex min-h-[60vh] flex-col items-center justify-center p-8 text-center">
+        <div className="animate-flutuar">
+          <CapitaoMais className="h-24 w-auto" title="" />
+        </div>
+        <p className="mt-4 font-display text-xl tracking-wide text-tinta">
+          A preparar a Academia…
+        </p>
+        <p className="mt-1 text-sm text-aco">Os exercícios estão a aquecer.</p>
+      </div>
+    );
 
   return (
     <div className="p-8">
       <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-extrabold text-tinta">
-            Biblioteca de Exercícios
-          </h1>
+        <div className="entrada-pop flex items-center justify-between mb-2">
+          <div>
+            <h1 className="font-display text-3xl tracking-wide text-tinta">
+              Biblioteca de Exercícios
+            </h1>
+            <p className="text-sm text-aco">
+              Todos os exercícios disponíveis para prescrever nos planos.
+            </p>
+          </div>
           <button
             onClick={() => setModalCriarAberto(true)}
-            className="flex items-center gap-2 rounded-xl bg-cobalto hover:bg-cobalto-vivo px-4 py-2 text-sm font-bold text-papel transition shadow"
+            className="flex items-center gap-2 rounded-xl border-[3px] border-tinta bg-cobalto px-4 py-2 text-sm font-bold text-papel shadow-vinheta transition hover:bg-cobalto-vivo active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
           >
             <span className="text-lg leading-none">+</span> Criar
           </button>
@@ -257,7 +292,7 @@ const ExerciciosPage = () => {
             <select
               value={filtroCategoria}
               onChange={(e) => setFiltroCategoria(e.target.value)}
-              className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto"
+              className="rounded-xl border-2 border-tinta/20 bg-papel-claro px-3 py-2 text-sm font-bold text-tinta transition focus:border-cobalto focus:outline-none focus:ring-2 focus:ring-cobalto/25"
             >
               {categorias.map((c) => (
                 <option key={c}>{c}</option>
@@ -271,7 +306,7 @@ const ExerciciosPage = () => {
             <select
               value={filtroDuracao}
               onChange={(e) => setFiltroDuracao(e.target.value)}
-              className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto"
+              className="rounded-xl border-2 border-tinta/20 bg-papel-claro px-3 py-2 text-sm font-bold text-tinta transition focus:border-cobalto focus:outline-none focus:ring-2 focus:ring-cobalto/25"
             >
               {["Todas", "Até 5 min", "5–15 min", "Mais de 15 min"].map((o) => (
                 <option key={o}>{o}</option>
@@ -285,7 +320,7 @@ const ExerciciosPage = () => {
             <select
               value={filtroDificuldade}
               onChange={(e) => setFiltroDificuldade(e.target.value)}
-              className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto"
+              className="rounded-xl border-2 border-tinta/20 bg-papel-claro px-3 py-2 text-sm font-bold text-tinta transition focus:border-cobalto focus:outline-none focus:ring-2 focus:ring-cobalto/25"
             >
               {["Todas", "Fácil", "Médio", "Difícil"].map((o) => (
                 <option key={o}>{o}</option>
@@ -299,7 +334,7 @@ const ExerciciosPage = () => {
                 setFiltroDuracao("Todas");
                 setFiltroDificuldade("Todas");
               }}
-              className="rounded-lg bg-cobalto hover:bg-cobalto-vivo px-4 py-2 text-sm font-bold text-papel transition"
+              className="rounded-xl border-2 border-tinta bg-transparent px-4 py-2 text-sm font-bold text-tinta shadow-[2px_2px_0_#141F3C] transition hover:bg-tinta/5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
             >
               Limpar filtros
             </button>
@@ -310,25 +345,35 @@ const ExerciciosPage = () => {
       {/* MENSAGEM DE ERRO/SUCESSO DA PÁGINA (Apenas para edições ou eliminações agora) */}
       {mensagem && (
         <div
-          className={`mb-4 rounded-lg px-4 py-3 font-medium ${mensagem.includes("Erro") ? "bg-capa/10 text-capa-escura" : "bg-turbo/10 text-turbo-escuro"}`}
+          className={`entrada-pop mb-4 rounded-xl border-2 px-4 py-3 font-bold ${mensagem.includes("Erro") ? "border-capa/40 bg-capa/10 text-capa-escura" : "border-turbo bg-turbo/10 text-turbo-escuro"}`}
         >
           {mensagem}
         </div>
       )}
 
       {exerciciosFiltrados.length === 0 ? (
-        <p className="text-aco">
-          Nenhum exercício encontrado com esses filtros.
-        </p>
+        <div className="entrada-pop mx-auto mt-8 max-w-sm rounded-2xl border-2 border-tinta bg-papel-claro p-8 text-center shadow-vinheta">
+          <div className="animate-flutuar inline-block">
+            <CapitaoMais className="h-20 w-auto" title="" />
+          </div>
+          <p className="mt-3 font-display text-xl tracking-wide text-tinta">
+            Nada por aqui…
+          </p>
+          <p className="mt-1 text-sm text-aco">
+            Nenhum exercício corresponde a esses filtros. Experimenta
+            limpá-los — ou cria um novo!
+          </p>
+        </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {exerciciosFiltrados.map((ex) => (
+          {exerciciosFiltrados.map((ex, idx) => (
             <div
               key={ex.id_exercicio}
-              className="rounded-2xl border border-tinta/15 overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-papel-claro flex flex-col"
+              className="entrada-pop group flex cursor-pointer flex-col overflow-hidden rounded-2xl border-2 border-tinta bg-papel-claro shadow-vinheta transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#141F3C]"
+              style={{ animationDelay: `${Math.min(idx * 0.06, 0.42)}s` }}
               onClick={() => setExercicioAberto(ex)}
             >
-              <div className="relative w-full h-48 bg-tinta/10 flex-shrink-0">
+              <div className="relative w-full h-48 flex-shrink-0 border-b-2 border-tinta">
                 {ex.url_video ? (
                   <video
                     src={ex.url_video}
@@ -337,23 +382,19 @@ const ExerciciosPage = () => {
                     muted
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-aco">
-                    <svg
-                      className="h-12 w-12"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M15 10l4.553-2.276A1 1 0 0121 8.723v6.554a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"
-                      />
-                    </svg>
+                  <div className="relative h-full w-full bg-[linear-gradient(160deg,#3D6BFF,#1D42C8)]">
+                    <div
+                      className="fundo-reticula absolute inset-0 opacity-50"
+                      aria-hidden="true"
+                    />
+                    <div className="flex h-full items-center justify-center transition-transform group-hover:scale-105">
+                      <CapitaoMais className="h-24 w-auto" title="" />
+                    </div>
                   </div>
                 )}
-                <span className="absolute top-2 left-2 bg-cobalto text-papel text-xs font-bold px-2 py-1 rounded-lg">
+                <span
+                  className={`absolute top-2 left-2 rounded-lg border-2 border-tinta px-2 py-0.5 text-xs font-bold shadow-[2px_2px_0_#141F3C] ${corCategoria(ex.categoria)}`}
+                >
                   {ex.categoria}
                 </span>
               </div>
@@ -362,13 +403,19 @@ const ExerciciosPage = () => {
                   <h3 className="font-bold text-tinta text-base">
                     {ex.nome_exercicio}
                   </h3>
-                  <div className="mt-2 flex flex-col gap-1 text-xs text-aco">
-                    <div className="flex gap-3">
-                      <span>⏱ {Math.floor(ex.duracao_segundos / 60)} min</span>
-                      <span>
+                  <div className="mt-2 flex flex-col gap-1 text-xs">
+                    <div className="flex flex-wrap items-center gap-1.5 font-bold">
+                      <span className="rounded-full bg-tinta/10 px-2 py-0.5 text-tinta">
+                        ⏱ {Math.floor(ex.duracao_segundos / 60)} min
+                      </span>
+                      <span
+                        className={`rounded-full px-2 py-0.5 ${corDificuldade(getDificuldadeLabel(ex.dificuldade_clinica))}`}
+                      >
                         💪 {getDificuldadeLabel(ex.dificuldade_clinica)}
                       </span>
-                      <span>⭐ {ex.recompensa_xp} XP</span>
+                      <span className="rounded-full bg-raio/25 px-2 py-0.5 text-tinta">
+                        ⭐ {ex.recompensa_xp} XP
+                      </span>
                     </div>
                     {ex.materiais_necessarios && (
                       <span className="text-cobalto font-medium line-clamp-1 mt-1">
@@ -448,8 +495,8 @@ const ExerciciosPage = () => {
 
       {/* Modal de detalhe */}
       {exercicioAberto && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-papel-claro rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-tinta/60 flex items-center justify-center z-50 p-4">
+          <div className="entrada-pop bg-papel-claro rounded-2xl border-[3px] border-tinta shadow-vinheta w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <div className="flex flex-col md:flex-row">
               {exercicioAberto.url_video ? (
                 <video
@@ -466,7 +513,7 @@ const ExerciciosPage = () => {
               )}
               <div className="p-6 flex flex-col justify-between w-full md:w-1/2">
                 <div>
-                  <h2 className="text-xl font-extrabold text-tinta">
+                  <h2 className="font-display text-2xl tracking-wide text-tinta">
                     {exercicioAberto.nome_exercicio}
                   </h2>
                   <div className="mt-4 grid grid-cols-1 gap-3">
@@ -506,9 +553,11 @@ const ExerciciosPage = () => {
                       </div>
                     </div>
 
-                    <div className="rounded-xl bg-papel p-3">
-                      <p className="text-xs text-aco">Recompensa XP</p>
-                      <p className="font-bold text-tinta">
+                    <div className="rounded-xl border-2 border-raio bg-raio/25 p-3">
+                      <p className="text-xs font-bold text-tinta">
+                        ⭐ Recompensa
+                      </p>
+                      <p className="font-display text-xl tracking-wide text-tinta">
                         {exercicioAberto.recompensa_xp} XP
                       </p>
                     </div>
@@ -559,10 +608,10 @@ const ExerciciosPage = () => {
 
       {/* Modal de edição */}
       {exercicioEditando && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-papel-claro rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-tinta/60 flex items-center justify-center z-50 p-4">
+          <div className="entrada-pop bg-papel-claro rounded-2xl border-[3px] border-tinta shadow-vinheta w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <h2 className="text-lg font-bold text-tinta mb-5">
+              <h2 className="font-display text-xl tracking-wide text-tinta mb-5">
                 Editar Exercício
               </h2>
               <div className="flex flex-col gap-4">
@@ -861,9 +910,9 @@ const ExerciciosPage = () => {
 
       {/* Modal de confirmação de eliminação */}
       {exercicioAEliminar && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-papel-claro rounded-2xl shadow-xl p-6 w-full max-w-sm">
-            <h2 className="text-lg font-bold text-tinta mb-2">
+        <div className="fixed inset-0 bg-tinta/60 flex items-center justify-center z-50">
+          <div className="entrada-pop bg-papel-claro rounded-2xl border-[3px] border-tinta shadow-vinheta p-6 w-full max-w-sm">
+            <h2 className="font-display text-xl tracking-wide text-tinta mb-2">
               Eliminar Exercício
             </h2>
             <p className="text-sm text-aco mb-6">
