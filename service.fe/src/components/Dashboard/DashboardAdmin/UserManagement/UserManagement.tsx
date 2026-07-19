@@ -165,7 +165,7 @@ const UserManagement = () => {
   };
 
   return (
-    <div className="flex-1 bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="flex-1 bg-papel px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-6xl space-y-6">
         <div className="flex items-center justify-start gap-3">
           <button
@@ -173,8 +173,8 @@ const UserManagement = () => {
             onClick={() => setView("list")}
             className={`rounded-2xl px-4 py-2 text-sm font-medium focus:outline-none ${
               view === "list"
-                ? "bg-blue-600 text-white"
-                : "bg-white text-slate-700 border border-slate-200"
+                ? "bg-cobalto text-papel"
+                : "bg-papel-claro text-tinta border border-tinta/15"
             }`}
           >
             Todos os utilizadores
@@ -187,8 +187,8 @@ const UserManagement = () => {
             }}
             className={`rounded-2xl px-4 py-2 text-sm font-medium focus:outline-none ${
               view === "create"
-                ? "bg-blue-600 text-white"
-                : "bg-white text-slate-700 border border-slate-200"
+                ? "bg-cobalto text-papel"
+                : "bg-papel-claro text-tinta border border-tinta/15"
             }`}
           >
             Criar utilizador

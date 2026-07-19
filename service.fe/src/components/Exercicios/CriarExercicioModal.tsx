@@ -162,11 +162,11 @@ export const CriarExercicioModal = ({
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+      <div className="bg-papel-claro rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
         {passo === 3 ? (
           /* PASSO 3: MENSAGEM DE SUCESSO DENTRO DO MODAL */
           <div className="flex flex-col items-center justify-center py-8">
-            <div className="h-16 w-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-4">
+            <div className="h-16 w-16 bg-turbo/15 text-turbo-escuro rounded-full flex items-center justify-center mb-4">
               <svg
                 className="h-8 w-8"
                 fill="none"
@@ -181,15 +181,15 @@ export const CriarExercicioModal = ({
                 />
               </svg>
             </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">
+            <h3 className="text-xl font-bold text-tinta mb-2">
               Exercício Criado!
             </h3>
-            <p className="text-sm text-slate-500 text-center mb-6">
+            <p className="text-sm text-aco text-center mb-6">
               O exercício foi adicionado com sucesso à tua biblioteca.
             </p>
             <button
               onClick={onClose}
-              className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-bold text-white hover:bg-blue-700 w-full"
+              className="rounded-lg bg-cobalto px-6 py-2 text-sm font-bold text-papel hover:bg-cobalto-vivo w-full"
             >
               Concluir e Fechar
             </button>
@@ -197,20 +197,20 @@ export const CriarExercicioModal = ({
         ) : (
           /* PASSOS 1 E 2: CRIAÇÃO DO EXERCÍCIO */
           <>
-            <h2 className="text-lg font-bold text-slate-900 mb-5">
+            <h2 className="text-lg font-bold text-tinta mb-5">
               Novo Exercício (Passo {passo}/2)
             </h2>
 
             {passo === 1 ? (
               <div className="flex flex-col gap-4">
                 <div>
-                  <label className="text-xs font-medium text-slate-600">
+                  <label className="text-xs font-medium text-aco">
                     Vídeo{" "}
-                    <span className="text-slate-400">(MP4/MOV, máx 100MB)</span>
+                    <span className="text-aco">(MP4/MOV, máx 100MB)</span>
                   </label>
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className={`mt-1 w-full rounded-xl border-2 border-dashed ${erroVideo ? "border-red-400 bg-red-50" : "border-slate-200 hover:border-blue-400 bg-slate-50"} transition cursor-pointer flex flex-col items-center justify-center overflow-hidden`}
+                    className={`mt-1 w-full rounded-xl border-2 border-dashed ${erroVideo ? "border-capa bg-capa/10" : "border-tinta/15 hover:border-cobalto-vivo bg-papel"} transition cursor-pointer flex flex-col items-center justify-center overflow-hidden`}
                     style={{ minHeight: "140px" }}
                   >
                     {videoPreview ? (
@@ -220,7 +220,7 @@ export const CriarExercicioModal = ({
                         controls
                       />
                     ) : (
-                      <div className="flex flex-col items-center py-6 text-slate-400">
+                      <div className="flex flex-col items-center py-6 text-aco">
                         <svg
                           className="h-10 w-10 mb-2"
                           fill="none"
@@ -248,18 +248,18 @@ export const CriarExercicioModal = ({
                     onChange={handleVideoChange}
                   />
                   {erroVideo && (
-                    <p className="text-xs font-medium text-red-500 mt-1">
+                    <p className="text-xs font-medium text-capa mt-1">
                       {erroVideo}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-slate-600">
+                  <label className="text-xs font-medium text-aco">
                     Nome *
                   </label>
                   <input
-                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
+                    className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm"
                     placeholder="Ex: Agachamento"
                     value={form.nome_exercicio}
                     onChange={(e) =>
@@ -269,11 +269,11 @@ export const CriarExercicioModal = ({
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-slate-600">
+                  <label className="text-xs font-medium text-aco">
                     Categoria *
                   </label>
                   <select
-                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white"
+                    className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm bg-papel-claro"
                     value={form.categoria}
                     onChange={(e) =>
                       setForm({ ...form, categoria: e.target.value })
@@ -288,14 +288,14 @@ export const CriarExercicioModal = ({
                 <div className="mt-6 flex justify-end gap-2">
                   <button
                     onClick={onClose}
-                    className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                    className="rounded-lg border border-tinta/15 px-4 py-2 text-sm font-medium text-aco hover:bg-papel"
                   >
                     Cancelar
                   </button>
                   <button
                     onClick={() => setPasso(2)}
                     disabled={!form.nome_exercicio || !!erroVideo}
-                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700 disabled:opacity-50"
+                    className="rounded-lg bg-cobalto px-4 py-2 text-sm font-bold text-papel hover:bg-cobalto-vivo disabled:opacity-50"
                   >
                     Seguinte
                   </button>
@@ -304,9 +304,9 @@ export const CriarExercicioModal = ({
             ) : (
               <div className="flex flex-col gap-4">
                 <div>
-                  <label className="text-xs font-medium text-slate-600 mb-2 block">
+                  <label className="text-xs font-medium text-aco mb-2 block">
                     Materiais Necessários{" "}
-                    <span className="text-slate-400">(opcional)</span>
+                    <span className="text-aco">(opcional)</span>
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {materiais.map((m: string) => {
@@ -316,7 +316,7 @@ export const CriarExercicioModal = ({
                           key={m}
                           type="button"
                           onClick={() => toggleMaterial(m)}
-                          className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${isSelected ? "bg-blue-600 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                          className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${isSelected ? "bg-cobalto text-papel shadow-sm" : "bg-tinta/10 text-aco hover:bg-tinta/15"}`}
                         >
                           {m}
                         </button>
@@ -327,12 +327,12 @@ export const CriarExercicioModal = ({
 
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-slate-600">
+                    <label className="text-xs font-medium text-aco">
                       Duração (seg) *
                     </label>
                     <input
                       type="number"
-                      className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm ${erroDuracao ? "border-red-400" : "border-slate-200"}`}
+                      className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm ${erroDuracao ? "border-capa" : "border-tinta/15"}`}
                       value={form.duracao_segundos}
                       onChange={(e) => {
                         const v = Number(e.target.value);
@@ -341,15 +341,15 @@ export const CriarExercicioModal = ({
                       }}
                     />
                     {erroDuracao && (
-                      <p className="text-xs text-red-500 mt-1">{erroDuracao}</p>
+                      <p className="text-xs text-capa mt-1">{erroDuracao}</p>
                     )}
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-slate-600">
+                    <label className="text-xs font-medium text-aco">
                       Dificuldade *
                     </label>
                     <select
-                      className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white"
+                      className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm bg-papel-claro"
                       value={form.dificuldade_clinica}
                       onChange={(e) =>
                         setForm({
@@ -366,12 +366,12 @@ export const CriarExercicioModal = ({
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-slate-600">
+                    <label className="text-xs font-medium text-aco">
                       XP *
                     </label>
                     <input
                       type="number"
-                      className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm ${erroXp ? "border-red-400" : "border-slate-200"}`}
+                      className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm ${erroXp ? "border-capa" : "border-tinta/15"}`}
                       value={form.recompensa_xp}
                       onChange={(e) => {
                         const v = Number(e.target.value);
@@ -380,19 +380,19 @@ export const CriarExercicioModal = ({
                       }}
                     />
                     {erroXp && (
-                      <p className="text-xs text-red-500 mt-1">{erroXp}</p>
+                      <p className="text-xs text-capa mt-1">{erroXp}</p>
                     )}
                   </div>
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-medium text-slate-600">
+                    <label className="text-xs font-medium text-aco">
                       Instruções{" "}
-                      <span className="text-slate-400">(máx 1000)</span>
+                      <span className="text-aco">(máx 1000)</span>
                     </label>
                     <span
-                      className={`text-xs ${form.descricao.length >= 900 ? "text-red-500" : "text-slate-400"}`}
+                      className={`text-xs ${form.descricao.length >= 900 ? "text-capa" : "text-aco"}`}
                     >
                       {form.descricao.length}/1000
                     </span>
@@ -400,7 +400,7 @@ export const CriarExercicioModal = ({
                   <textarea
                     rows={3}
                     maxLength={1000}
-                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm resize-none"
+                    className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm resize-none"
                     value={form.descricao}
                     onChange={(e) =>
                       setForm({ ...form, descricao: e.target.value })
@@ -410,13 +410,13 @@ export const CriarExercicioModal = ({
 
                 {uploading && (
                   <div className="mt-4">
-                    <div className="flex justify-between text-xs text-slate-500 mb-1">
+                    <div className="flex justify-between text-xs text-aco mb-1">
                       <span>A gravar...</span>
                       <span>{uploadProgress}%</span>
                     </div>
-                    <div className="w-full bg-slate-100 rounded-full h-2">
+                    <div className="w-full bg-tinta/10 rounded-full h-2">
                       <div
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                        className="bg-cobalto h-2 rounded-full transition-all duration-300"
                         style={{ width: `${uploadProgress}%` }}
                       />
                     </div>
@@ -427,14 +427,14 @@ export const CriarExercicioModal = ({
                   <button
                     onClick={() => setPasso(1)}
                     disabled={uploading}
-                    className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                    className="rounded-lg border border-tinta/15 px-4 py-2 text-sm font-medium text-aco hover:bg-papel"
                   >
                     Voltar
                   </button>
                   <button
                     onClick={handleCriar}
                     disabled={uploading || erroDuracao !== "" || erroXp !== ""}
-                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white hover:bg-blue-700"
+                    className="rounded-lg bg-cobalto px-4 py-2 text-sm font-bold text-papel hover:bg-cobalto-vivo"
                   >
                     {uploading ? "A gravar..." : "Criar Exercício"}
                   </button>

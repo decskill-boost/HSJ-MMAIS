@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import BtnGlobal from "./BtnGlobal";
+import CapitaoMais from "./CapitaoMais";
 import UserMenu from "./UserMenu";
 import type { UserProfile } from "../types/user";
 
@@ -53,13 +54,8 @@ export const Navbar = ({
   const location = useLocation();
   const isPaginaInicial = location.pathname === "/";
 
-  const isClinico = user?.tipo_utilizador === "corpo_clinico";
-  const brandColor = isClinico
-    ? "text-indigo-600 hover:text-indigo-700"
-    : "text-blue-600 hover:text-blue-700";
-
   return (
-    <header className="h-[68px] sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-sm px-4 py-0 sm:px-6 lg:px-8">
+    <header className="h-[68px] sticky top-0 z-50 border-b-[3px] border-tinta bg-papel-claro/95 backdrop-blur-sm px-4 py-0 sm:px-6 lg:px-8">
       {/* ZERO px aqui dentro! Só mx-auto e max-w-6xl */}
       <div className="mx-auto flex h-full w-full max-w-6xl items-center justify-between">
         <div className="flex items-center gap-3">
@@ -67,7 +63,7 @@ export const Navbar = ({
           {user && (
             <button
               onClick={onMenuToggle}
-              className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 md:hidden"
+              className="rounded-lg p-2 text-aco transition-colors hover:bg-tinta/10 md:hidden"
               aria-label="Alternar menu"
               aria-expanded={isMenuOpen}
             >
@@ -81,16 +77,21 @@ export const Navbar = ({
 
           <Link
             to="/"
-            className={`text-2xl font-extrabold tracking-tight transition-colors ${brandColor}`}
+            className="flex items-center gap-2.5 font-display text-2xl tracking-wide text-tinta transition-opacity hover:opacity-80"
           >
-            +MMAis
+            <span className="animate-balancar">
+              <CapitaoMais className="h-10 w-auto" title="" />
+            </span>
+            <span>
+              MMAIS<span className="texto-raio-contorno">+</span>
+            </span>
           </Link>
 
           {/* Link "Missão e Propósito" — só na página inicial, estilo texto como o logo */}
           {isPaginaInicial && (
             <Link
               to="/missao"
-              className="hidden text-lg font-extrabold tracking-tight text-blue-600 transition-colors hover:text-blue-700 sm:ml-90 sm:inline-block"
+              className="hidden font-display text-lg tracking-wide text-cobalto transition-colors hover:text-cobalto-vivo sm:ml-90 sm:inline-block"
             >
               Missão e Propósito
             </Link>
@@ -105,7 +106,7 @@ export const Navbar = ({
             <BtnGlobal
               onClick={onLoginClick}
               variant="secondary"
-              className="focus:ring-2 focus:ring-blue-500/20"
+              className="focus:ring-2 focus:ring-cobalto/20"
             >
               Entrar
             </BtnGlobal>

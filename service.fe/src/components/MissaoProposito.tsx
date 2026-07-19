@@ -5,9 +5,9 @@ const FRASES_MENINOS = ["Frase 1", "Frase 2", "Frase 3"];
 
 // Um gradiente de fundo diferente para cada frase, para se notar a rotação
 const GRADIENTES_HERO = [
-  "from-blue-600 via-blue-500 to-cyan-400",
-  "from-indigo-600 via-blue-500 to-sky-400",
-  "from-cyan-600 via-sky-500 to-blue-400",
+  "from-cobalto via-cobalto to-cyan-400",
+  "from-cobalto via-cobalto to-sky-400",
+  "from-cyan-600 via-sky-500 to-cobalto-vivo",
 ];
 
 const PILARES = [
@@ -47,21 +47,21 @@ const MissaoProposito = () => {
     <div className="flex flex-1 flex-col">
       {/* HERO — título fixo + carrossel a mudar o fundo */}
       <section
-        className={`relative overflow-hidden bg-gradient-to-br px-4 py-24 text-center text-white transition-colors duration-1000 sm:py-32 ${GRADIENTES_HERO[fraseAtual]}`}
+        className={`relative overflow-hidden bg-gradient-to-br px-4 py-24 text-center text-papel transition-colors duration-1000 sm:py-32 ${GRADIENTES_HERO[fraseAtual]}`}
       >
         {/* círculos decorativos, para não ficar um bloco de cor liso */}
-        <div className="pointer-events-none absolute -left-16 -top-16 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -right-10 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
+        <div className="pointer-events-none absolute -left-16 -top-16 h-64 w-64 rounded-full bg-papel-claro/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -right-10 h-80 w-80 rounded-full bg-papel-claro/10 blur-3xl" />
 
         <div className="relative">
-          <p className="text-sm font-bold uppercase tracking-[0.2em] text-blue-50">
+          <p className="text-sm font-bold uppercase tracking-[0.2em] text-cobalto/10">
             +MMAis
           </p>
           <h1 className="mx-auto mt-4 max-w-3xl text-4xl font-extrabold tracking-tight sm:text-6xl">
             A nossa missão e propósito
           </h1>
 
-          <p className="mx-auto mt-6 max-w-2xl text-lg font-medium text-blue-50 sm:text-2xl">
+          <p className="mx-auto mt-6 max-w-2xl text-lg font-medium text-cobalto/10 sm:text-2xl">
             Levamos exercício, alegria e movimento a cada criança em
             tratamento.
           </p>
@@ -69,10 +69,10 @@ const MissaoProposito = () => {
 
           {/* CARROSSEL — dentro do hero */}
           <div className="mx-auto mt-14 max-w-2xl">
-            <p className="text-xs font-bold uppercase tracking-widest text-blue-50/80">
+            <p className="text-xs font-bold uppercase tracking-widest text-cobalto/10/80">
               O que dizem as nossas crianças
             </p>
-            <p className="mt-4 text-5xl leading-none text-white/40">“</p>
+            <p className="mt-4 text-5xl leading-none text-papel/40">“</p>
             <p className="mx-auto -mt-3 min-h-[4.5rem] max-w-xl text-2xl font-semibold italic leading-relaxed sm:text-3xl">
               {FRASES_MENINOS[fraseAtual]}
             </p>
@@ -84,8 +84,8 @@ const MissaoProposito = () => {
                   aria-label={`Ver frase ${i + 1}`}
                   className={`h-2.5 rounded-full transition-all ${
                     i === fraseAtual
-                      ? "w-8 bg-white"
-                      : "w-2.5 bg-white/40 hover:bg-white/60"
+                      ? "w-8 bg-papel-claro"
+                      : "w-2.5 bg-papel-claro/40 hover:bg-papel-claro/60"
                   }`}
                 />
               ))}
@@ -97,10 +97,10 @@ const MissaoProposito = () => {
       {/* MISSÃO · VISÃO · VALORES · PROPÓSITO */}
       <section className="mx-auto w-full max-w-5xl px-4 py-16 sm:py-24">
         <div className="text-center">
-          <p className="text-sm font-bold uppercase tracking-widest text-blue-600">
+          <p className="text-sm font-bold uppercase tracking-widest text-cobalto">
             Quem somos
           </p>
-          <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">
+          <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-tinta sm:text-4xl">
             Porque existimos
           </h2>
         </div>
@@ -109,12 +109,12 @@ const MissaoProposito = () => {
           {PILARES.map((pilar) => (
             <div
               key={pilar.titulo}
-              className="rounded-2xl border border-slate-100 bg-white p-8 shadow-sm transition hover:shadow-md"
+              className="rounded-2xl border border-tinta/10 bg-papel-claro p-8 shadow-sm transition hover:shadow-md"
             >
-              <span className="inline-block rounded-full bg-blue-50 px-3 py-1 text-xs font-bold uppercase tracking-wider text-blue-600">
+              <span className="inline-block rounded-full bg-cobalto/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-cobalto">
                 {pilar.titulo}
               </span>
-              <p className="mt-4 text-justify text-base leading-relaxed text-slate-600">
+              <p className="mt-4 text-justify text-base leading-relaxed text-aco">
                 {pilar.texto}
               </p>
             </div>

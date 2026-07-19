@@ -15,24 +15,24 @@ const UserList = ({ users, loading, onEdit, onDisable }: Props) => {
 
   if (loading && users.length === 0) {
     return (
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex items-center justify-center"></div>
+      <div className="rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-sm flex items-center justify-center"></div>
     );
   }
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-sm">
       <div className="mb-4 flex items-center justify-between gap-4">
-        <h2 className="text-xl font-semibold text-slate-900">
+        <h2 className="text-xl font-semibold text-tinta">
           Lista de utilizadores
         </h2>
-        <span className="rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">
+        <span className="rounded-full bg-tinta/10 px-3 py-1 text-sm font-medium text-tinta">
           {users.length} registos
         </span>
       </div>
 
-      <div className="overflow-x-auto rounded-3xl border border-slate-200">
-        <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-          <thead className="bg-slate-50 text-slate-500">
+      <div className="overflow-x-auto rounded-3xl border border-tinta/15">
+        <table className="min-w-full divide-y divide-tinta/15 text-left text-sm">
+          <thead className="bg-papel text-aco">
             <tr>
               <th className="px-4 py-3 font-medium">Nome</th>
               <th className="px-4 py-3 font-medium">Email</th>
@@ -40,19 +40,19 @@ const UserList = ({ users, loading, onEdit, onDisable }: Props) => {
               <th className="px-4 py-3 font-medium">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 bg-white">
+          <tbody className="divide-y divide-tinta/10 bg-papel-claro">
             {users.map((user) => (
-              <tr key={user.idUser} className="hover:bg-slate-50">
-                <td className="px-4 py-4 text-slate-900">{user.nome}</td>
-                <td className="px-4 py-4 text-slate-600">{user.email}</td>
-                <td className="px-4 py-4 text-slate-600 capitalize">
+              <tr key={user.idUser} className="hover:bg-papel">
+                <td className="px-4 py-4 text-tinta">{user.nome}</td>
+                <td className="px-4 py-4 text-aco">{user.email}</td>
+                <td className="px-4 py-4 text-aco capitalize">
                   {user.role}
                 </td>
-                <td className="px-4 py-4 text-slate-600">
+                <td className="px-4 py-4 text-aco">
                   <div className="flex flex-wrap gap-2">
                     <BtnGlobal
                       onClick={() => onEdit(user)}
-                      className="rounded-xl bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+                      className="rounded-xl bg-cobalto px-3 py-2 text-xs font-semibold text-papel hover:bg-cobalto-vivo"
                     >
                       Editar
                     </BtnGlobal>

@@ -160,10 +160,10 @@ export const CriarPlano = () => {
   return (
     <div className="mx-auto w-full max-w-6xl px-6 py-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
+        <h1 className="text-2xl font-extrabold tracking-tight text-tinta">
           Criar plano de exercícios
         </h1>
-        <p className="mt-1 text-sm text-slate-500">
+        <p className="mt-1 text-sm text-aco">
           Monte templates de planos de treino gerais ou prescreva planos individuais com durações customizadas.
         </p>
       </div>
@@ -171,21 +171,21 @@ export const CriarPlano = () => {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* COLUNA ESQUERDA: Exercícios & Filtros (Ocupa 2/3) */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-            <h2 className="text-base font-bold text-slate-900 mb-4">
+          <div className="rounded-2xl border border-tinta/10 bg-papel-claro p-6 shadow-sm">
+            <h2 className="text-base font-bold text-tinta mb-4">
               Biblioteca de exercícios
             </h2>
 
             {/* Filtros */}
             <div className="flex flex-wrap items-end gap-3 mb-6">
               <div className="min-w-[140px] flex-1">
-                <label className="block text-xs font-semibold text-slate-600">
+                <label className="block text-xs font-semibold text-aco">
                   Categoria
                 </label>
                 <select
                   value={filtroCategoria}
                   onChange={(e) => setFiltroCategoria(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none"
                 >
                   <option value="todas">Todas as categorias</option>
                   {categorias.map((cat) => (
@@ -197,13 +197,13 @@ export const CriarPlano = () => {
               </div>
 
               <div className="min-w-[140px] flex-1">
-                <label className="block text-xs font-semibold text-slate-600">
+                <label className="block text-xs font-semibold text-aco">
                   Dificuldade
                 </label>
                 <select
                   value={filtroDificuldade}
                   onChange={(e) => setFiltroDificuldade(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none"
                 >
                   <option value="todas">Todas as dificuldades</option>
                   <option value="facil">Fácil</option>
@@ -213,13 +213,13 @@ export const CriarPlano = () => {
               </div>
 
               <div className="min-w-[140px] flex-1">
-                <label className="block text-xs font-semibold text-slate-600">
+                <label className="block text-xs font-semibold text-aco">
                   Duração
                 </label>
                 <select
                   value={filtroDuracao}
                   onChange={(e) => setFiltroDuracao(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none"
                 >
                   <option value="todas">Todas as durações</option>
                   <option value="ate5">Até 5 minutos</option>
@@ -234,7 +234,7 @@ export const CriarPlano = () => {
                 <button
                   type="button"
                   onClick={limparFiltros}
-                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-100"
+                  className="rounded-xl border border-tinta/15 px-4 py-2 text-xs font-semibold text-aco hover:bg-papel focus:outline-none focus:ring-2 focus:ring-tinta/10"
                 >
                   Limpar
                 </button>
@@ -242,17 +242,17 @@ export const CriarPlano = () => {
             </div>
 
             {/* Scrollable Exercícios List */}
-            <div className="max-h-[500px] overflow-y-auto pr-2 space-y-2 border border-slate-100 rounded-xl p-2 bg-slate-50/50">
+            <div className="max-h-[500px] overflow-y-auto pr-2 space-y-2 border border-tinta/10 rounded-xl p-2 bg-papel/50">
               {loading ? (
-                <p className="text-center text-sm text-slate-500 py-10">
+                <p className="text-center text-sm text-aco py-10">
                   A carregar exercícios...
                 </p>
               ) : erro ? (
-                <p className="text-center text-sm text-red-500 py-10">
+                <p className="text-center text-sm text-capa py-10">
                   {erro}
                 </p>
               ) : exerciciosFiltrados.length === 0 ? (
-                <p className="text-center text-sm text-slate-500 py-10">
+                <p className="text-center text-sm text-aco py-10">
                   Nenhum exercício corresponde a estes filtros.
                 </p>
               ) : (
@@ -261,27 +261,27 @@ export const CriarPlano = () => {
                     const ativo = selecionados.includes(ex.id_exercicio);
                     return (
                       <li key={ex.id_exercicio}>
-                        <div className={`flex flex-col gap-3 rounded-xl border p-4 bg-white transition ${ativo ? "border-indigo-300 bg-indigo-50/30" : "border-slate-200 hover:bg-slate-50"}`}>
+                        <div className={`flex flex-col gap-3 rounded-xl border p-4 bg-papel-claro transition ${ativo ? "border-cobalto/40 bg-cobalto/10/30" : "border-tinta/15 hover:bg-papel"}`}>
                           <label className="flex cursor-pointer items-start gap-3">
                             <input
                               type="checkbox"
                               checked={ativo}
                               onChange={() => toggle(ex.id_exercicio)}
-                              className="mt-1 h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                              className="mt-1 h-4 w-4 rounded border-tinta/20 text-cobalto focus:ring-cobalto"
                             />
                             <span className="flex-1">
-                              <span className="block text-sm font-semibold text-slate-900">
+                              <span className="block text-sm font-semibold text-tinta">
                                 {ex.nome_exercicio}
                               </span>
-                              <span className="block text-xs text-slate-500">
+                              <span className="block text-xs text-aco">
                                 {ex.categoria} · Duração padrão: {formatarDuracao(ex.duracao_segundos)} · Dificuldade: {textoDificuldade(ex.dificuldade_clinica)}
                               </span>
                             </span>
                           </label>
                           
                           {ativo && (
-                            <div className="flex items-center gap-3 border-t border-indigo-100 pt-3">
-                              <span className="text-xs font-semibold text-indigo-700">Duração customizada:</span>
+                            <div className="flex items-center gap-3 border-t border-cobalto/20 pt-3">
+                              <span className="text-xs font-semibold text-cobalto">Duração customizada:</span>
                               <div className="flex items-center gap-2">
                                 <input
                                   type="number"
@@ -295,9 +295,9 @@ export const CriarPlano = () => {
                                     });
                                     setGuardado(false);
                                   }}
-                                  className="w-16 rounded-lg border border-slate-200 bg-white px-2 py-1 text-center text-xs font-bold text-slate-900 focus:border-indigo-500 focus:outline-none"
+                                  className="w-16 rounded-lg border border-tinta/15 bg-papel-claro px-2 py-1 text-center text-xs font-bold text-tinta focus:border-cobalto focus:outline-none"
                                 />
-                                <span className="text-xs text-slate-500">minutos</span>
+                                <span className="text-xs text-aco">minutos</span>
                               </div>
                             </div>
                           )}
@@ -313,17 +313,17 @@ export const CriarPlano = () => {
 
         {/* COLUNA DIREITA: Detalhes & Ações (Ocupa 1/3 e é Sticky) */}
         <div className="space-y-6">
-          <div className="sticky top-4 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
-            <h2 className="text-base font-bold text-slate-900 mb-4">
+          <div className="sticky top-4 rounded-2xl border border-tinta/10 bg-papel-claro p-6 shadow-sm">
+            <h2 className="text-base font-bold text-tinta mb-4">
               Configurações do Plano
             </h2>
 
             <div className="space-y-4">
               {/* Tipo de Plano */}
               <div>
-                <label className="block text-xs font-semibold text-slate-600">Tipo de Plano</label>
+                <label className="block text-xs font-semibold text-aco">Tipo de Plano</label>
                 <div className="mt-1 flex gap-4">
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-800">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-tinta">
                     <input
                       type="radio"
                       name="tipoPlano"
@@ -333,11 +333,11 @@ export const CriarPlano = () => {
                         setTipoPlano("standard");
                         setGuardado(false);
                       }}
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                      className="h-4 w-4 text-cobalto focus:ring-cobalto"
                     />
                     Standard (Geral)
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-800">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-tinta">
                     <input
                       type="radio"
                       name="tipoPlano"
@@ -347,7 +347,7 @@ export const CriarPlano = () => {
                         setTipoPlano("personalizavel");
                         setGuardado(false);
                       }}
-                      className="h-4 w-4 text-indigo-600 focus:ring-indigo-500"
+                      className="h-4 w-4 text-cobalto focus:ring-cobalto"
                     />
                     Personalizável (Especializado)
                   </label>
@@ -357,7 +357,7 @@ export const CriarPlano = () => {
               {/* Condição Clínica (condicional) */}
               {tipoPlano === "personalizavel" && (
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600">Condição Clínica / Perfil Destinatário</label>
+                  <label className="block text-xs font-semibold text-aco">Condição Clínica / Perfil Destinatário</label>
                   <input
                     type="text"
                     value={condicaoClinica}
@@ -366,20 +366,20 @@ export const CriarPlano = () => {
                       setGuardado(false);
                     }}
                     placeholder="Ex: Acamados, Mobilidade Reduzida..."
-                    className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                    className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/20"
                   />
                 </div>
               )}
               {/* Dificuldade */}
               <div>
-                <label className="block text-xs font-semibold text-slate-600">Classificação de Intensidade</label>
+                <label className="block text-xs font-semibold text-aco">Classificação de Intensidade</label>
                 <select
                   value={dificuldade}
                   onChange={(e) => {
                     setDificuldade(e.target.value);
                     setGuardado(false);
                   }}
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2.5 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/20"
                 >
                   <option value="A">Nível A (Baixa Intensidade)</option>
                   <option value="B">Nível B (Média Intensidade)</option>
@@ -389,7 +389,7 @@ export const CriarPlano = () => {
 
               {/* Frequência */}
               <div>
-                <label className="block text-xs font-semibold text-slate-600">
+                <label className="block text-xs font-semibold text-aco">
                   Frequência semanal (vezes por semana)
                 </label>
                 <input
@@ -401,13 +401,13 @@ export const CriarPlano = () => {
                     setFrequenciaSemanal(Number(e.target.value));
                     setGuardado(false);
                   }}
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2.5 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/20"
                 />
               </div>
 
               {/* Data Validade */}
               <div>
-                <label className="block text-xs font-semibold text-slate-600">
+                <label className="block text-xs font-semibold text-aco">
                   Data de validade
                 </label>
                 <input
@@ -417,13 +417,13 @@ export const CriarPlano = () => {
                     setDataValidade(e.target.value);
                     setGuardado(false);
                   }}
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2.5 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/20"
                 />
               </div>
 
               {/* Notas médicas */}
               <div>
-                <label className="block text-xs font-semibold text-slate-600">
+                <label className="block text-xs font-semibold text-aco">
                   Notas / Indicações do plano
                 </label>
                 <textarea
@@ -434,16 +434,16 @@ export const CriarPlano = () => {
                     setGuardado(false);
                   }}
                   placeholder="Indicações ou observações para este plano…"
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/20"
                 />
               </div>
             </div>
 
             {/* Sumário */}
-            <div className="mt-6 border-t border-slate-100 pt-4 text-xs text-slate-500">
+            <div className="mt-6 border-t border-tinta/10 pt-4 text-xs text-aco">
               <p className="flex justify-between font-medium">
                 <span>Exercícios selecionados:</span>
-                <span className="font-bold text-slate-900">{selecionados.length}</span>
+                <span className="font-bold text-tinta">{selecionados.length}</span>
               </p>
             </div>
 
@@ -453,18 +453,18 @@ export const CriarPlano = () => {
                 type="button"
                 onClick={guardar}
                 disabled={selecionados.length === 0 || aGuardar}
-                className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-xl bg-cobalto px-4 py-3 text-sm font-bold text-papel shadow-sm transition hover:bg-cobalto focus:outline-none focus:ring-2 focus:ring-cobalto/30 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {aGuardar ? "A guardar…" : tipoPlano === "standard" ? "Criar plano standard" : "Criar plano personalizável"}
               </button>
             </div>
             {guardado && (
-              <p className="mt-3 text-center text-xs font-semibold text-green-600">
+              <p className="mt-3 text-center text-xs font-semibold text-turbo-escuro">
                 Plano guardado com sucesso! ✓
               </p>
             )}
             {erroGuardar && (
-              <p className="mt-3 rounded-lg bg-red-50 p-2.5 text-xs font-medium text-red-700">
+              <p className="mt-3 rounded-lg bg-capa/10 p-2.5 text-xs font-medium text-capa-escura">
                 {erroGuardar}
               </p>
             )}

@@ -5,7 +5,7 @@ interface BtnGlobalProps {
   onClick?: (e?: React.MouseEvent) => void;
   children: React.ReactNode;
   className?: string;
-  variant?: "primary" | "secondary" | "danger";
+  variant?: "primary" | "secondary" | "danger" | "raio";
   type?: "button" | "submit" | "reset";
   disabled?: boolean;
   isLoading?: boolean;
@@ -21,18 +21,21 @@ const BtnGlobal = ({
   disabled,
   isLoading = false,
 }: BtnGlobalProps) => {
-  // Classes base focadas em feedback tátil rápido
-  const baseStyle = `inline-flex min-h-[44px] min-w-[96px] items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-75 active:scale-95 disabled:opacity-50 disabled:pointer-events-none select-none ${
+  // Classes base focadas em feedback tátil rápido; alvo tátil mínimo de 48px (brandbook, cap. 08)
+  const baseStyle = `inline-flex min-h-12 min-w-[96px] items-center justify-center whitespace-nowrap rounded-(--radius-vinheta) border-[3px] border-tinta text-sm font-bold shadow-vinheta transition-all duration-75 active:scale-95 active:shadow-none disabled:opacity-50 disabled:pointer-events-none select-none ${
     className.includes("p-") ? "" : "px-5 py-2.5"
   }`;
 
+  // Variantes da marca: Cobalto para o QG clínico, Raio para a Academia das crianças
   const variants = {
     primary:
-      "bg-blue-600 text-white shadow-sm shadow-blue-100 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500/20",
+      "bg-cobalto text-papel hover:bg-cobalto-vivo focus:ring-2 focus:ring-cobalto/30",
     secondary:
-      "border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 focus:ring-2 focus:ring-slate-100",
+      "bg-transparent text-tinta hover:bg-tinta/5 focus:ring-2 focus:ring-tinta/20",
     danger:
-      "bg-red-600 text-white hover:bg-red-700 focus:ring-2 focus:ring-red-500/20",
+      "bg-capa-escura text-papel hover:bg-[#a01330] focus:ring-2 focus:ring-capa/30",
+    raio:
+      "bg-linear-to-b from-raio to-raio-fundo font-display text-lg tracking-wide text-tinta hover:brightness-105 focus:ring-2 focus:ring-raio/40",
   };
 
   const combinedStyle = `${baseStyle} ${variants[variant]} ${className}`;

@@ -61,30 +61,30 @@ export const PlanosPaciente = () => {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-10">
-      <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
+      <h1 className="text-2xl font-extrabold tracking-tight text-tinta">
         Os meus planos de treino
       </h1>
-      <p className="mt-1 text-sm text-slate-500">
+      <p className="mt-1 text-sm text-aco">
         Escolhe um plano e começa a praticar!
       </p>
 
       {loading ? (
-        <p className="mt-10 text-sm text-slate-400">A carregar planos de treino...</p>
+        <p className="mt-10 text-sm text-aco">A carregar planos de treino...</p>
       ) : planos.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-8 text-center">
-          <p className="text-slate-500">Ainda não existem planos disponíveis.</p>
+        <div className="mt-8 rounded-2xl border border-tinta/15 bg-papel-claro p-8 text-center">
+          <p className="text-aco">Ainda não existem planos disponíveis.</p>
         </div>
       ) : (
         <div className="mt-8 grid gap-6 sm:grid-cols-2">
           {planos.map((plano) => (
-            <div key={plano.id_plano} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div key={plano.id_plano} className="rounded-2xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold text-indigo-600 uppercase tracking-wide">
+                <span className="text-xs font-bold text-cobalto uppercase tracking-wide">
                   Intensidade: Nível {plano.dificuldade}
                 </span>
                 <span className={`rounded-full px-3 py-0.5 text-xs font-semibold ${
                   plano.is_standard !== false
-                    ? "bg-blue-100 text-blue-700"
+                    ? "bg-cobalto/15 text-cobalto-vivo"
                     : "bg-purple-100 text-purple-700"
                 }`}>
                   {plano.is_standard !== false ? "Standard" : plano.condicao_clinica || "Personalizado"}
@@ -92,7 +92,7 @@ export const PlanosPaciente = () => {
               </div>
 
               {plano.notas_medicas ? (
-                <p className="text-xs text-slate-600 italic mb-3 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                <p className="text-xs text-aco italic mb-3 bg-papel p-2.5 rounded-xl border border-tinta/10">
                   {plano.notas_medicas}
                 </p>
               ) : null}
@@ -106,15 +106,15 @@ export const PlanosPaciente = () => {
                       setPlanoSelecionadoId(plano.id_plano);
                       setView("preview");
                     }}
-                    className="w-full flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 hover:bg-slate-100/80 p-3 text-left transition text-xs font-semibold text-slate-700"
+                    className="w-full flex items-center justify-between gap-3 rounded-xl border border-tinta/10 bg-papel hover:bg-tinta/10/80 p-3 text-left transition text-xs font-semibold text-tinta"
                   >
                     <div>
-                      <p className="font-bold text-slate-800">{ex.nome_exercicio}</p>
-                      <p className="text-[10px] text-slate-400 font-medium mt-0.5">
+                      <p className="font-bold text-tinta">{ex.nome_exercicio}</p>
+                      <p className="text-[10px] text-aco font-medium mt-0.5">
                         ⏱ {Math.floor(ex.duracao_segundos / 60)} min · +{ex.recompensa_xp} XP
                       </p>
                     </div>
-                    <span className="text-indigo-600 text-sm font-bold">Começar →</span>
+                    <span className="text-cobalto text-sm font-bold">Começar →</span>
                   </button>
                 ))}
               </div>

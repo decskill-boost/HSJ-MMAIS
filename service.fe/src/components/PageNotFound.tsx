@@ -1,28 +1,27 @@
 import { useNavigate } from "react-router-dom";
 import BtnGlobal from "./BtnGlobal";
+import CapitaoMais from "./CapitaoMais";
 
 const PageNotFound = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-slate-50 p-6 text-center">
-      <div className="space-y-4">
-        <h1 className="text-7xl font-black text-blue-600 tracking-tight animate-pulse">
-          404
-        </h1>
-        <h2 className="text-2xl font-bold text-slate-800 tracking-tight">
-          Página não encontrada
+    <div className="flex min-h-full flex-1 flex-col items-center justify-center p-6 text-center">
+      <div className="animate-flutuar">
+        <CapitaoMais className="h-24 w-auto" title="" />
+      </div>
+      <div className="mt-6 space-y-3">
+        <h1 className="font-display text-7xl tracking-wide text-cobalto">404</h1>
+        <h2 className="font-display text-2xl tracking-wide text-tinta">
+          Este caminho não está no mapa da Academia
         </h2>
-        <p className="text-sm text-slate-500 max-w-sm mx-auto">
-          Ups! O caminho que tentaste aceder não existe ou foi movido.
+        <p className="mx-auto max-w-sm text-sm text-aco">
+          O caminho que tentaste aceder não existe ou foi movido.
         </p>
       </div>
 
-      <BtnGlobal
-        onClick={() => navigate("/")}
-        className="mt-8 px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl shadow-md shadow-blue-100 hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-200 active:scale-95 transition-all duration-200"
-      >
-        Voltar para o Início
+      <BtnGlobal onClick={() => navigate("/")} className="mt-8">
+        Voltar ao início
       </BtnGlobal>
     </div>
   );

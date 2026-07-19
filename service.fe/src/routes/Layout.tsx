@@ -69,7 +69,7 @@ export const Layout = () => {
     linksDoUtilizador && !paginasSemSidebar.includes(location.pathname);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-50">
+    <div className="flex h-screen w-screen overflow-hidden">
       {/* 1. COLUNA ESQUERDA: Sidebar ocupa a altura inteira */}
       {mostrarSidebar && (
         <Sidebar

@@ -73,7 +73,7 @@ const PacienteDetalhe = () => {
   if (loading) {
     return (
       <div className="mx-auto w-full max-w-6xl px-4 py-10">
-        <p className="text-slate-600">A carregar detalhes do paciente...</p>
+        <p className="text-aco">A carregar detalhes do paciente...</p>
       </div>
     );
   }
@@ -81,7 +81,7 @@ const PacienteDetalhe = () => {
   if (erro) {
     return (
       <div className="mx-auto w-full max-w-6xl px-4 py-10">
-        <div className="rounded-2xl bg-red-50 p-4 text-red-700">{erro}</div>
+        <div className="rounded-2xl bg-capa/10 p-4 text-capa-escura">{erro}</div>
       </div>
     );
   }
@@ -89,11 +89,11 @@ const PacienteDetalhe = () => {
   if (!paciente) {
     return (
       <div className="mx-auto w-full max-w-6xl px-4 py-10">
-        <div className="rounded-2xl bg-slate-50 p-6 shadow-sm">
-          <p className="text-slate-700">Paciente não encontrado.</p>
+        <div className="rounded-2xl bg-papel p-6 shadow-sm">
+          <p className="text-tinta">Paciente não encontrado.</p>
           <BtnGlobal
             onClick={() => navigate("/dashboard/medico/pacientes")}
-            className="mt-4 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+            className="mt-4 rounded-xl bg-tinta px-4 py-2 text-sm font-semibold text-papel hover:bg-tinta"
           >
             Voltar para lista
           </BtnGlobal>
@@ -106,10 +106,10 @@ const PacienteDetalhe = () => {
     <div className="mx-auto w-full max-w-6xl px-4 py-10">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-extrabold tracking-tight text-tinta">
             {paciente.nome}
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-aco">
             Detalhe de planos para este paciente.
           </p>
         </div>
@@ -118,13 +118,13 @@ const PacienteDetalhe = () => {
             onClick={() =>
               navigate(`/plano/criar?paciente=${paciente.id_paciente}`)
             }
-            className="rounded-xl bg-indigo-600 px-4 py-3 text-sm text-white hover:bg-indigo-700"
+            className="rounded-xl bg-cobalto px-4 py-3 text-sm text-papel hover:bg-cobalto"
           >
             Atribuir novo plano
           </BtnGlobal>
           <BtnGlobal
             onClick={() => navigate("/dashboard/medico/pacientes")}
-            className="rounded-xl bg-slate-900 px-4 py-3 text-sm text-white hover:bg-slate-800"
+            className="rounded-xl bg-tinta px-4 py-3 text-sm text-papel hover:bg-tinta"
           >
             Voltar para lista
           </BtnGlobal>
@@ -132,50 +132,50 @@ const PacienteDetalhe = () => {
       </div>
 
       {sucesso && (
-        <div className="mb-6 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-700">
+        <div className="mb-6 rounded-2xl bg-turbo/10 p-4 text-sm text-turbo-escuro">
           Plano cancelado com sucesso.
         </div>
       )}
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <article className="rounded-3xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
             Planos ativos
           </p>
-          <p className="mt-4 text-3xl font-bold text-slate-900">
+          <p className="mt-4 text-3xl font-bold text-tinta">
             {planosAtivos.length}
           </p>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-aco">
             Planos com status ativo hoje.
           </p>
         </article>
-        <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <article className="rounded-3xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
             Planos totais
           </p>
-          <p className="mt-4 text-3xl font-bold text-slate-900">
+          <p className="mt-4 text-3xl font-bold text-tinta">
             {paciente.planos.length}
           </p>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-aco">
             Inclui ativos e inativos.
           </p>
         </article>
-        <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <article className="rounded-3xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
             Último início
           </p>
-          <p className="mt-4 text-3xl font-bold text-slate-900">
+          <p className="mt-4 text-3xl font-bold text-tinta">
             {formatarData(paciente.planos[0]?.data_inicio)}
           </p>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-aco">
             Data do plano mais recente.
           </p>
         </article>
       </div>
 
-      <div className="mt-8 overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div className="mt-8 overflow-x-auto rounded-3xl border border-tinta/15 bg-papel-claro shadow-sm">
         <table className="min-w-full border-collapse text-left text-sm">
-          <thead className="bg-slate-50 text-slate-600">
+          <thead className="bg-papel text-aco">
             <tr>
               <th className="px-4 py-4 font-semibold">Plano</th>
               <th className="px-4 py-4 font-semibold">Início</th>
@@ -190,7 +190,7 @@ const PacienteDetalhe = () => {
               <tr>
                 <td
                   colSpan={6}
-                  className="px-4 py-8 text-center text-sm text-slate-500"
+                  className="px-4 py-8 text-center text-sm text-aco"
                 >
                   Nenhum plano atribuído a este paciente.
                 </td>
@@ -199,27 +199,27 @@ const PacienteDetalhe = () => {
               paciente.planos.map((plano) => (
                 <tr
                   key={plano.id_plano}
-                  className="border-t border-slate-200 last:border-b"
+                  className="border-t border-tinta/15 last:border-b"
                 >
                   <td className="px-4 py-4">
-                    <p className="font-semibold text-slate-900">
+                    <p className="font-semibold text-tinta">
                       {plano.frequencia_semanal}x/semana
                     </p>
                   </td>
-                  <td className="px-4 py-4 text-slate-700">
+                  <td className="px-4 py-4 text-tinta">
                     {formatarData(plano.data_inicio)}
                   </td>
-                  <td className="px-4 py-4 text-slate-700">
+                  <td className="px-4 py-4 text-tinta">
                     {formatarData(plano.data_validade)}
                   </td>
                   <td className="px-4 py-4">
                     <span
-                      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${plano.ativo ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
+                      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${plano.ativo ? "bg-turbo/20 text-turbo-escuro" : "bg-tinta/10 text-aco"}`}
                     >
                       {plano.ativo ? "Ativo" : "Inativo"}
                     </span>
                   </td>
-                  <td className="px-4 py-4 text-slate-500">
+                  <td className="px-4 py-4 text-aco">
                     {plano.notas_medicas ?? "Sem notas médicas."}
                   </td>
                   <td className="px-4 py-4">
@@ -228,14 +228,14 @@ const PacienteDetalhe = () => {
                         type="button"
                         onClick={() => handleCancelarPlano(plano.id_plano)}
                         disabled={cancellingId === plano.id_plano}
-                        className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="rounded-xl border border-capa/30 bg-capa/10 px-3 py-2 text-xs font-semibold text-capa-escura transition hover:bg-capa/20 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {cancellingId === plano.id_plano
                           ? "A cancelar…"
                           : "Cancelar"}
                       </button>
                     ) : (
-                      <span className="text-xs italic text-slate-400">
+                      <span className="text-xs italic text-aco">
                         Sem ações
                       </span>
                     )}

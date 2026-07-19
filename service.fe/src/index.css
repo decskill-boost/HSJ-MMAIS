@@ -1,2 +1,322 @@
 @import "tailwindcss";
 @source "../src";
+
+/*
+ * Identidade MMAIS — «Versão Heróis» (Academia de Heróis)
+ * Ver brandbook Heróis: paleta BD, contrastes aprovados e regras de uso.
+ */
+
+@font-face {
+  font-family: "Bangers";
+  src: url("./assets/fonts/bangers-latin.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  src: url("./assets/fonts/atkinson-400-latin.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Atkinson Hyperlegible";
+  src: url("./assets/fonts/atkinson-700-latin.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  /* Paleta BD */
+  --color-tinta: #141f3c;
+  --color-papel: #faf4e4;
+  --color-papel-claro: #fffdf4;
+  --color-cobalto: #1d42c8;
+  --color-cobalto-vivo: #3d6bff;
+  --color-raio: #ffce29;
+  --color-raio-fundo: #ffb800;
+  --color-capa: #ff3d57;
+  --color-capa-escura: #c2183b;
+  --color-turbo: #17c3b2;
+  --color-turbo-escuro: #0c7d74;
+  --color-aco: #5a6483;
+
+  /* Tipografia */
+  --font-display: "Bangers", "Arial Black", system-ui, sans-serif;
+  --font-sans: "Atkinson Hyperlegible", system-ui, sans-serif;
+
+  /* Forma — vinhetas de BD */
+  --radius-vinheta: 0.75rem;
+  --shadow-vinheta: 3px 3px 0 #141f3c;
+}
+
+body {
+  background-color: var(--color-papel);
+  background-image: radial-gradient(rgba(29, 66, 200, 0.1) 1.2px, transparent 1.3px),
+    radial-gradient(rgba(23, 195, 178, 0.08) 1.2px, transparent 1.3px);
+  background-size: 18px 18px, 18px 18px;
+  background-position: 0 0, 9px 9px;
+  color: var(--color-tinta);
+  font-family: var(--font-sans);
+}
+
+/* Seleção de texto e scrollbar com o uniforme da marca */
+::selection {
+  background: var(--color-raio);
+  color: var(--color-tinta);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-cobalto) transparent;
+}
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-cobalto);
+  border-radius: 8px;
+  border: 2px solid var(--color-papel);
+}
+
+/* Wordmark «autocolante»: letras claras com contorno de tinta (brandbook Heróis, cap. 02) */
+.texto-autocolante {
+  color: #faf4e4;
+  text-shadow: 2.5px 0 0 #141f3c, -2.5px 0 0 #141f3c, 0 2.5px 0 #141f3c,
+    0 -2.5px 0 #141f3c, 2px 2px 0 #141f3c, -2px 2px 0 #141f3c, 2px -2px 0 #141f3c,
+    -2px -2px 0 #141f3c, 5px 6px 0 rgba(10, 15, 32, 0.5);
+}
+.texto-raio-contorno {
+  color: var(--color-raio);
+  -webkit-text-stroke: 1.2px var(--color-tinta);
+  paint-order: stroke fill;
+}
+
+/* Cenário da Academia: raios de ação e retícula de BD */
+.fundo-raios {
+  background: repeating-conic-gradient(
+    from 0deg at 50% 44%,
+    rgba(250, 244, 228, 0.14) 0deg 3deg,
+    transparent 3deg 15deg
+  );
+}
+.fundo-reticula {
+  background-image: radial-gradient(rgba(250, 244, 228, 0.14) 1.5px, transparent 1.6px);
+  background-size: 15px 15px;
+}
+
+/* ===== Capitão Mais 2.5D — camadas com profundidade (só nos momentos-estrela) ===== */
+.cap3d-stage {
+  perspective: 800px;
+  width: min(230px, 58vw);
+  aspect-ratio: 14 / 16;
+  position: relative;
+  cursor: pointer;
+  margin: 0 auto;
+}
+.cap3d-rig {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+.cap3d-l {
+  position: absolute;
+  inset: 0;
+}
+.cap3d-l svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.cap3d-l1 { transform: translateZ(-32px); }
+.cap3d-l2 { transform: translateZ(0); }
+.cap3d-l3 { transform: translateZ(22px); }
+.cap3d-l4 { transform: translateZ(46px); }
+.cap3d-l5 { transform: translateZ(60px); }
+.cap3d-sombra {
+  width: 58%;
+  height: 20px;
+  border-radius: 50%;
+  background: #0a0f20;
+  opacity: 0.4;
+  filter: blur(8px);
+  margin: -4px auto 0;
+}
+
+@keyframes flutuar {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.animate-flutuar {
+  animation: flutuar 6s ease-in-out infinite;
+}
+@keyframes balancar {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(4deg) translateY(-1px);
+  }
+}
+.animate-balancar {
+  display: inline-flex;
+  transform-origin: 50% 85%;
+  animation: balancar 3.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cap3d-rig {
+    animation: cap-idle 7s ease-in-out infinite;
+  }
+  .cap3d-rig.pirueta {
+    animation: cap-pirueta 1.15s cubic-bezier(0.3, 1.3, 0.4, 1) 1;
+  }
+  @keyframes cap-idle {
+    0%,
+    100% {
+      transform: rotateY(-13deg) rotateX(4deg) translateY(0);
+    }
+    50% {
+      transform: rotateY(13deg) rotateX(-3deg) translateY(-10px);
+    }
+  }
+  @keyframes cap-pirueta {
+    0% {
+      transform: rotateY(0) scale(1);
+    }
+    35% {
+      transform: rotateY(150deg) scale(0.9) translateY(-12px);
+    }
+    100% {
+      transform: rotateY(360deg) scale(1);
+    }
+  }
+  .cap3d-sombra {
+    animation: cap-respira 7s ease-in-out infinite;
+  }
+  @keyframes cap-respira {
+    0%,
+    100% {
+      transform: scaleX(1);
+      opacity: 0.4;
+    }
+    50% {
+      transform: scaleX(0.84);
+      opacity: 0.28;
+    }
+  }
+
+  /* Vida do Capitão: pisca, acena, capa ao vento, brilhos a cintilar */
+  .cap-olhos {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+    animation: cap-piscar 4.4s linear infinite;
+  }
+  .cap-capa-flap {
+    transform-box: fill-box;
+    transform-origin: 88% 6%;
+    animation: cap-ondular 3.2s ease-in-out infinite;
+  }
+  .cap-luva-dir {
+    transform-box: fill-box;
+    transform-origin: 40% 85%;
+    animation: cap-acenar 3.6s ease-in-out infinite;
+  }
+  .cap-brilho {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: cap-cintilar 2.6s ease-in-out infinite;
+  }
+  .cap-brilho.b2 {
+    animation-delay: 0.9s;
+  }
+  .cap-brilho.b3 {
+    animation-delay: 1.7s;
+  }
+  @keyframes cap-piscar {
+    0%,
+    92%,
+    100% {
+      transform: scaleY(1);
+    }
+    95% {
+      transform: scaleY(0.08);
+    }
+  }
+  @keyframes cap-ondular {
+    0%,
+    100% {
+      transform: rotate(-2deg);
+    }
+    50% {
+      transform: rotate(5deg);
+    }
+  }
+  @keyframes cap-acenar {
+    0%,
+    66%,
+    100% {
+      transform: rotate(0);
+    }
+    76% {
+      transform: rotate(-14deg);
+    }
+    88% {
+      transform: rotate(10deg);
+    }
+  }
+  @keyframes cap-cintilar {
+    0%,
+    100% {
+      transform: scale(0.55) rotate(0);
+      opacity: 0.35;
+    }
+    50% {
+      transform: scale(1.15) rotate(18deg);
+      opacity: 1;
+    }
+  }
+
+  /* Entrada «pop» de vinheta (brandbook, cap. 08) — em cascata via -2/-3/-4 */
+  .entrada-pop {
+    animation: entrada-pop 0.22s cubic-bezier(0.3, 1.3, 0.4, 1) both;
+  }
+  .entrada-pop-2 {
+    animation: entrada-pop 0.22s cubic-bezier(0.3, 1.3, 0.4, 1) 0.08s both;
+  }
+  .entrada-pop-3 {
+    animation: entrada-pop 0.22s cubic-bezier(0.3, 1.3, 0.4, 1) 0.16s both;
+  }
+  .entrada-pop-4 {
+    animation: entrada-pop 0.22s cubic-bezier(0.3, 1.3, 0.4, 1) 0.24s both;
+  }
+  @keyframes entrada-pop {
+    0% {
+      opacity: 0;
+      transform: scale(0.94) translateY(8px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-flutuar,
+  .animate-balancar,
+  .cap3d-rig,
+  .cap3d-sombra,
+  .entrada-pop,
+  .entrada-pop-2,
+  .entrada-pop-3,
+  .entrada-pop-4 {
+    animation: none;
+  }
+}

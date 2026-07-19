@@ -79,14 +79,14 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, idPaciente, onVoltar, onConc
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black">
       {/* Barra de cima */}
-      <div className="flex items-center justify-between bg-white px-5 py-4 shadow-sm">
+      <div className="flex items-center justify-between bg-papel-claro px-5 py-4 shadow-sm">
         <button
           onClick={onVoltar}
-          className="text-sm font-medium text-slate-500 transition hover:text-slate-900"
+          className="text-sm font-medium text-aco transition hover:text-tinta"
         >
           ← Voltar
         </button>
-        <h2 className="max-w-xs truncate text-base font-semibold text-slate-900">
+        <h2 className="max-w-xs truncate text-base font-semibold text-tinta">
           {exercicio.nome_exercicio}
         </h2>
         <div className="w-16" />
@@ -103,7 +103,7 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, idPaciente, onVoltar, onConc
             playsInline
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-sm text-slate-500">
+          <div className="flex h-full items-center justify-center text-sm text-aco">
             Sem vídeo disponível
           </div>
         )}
@@ -113,33 +113,33 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, idPaciente, onVoltar, onConc
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/70 backdrop-blur-sm">
             <div className="flex flex-col items-center gap-2">
               <span className="text-5xl">⏸️</span>
-              <h3 className="text-2xl font-extrabold text-white">Exercício em Pausa</h3>
-              <p className="text-sm text-slate-300">O que queres fazer?</p>
+              <h3 className="text-2xl font-extrabold text-papel">Exercício em Pausa</h3>
+              <p className="text-sm text-tinta/20">O que queres fazer?</p>
             </div>
-            <div className="rounded-2xl bg-white/10 px-6 py-3 text-center backdrop-blur-sm">
-              <p className="text-xs font-semibold uppercase tracking-widest text-slate-300">
+            <div className="rounded-2xl bg-papel-claro/10 px-6 py-3 text-center backdrop-blur-sm">
+              <p className="text-xs font-semibold uppercase tracking-widest text-tinta/20">
                 Tempo restante
               </p>
-              <p className="text-4xl font-extrabold tabular-nums text-white">
+              <p className="text-4xl font-extrabold tabular-nums text-papel">
                 {formatTime(timeLeft)}
               </p>
             </div>
             <div className="flex w-56 flex-col items-center gap-3">
               <button
                 onClick={handleRetomar}
-                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-green-500 px-6 py-4 text-lg font-extrabold text-white shadow-lg transition hover:bg-green-400 active:scale-95"
+                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-turbo/100 px-6 py-4 text-lg font-extrabold text-papel shadow-lg transition hover:bg-turbo active:scale-95"
               >
                 <span className="text-2xl">▶️</span> Continuar!
               </button>
               <button
                 onClick={handleRecomecar}
-                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-blue-500 px-6 py-4 text-lg font-extrabold text-white shadow-lg transition hover:bg-blue-400 active:scale-95"
+                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-cobalto px-6 py-4 text-lg font-extrabold text-papel shadow-lg transition hover:bg-cobalto-vivo active:scale-95"
               >
                 <span className="text-2xl">🔄</span> Recomeçar
               </button>
               <button
                 onClick={onVoltar}
-                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-slate-600 px-6 py-4 text-lg font-extrabold text-white shadow-lg transition hover:bg-slate-500 active:scale-95"
+                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-aco px-6 py-4 text-lg font-extrabold text-papel shadow-lg transition hover:bg-aco active:scale-95"
               >
                 <span className="text-2xl">🏠</span> Sair
               </button>
@@ -162,13 +162,13 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, idPaciente, onVoltar, onConc
 
       {/* Barra de baixo */}
       {!isPaused && !isFinished && (
-        <div className="flex flex-col items-center gap-3 bg-white px-4 pb-5 pt-4 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]">
+        <div className="flex flex-col items-center gap-3 bg-papel-claro px-4 pb-5 pt-4 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]">
           <div className="flex flex-col items-center gap-1">
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-widest text-aco">
               Tempo restante
             </p>
             <p className={`text-5xl font-extrabold tabular-nums transition-colors ${
-              timeLeft <= 10 ? "text-red-500" : "text-slate-900"
+              timeLeft <= 10 ? "text-capa" : "text-tinta"
             }`}>
               {formatTime(timeLeft)}
             </p>
@@ -176,7 +176,7 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, idPaciente, onVoltar, onConc
           <div className="flex items-center gap-4">
             <button
               onClick={handlePausar}
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition hover:bg-slate-700"
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-tinta text-papel shadow-lg transition hover:bg-tinta"
               aria-label="Pausar"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
@@ -186,7 +186,7 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, idPaciente, onVoltar, onConc
             </button>
             <button
               onClick={handleRecomecar}
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition hover:bg-slate-700"
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-tinta text-papel shadow-lg transition hover:bg-tinta"
               aria-label="Recomeçar"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
