@@ -22,7 +22,7 @@ const WelcomePage = () => {
           Mais Minutos Ativos · A Academia de Heróis
         </p>
         <p className="mx-auto mt-2 max-w-md text-lg text-[#D7DDF4]">
-          Missões, cromos e superpoderes — mais um passo, todos os dias.
+          Missões, conquistas e superpoderes — mais um passo, todos os dias.
         </p>
 
         <BtnGlobal onClick={handleStart} variant="raio" className="mt-8 mx-auto px-10 py-3">

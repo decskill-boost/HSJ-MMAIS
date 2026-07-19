@@ -283,12 +283,40 @@ body {
       opacity: 1;
     }
   }
+
+  /* Entrada «pop» de vinheta (brandbook, cap. 08) — em cascata via -2/-3/-4 */
+  .entrada-pop {
+    animation: entrada-pop 0.22s cubic-bezier(0.3, 1.3, 0.4, 1) both;
+  }
+  .entrada-pop-2 {
+    animation: entrada-pop 0.22s cubic-bezier(0.3, 1.3, 0.4, 1) 0.08s both;
+  }
+  .entrada-pop-3 {
+    animation: entrada-pop 0.22s cubic-bezier(0.3, 1.3, 0.4, 1) 0.16s both;
+  }
+  .entrada-pop-4 {
+    animation: entrada-pop 0.22s cubic-bezier(0.3, 1.3, 0.4, 1) 0.24s both;
+  }
+  @keyframes entrada-pop {
+    0% {
+      opacity: 0;
+      transform: scale(0.94) translateY(8px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .animate-flutuar,
   .animate-balancar,
   .cap3d-rig,
-  .cap3d-sombra {
+  .cap3d-sombra,
+  .entrada-pop,
+  .entrada-pop-2,
+  .entrada-pop-3,
+  .entrada-pop-4 {
     animation: none;
   }
 }

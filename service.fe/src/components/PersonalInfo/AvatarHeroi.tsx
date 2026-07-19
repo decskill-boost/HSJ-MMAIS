@@ -52,6 +52,7 @@ const AvatarHeroi = ({ variante, className = "h-full w-full" }: AvatarHeroiProps
           {/* brilhos */}
           <path className="cap-brilho" d="M16 20 L17.6 24.4 L22 26 L17.6 27.6 L16 32 L14.4 27.6 L10 26 L14.4 24.4 Z" fill="#FFCE29" stroke="#141F3C" strokeWidth="1.4" />
           <path className="cap-brilho b2" d="M104 14 L105.4 17.6 L109 19 L105.4 20.4 L104 24 L102.6 20.4 L99 19 L102.6 17.6 Z" fill="#17C3B2" stroke="#141F3C" strokeWidth="1.4" />
+          <path className="cap-brilho b3" d="M108 76 L109.2 79.2 L112.4 80.4 L109.2 81.6 L108 84.8 L106.8 81.6 L103.6 80.4 L106.8 79.2 Z" fill="#FFFDF4" stroke="#141F3C" strokeWidth="1.2" />
         </svg>
       </span>
     );
@@ -65,6 +66,11 @@ const AvatarHeroi = ({ variante, className = "h-full w-full" }: AvatarHeroiProps
       {/* estetoscópio */}
       <path d="M50 97 C46 108 52 115 60 114" fill="none" stroke="#1D42C8" strokeWidth="3.5" strokeLinecap="round" />
       <circle cx="63" cy="114" r="4.5" fill="#17C3B2" stroke="#141F3C" strokeWidth="2.5" />
+      {/* cruz «+» no bolso da bata — herói de bata */}
+      <g>
+        <rect x="79" y="103" width="5" height="13" rx="2.5" fill="#1D42C8" />
+        <rect x="75" y="107" width="13" height="5" rx="2.5" fill="#1D42C8" />
+      </g>
       {/* cabeça */}
       <circle cx="60" cy="58" r="35" fill="#FFFDF4" stroke="#141F3C" strokeWidth="4" />
       <path d="M27 54 C27 30 46 17 60 17 C74 17 93 30 93 54 C88 36 74 27 60 27 C46 27 32 36 27 54 Z" fill="#141F3C" />

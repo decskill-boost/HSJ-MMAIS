@@ -45,27 +45,65 @@ export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-4 py-12 text-center">
-      {/* Foto de Perfil */}
-      <div className="flex justify-center">
-        {user.url_foto_perfil ? (
-          <img
-            src={user.url_foto_perfil}
-            alt={user.nome}
-            className="h-28 w-28 rounded-2xl border-2 border-tinta object-cover shadow-vinheta"
-          />
-        ) : (
-          <div
-            className={`flex h-28 w-28 items-end justify-center overflow-hidden rounded-2xl border-2 border-tinta ${theme.bg} shadow-vinheta`}
-          >
-            <AvatarHeroi variante={isClinico ? "clinico" : "crianca"} />
+      {isClinico ? (
+        <>
+          {/* Foto de Perfil — QG clínico */}
+          <div className="entrada-pop flex justify-center">
+            {user.url_foto_perfil ? (
+              <img
+                src={user.url_foto_perfil}
+                alt={user.nome}
+                className="h-28 w-28 rounded-2xl border-2 border-tinta object-cover shadow-vinheta"
+              />
+            ) : (
+              <div
+                className={`flex h-28 w-28 items-end justify-center overflow-hidden rounded-2xl border-2 border-tinta ${theme.bg} shadow-vinheta`}
+              >
+                <AvatarHeroi variante="clinico" />
+              </div>
+            )}
           </div>
-        )}
-      </div>
-
-      <h1 className="mt-4 font-display text-3xl tracking-wide text-tinta">
-        {user.nome}
-      </h1>
-      <p className="text-sm font-bold text-aco">{user.email}</p>
+          <h1 className="mt-4 font-display text-3xl tracking-wide text-tinta">
+            {user.nome}
+          </h1>
+          <p className="text-sm font-bold text-aco">{user.email}</p>
+        </>
+      ) : (
+        <>
+          {/* Cartão de herói — o perfil da criança é um cartão colecionável */}
+          <div className="entrada-pop relative w-60 -rotate-2 overflow-hidden rounded-2xl border-[3px] border-tinta bg-[linear-gradient(160deg,#3D6BFF_0%,#1D42C8_100%)] p-3 pb-2.5 shadow-vinheta">
+            <div className="fundo-reticula pointer-events-none absolute inset-0 opacity-50" aria-hidden="true" />
+            <div className="relative flex items-center justify-between px-1">
+              <span className="font-display text-xs tracking-[.14em] text-raio [text-shadow:1.5px_1.5px_0_#141F3C]">
+                HERÓI Nº 001
+              </span>
+              <span className="font-display text-xs tracking-[.14em] text-papel [text-shadow:1.5px_1.5px_0_#141F3C]">
+                MMAIS+
+              </span>
+            </div>
+            <div className="relative mx-auto mt-1 h-40 w-40">
+              {user.url_foto_perfil ? (
+                <img
+                  src={user.url_foto_perfil}
+                  alt={user.nome}
+                  className="h-full w-full rounded-xl border-2 border-tinta object-cover"
+                />
+              ) : (
+                <AvatarHeroi variante="crianca" />
+              )}
+            </div>
+            <div className="relative mt-1.5 rounded-lg border-2 border-tinta bg-papel-claro px-2 py-1.5">
+              <span className="block font-display text-xl leading-tight tracking-wide text-tinta">
+                {user.nome}
+              </span>
+              <span className="block text-[10px] font-bold uppercase tracking-widest text-aco">
+                Herói em treino · Nível {user.nivel}
+              </span>
+            </div>
+          </div>
+          <p className="mt-3 text-sm font-bold text-aco">{user.email}</p>
+        </>
+      )}
 
       {/* Estatísticas: corpo clínico vs. paciente (gamificação) */}
       {isClinico ? (
@@ -80,7 +118,7 @@ export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
       )}
 
       {/* Card de Detalhes da Conta */}
-      <div className="mt-6 w-full max-w-md rounded-2xl border-2 border-tinta bg-papel-claro p-6 text-left shadow-vinheta">
+      <div className="entrada-pop-4 mt-6 w-full max-w-md rounded-2xl border-2 border-tinta bg-papel-claro p-6 text-left shadow-vinheta">
         <h2
           className={`text-sm font-bold uppercase tracking-wider ${theme.color} mb-4`}
         >

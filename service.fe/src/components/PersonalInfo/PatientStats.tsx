@@ -7,7 +7,7 @@ export const PatientStats = ({
   themeColor,
 }: PatientStatsProps) => (
   <div className="mt-8 grid w-full max-w-md grid-cols-3 gap-4">
-    <div className="rounded-2xl border-2 border-tinta bg-papel-claro p-4 shadow-vinheta">
+    <div className="entrada-pop rounded-2xl border-2 border-tinta bg-papel-claro p-4 shadow-vinheta">
       <span className={`block font-display text-2xl tracking-wide ${themeColor}`}>
         {nivel}
       </span>
@@ -15,7 +15,7 @@ export const PatientStats = ({
         Nível
       </span>
     </div>
-    <div className="rounded-2xl border-2 border-tinta bg-papel-claro p-4 shadow-vinheta">
+    <div className="entrada-pop-2 rounded-2xl border-2 border-tinta bg-papel-claro p-4 shadow-vinheta">
       <span className={`block font-display text-2xl tracking-wide ${themeColor}`}>
         {xp}
       </span>
@@ -23,7 +23,7 @@ export const PatientStats = ({
         XP
       </span>
     </div>
-    <div className="rounded-2xl border-2 border-tinta bg-papel-claro p-4 shadow-vinheta">
+    <div className="entrada-pop-3 rounded-2xl border-2 border-tinta bg-papel-claro p-4 shadow-vinheta">
       <span className="block font-display text-2xl tracking-wide text-turbo-escuro">
         ⚡ {streak}
       </span>
