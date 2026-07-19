@@ -73,20 +73,20 @@ const DashboardCorpoClinico = () => {
         <section className="rounded-3xl border border-tinta/15 bg-gradient-to-br from-cobalto to-tinta p-6 text-papel shadow-sm sm:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cobalto/30">
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#C9D2F2]">
                 Painel do Corpo Clínico
               </p>
               <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
                 Olá, Dr. {displayName}
               </h1>
-              <p className="mt-3 max-w-2xl text-sm text-cobalto/20 sm:text-base">
+              <p className="mt-3 max-w-2xl text-sm text-[#C9D2F2] sm:text-base">
                 Prescreva programas de exercício para crianças e jovens dos 6
                 aos 18 anos, reveja protocolos e acompanhe o progresso diário.
               </p>
             </div>
             <div className="flex flex-col gap-3 rounded-3xl bg-papel-claro/10 px-4 py-4 text-right backdrop-blur-sm">
               <div>
-                <p className="text-sm font-medium text-cobalto/20">
+                <p className="text-sm font-medium text-[#C9D2F2]">
                   Pacientes registados
                 </p>
                 <p className="mt-1 text-2xl font-bold">
@@ -96,7 +96,7 @@ const DashboardCorpoClinico = () => {
               <BtnGlobal
                 variant="secondary"
                 onClick={() => navigate("/perfil")}
-                className="rounded-xl border-tinta/15 px-4 py-2 text-sm font-semibold text-tinta"
+                className="rounded-xl border-2 border-tinta bg-papel-claro px-4 py-2 text-sm font-bold text-tinta shadow-[2px_2px_0_#141F3C] transition hover:bg-papel active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
               >
                 Informação pessoal
               </BtnGlobal>
