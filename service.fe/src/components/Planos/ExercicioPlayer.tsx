@@ -1,6 +1,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { ExercicioDoPlano } from "../../services/planosService";
+import CapitaoMais from "../CapitaoMais";
 import AvaliacaoExercicio from "./AvaliacaoExercicio";
 
 interface Props {
@@ -76,24 +77,33 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, idPaciente, onVoltar, onConc
     }, 100);
   };
 
+  // Percentagem de missão cumprida (para a barra de energia)
+  const pctFeito = Math.max(
+    0,
+    Math.min(
+      100,
+      ((exercicio.duracao_segundos - timeLeft) / exercicio.duracao_segundos) * 100,
+    ),
+  );
+
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black">
+    <div className="fixed inset-0 z-50 flex flex-col bg-[#0A1020]">
       {/* Barra de cima */}
-      <div className="flex items-center justify-between bg-papel-claro px-5 py-4 shadow-sm">
+      <div className="flex items-center justify-between border-b-[3px] border-tinta bg-papel-claro px-5 py-3">
         <button
           onClick={onVoltar}
-          className="text-sm font-medium text-aco transition hover:text-tinta"
+          className="text-sm font-bold text-aco transition hover:text-tinta"
         >
           ← Voltar
         </button>
-        <h2 className="max-w-xs truncate text-base font-semibold text-tinta">
+        <h2 className="max-w-xs truncate font-display text-lg tracking-wide text-tinta">
           {exercicio.nome_exercicio}
         </h2>
         <div className="w-16" />
       </div>
 
       {/* Vídeo + overlays */}
-      <div className="relative flex-1 overflow-hidden bg-black">
+      <div className="relative flex-1 overflow-hidden bg-[#0A1020]">
         {exercicio.url_video ? (
           <video
             ref={videoRef}
@@ -103,45 +113,58 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, idPaciente, onVoltar, onConc
             playsInline
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-sm text-aco">
-            Sem vídeo disponível
+          <div className="relative flex h-full flex-col items-center justify-center gap-3 bg-[linear-gradient(160deg,#1D42C8_0%,#16307F_100%)]">
+            <div className="fundo-reticula absolute inset-0 opacity-40" aria-hidden="true" />
+            <div className="animate-flutuar relative">
+              <CapitaoMais className="h-28 w-auto" title="" />
+            </div>
+            <p className="relative text-sm font-bold text-[#C9D2F2]">
+              Sem vídeo — segue o ritmo do Capitão!
+            </p>
           </div>
         )}
 
         {/* Overlay de pausa */}
         {isPaused && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/70 backdrop-blur-sm">
-            <div className="flex flex-col items-center gap-2">
-              <span className="text-5xl">⏸️</span>
-              <h3 className="text-2xl font-extrabold text-papel">Exercício em Pausa</h3>
-              <p className="text-sm text-tinta/20">O que queres fazer?</p>
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-[linear-gradient(160deg,#1D42C8ee_0%,#16307Fee_100%)] backdrop-blur-sm">
+            <div className="fundo-reticula absolute inset-0 opacity-40" aria-hidden="true" />
+            <div className="relative flex flex-col items-center gap-2">
+              <div className="animate-flutuar">
+                <CapitaoMais className="h-24 w-auto" title="" />
+              </div>
+              <h3 className="texto-autocolante font-display text-3xl tracking-wide">
+                Pausa de herói!
+              </h3>
+              <p className="text-sm font-bold text-[#C9D2F2]">
+                Até os heróis recarregam. O que queres fazer?
+              </p>
             </div>
-            <div className="rounded-2xl bg-papel-claro/10 px-6 py-3 text-center backdrop-blur-sm">
-              <p className="text-xs font-semibold uppercase tracking-widest text-tinta/20">
+            <div className="relative rounded-2xl border-2 border-tinta bg-tinta/40 px-6 py-3 text-center">
+              <p className="text-xs font-bold uppercase tracking-widest text-[#C9D2F2]">
                 Tempo restante
               </p>
-              <p className="text-4xl font-extrabold tabular-nums text-papel">
+              <p className="font-display text-4xl tabular-nums tracking-wide text-papel">
                 {formatTime(timeLeft)}
               </p>
             </div>
-            <div className="flex w-56 flex-col items-center gap-3">
+            <div className="relative flex w-64 flex-col items-center gap-3">
               <button
                 onClick={handleRetomar}
-                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-turbo/100 px-6 py-4 text-lg font-extrabold text-papel shadow-lg transition hover:bg-turbo active:scale-95"
+                className="flex w-full items-center justify-center gap-3 rounded-2xl border-[3px] border-tinta bg-linear-to-b from-raio to-raio-fundo px-6 py-4 font-display text-xl tracking-wide text-tinta shadow-vinheta transition hover:brightness-105 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
               >
-                <span className="text-2xl">▶️</span> Continuar!
+                ▶ Continuar!
               </button>
               <button
                 onClick={handleRecomecar}
-                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-cobalto px-6 py-4 text-lg font-extrabold text-papel shadow-lg transition hover:bg-cobalto-vivo active:scale-95"
+                className="flex w-full items-center justify-center gap-3 rounded-2xl border-[3px] border-tinta bg-cobalto-vivo px-6 py-3 text-base font-bold text-papel shadow-vinheta transition hover:bg-cobalto active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
               >
-                <span className="text-2xl">🔄</span> Recomeçar
+                🔄 Recomeçar
               </button>
               <button
                 onClick={onVoltar}
-                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-aco px-6 py-4 text-lg font-extrabold text-papel shadow-lg transition hover:bg-aco active:scale-95"
+                className="flex w-full items-center justify-center gap-3 rounded-2xl border-[3px] border-tinta bg-transparent px-6 py-3 text-base font-bold text-papel transition hover:bg-tinta/30"
               >
-                <span className="text-2xl">🏠</span> Sair
+                🏠 Sair
               </button>
             </div>
           </div>
@@ -162,21 +185,32 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, idPaciente, onVoltar, onConc
 
       {/* Barra de baixo */}
       {!isPaused && !isFinished && (
-        <div className="flex flex-col items-center gap-3 bg-papel-claro px-4 pb-5 pt-4 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]">
-          <div className="flex flex-col items-center gap-1">
-            <p className="text-xs font-semibold uppercase tracking-widest text-aco">
+        <div className="flex flex-col items-center gap-3 border-t-[3px] border-tinta bg-papel-claro px-4 pb-5 pt-3">
+          {/* Barra de energia da missão */}
+          <div className="w-full max-w-md">
+            <div className="h-3 w-full overflow-hidden rounded-full border-2 border-tinta bg-papel">
+              <div
+                className="h-full rounded-full bg-linear-to-r from-raio to-raio-fundo transition-all duration-1000"
+                style={{ width: `${pctFeito}%` }}
+              />
+            </div>
+          </div>
+          <div className="flex flex-col items-center">
+            <p className="text-xs font-bold uppercase tracking-widest text-aco">
               Tempo restante
             </p>
-            <p className={`text-5xl font-extrabold tabular-nums transition-colors ${
-              timeLeft <= 10 ? "text-capa" : "text-tinta"
-            }`}>
+            <p
+              className={`font-display text-5xl tabular-nums tracking-wide transition-colors ${
+                timeLeft <= 10 ? "animate-pulse text-capa-escura" : "text-tinta"
+              }`}
+            >
               {formatTime(timeLeft)}
             </p>
           </div>
           <div className="flex items-center gap-4">
             <button
               onClick={handlePausar}
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-tinta text-papel shadow-lg transition hover:bg-tinta"
+              className="flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-tinta bg-raio text-tinta shadow-vinheta transition hover:bg-raio-fundo active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
               aria-label="Pausar"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
@@ -186,7 +220,7 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, idPaciente, onVoltar, onConc
             </button>
             <button
               onClick={handleRecomecar}
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-tinta text-papel shadow-lg transition hover:bg-tinta"
+              className="flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-tinta bg-papel-claro text-tinta shadow-vinheta transition hover:bg-papel active:translate-x-0.5 active:translate-y-0.5 active:shadow-none"
               aria-label="Recomeçar"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
