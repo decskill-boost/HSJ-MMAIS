@@ -31,7 +31,7 @@ export const Layout = () => {
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col bg-slate-50">
+    <div className="relative flex min-h-screen flex-col">
       <Navbar
         user={user}
         onLoginClick={() => navigate("/login")}

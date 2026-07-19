@@ -7,24 +7,28 @@ export const PatientStats = ({
   themeColor,
 }: PatientStatsProps) => (
   <div className="mt-8 grid w-full max-w-md grid-cols-3 gap-4">
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <span className={`block text-2xl font-black ${themeColor}`}>{nivel}</span>
-      <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+    <div className="rounded-2xl border-2 border-tinta bg-papel-claro p-4 shadow-vinheta">
+      <span className={`block font-display text-2xl tracking-wide ${themeColor}`}>
+        {nivel}
+      </span>
+      <span className="text-xs font-bold uppercase tracking-wider text-aco">
         Nível
       </span>
     </div>
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <span className={`block text-2xl font-black ${themeColor}`}>{xp}</span>
-      <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+    <div className="rounded-2xl border-2 border-tinta bg-papel-claro p-4 shadow-vinheta">
+      <span className={`block font-display text-2xl tracking-wide ${themeColor}`}>
+        {xp}
+      </span>
+      <span className="text-xs font-bold uppercase tracking-wider text-aco">
         XP
       </span>
     </div>
-    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <span className="block text-2xl font-black text-orange-500">
-        🔥 {streak}
+    <div className="rounded-2xl border-2 border-tinta bg-papel-claro p-4 shadow-vinheta">
+      <span className="block font-display text-2xl tracking-wide text-turbo-escuro">
+        ⚡ {streak}
       </span>
-      <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-        Dias Seguidos
+      <span className="text-xs font-bold uppercase tracking-wider text-aco">
+        Dias Ativos
       </span>
     </div>
   </div>

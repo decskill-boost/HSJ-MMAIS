@@ -1,6 +1,7 @@
 import { useOutletContext } from "react-router-dom";
 import BtnGlobal from "../BtnGlobal";
 import ClinicalStaffStats from "./ClinicalStaffStats";
+import { PatientStats } from "./PatientStats";
 import type { UserProfile } from "../../types/user";
 
 interface PersonalInfoProps {
@@ -19,16 +20,27 @@ export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
   if (!user) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
-        <p className="text-slate-500">Utilizador não autenticado</p>
+        <p className="text-aco">Utilizador não autenticado</p>
       </div>
     );
   }
-  // Cores fixas do tema do Corpo Clínico (Índigo)
-  const theme = {
-    color: "text-indigo-600",
-    bg: "bg-indigo-50 text-indigo-600",
-    btn: "bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500/30",
-  };
+
+  const isClinico = user.tipo_utilizador === "corpo_clinico";
+
+  // Tema por tipo de utilizador: Cobalto (QG clínico) ou Raio/Turbo (herói) — brandbook Heróis, cap. 07
+  const theme = isClinico
+    ? {
+        color: "text-cobalto",
+        bg: "bg-cobalto/10 text-cobalto",
+        badge: "bg-cobalto/10 text-cobalto border-cobalto/30",
+        label: "Corpo Clínico",
+      }
+    : {
+        color: "text-cobalto",
+        bg: "bg-raio/25 text-tinta",
+        badge: "bg-raio/25 text-tinta border-raio",
+        label: "Herói em treino",
+      };
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-4 py-12 text-center">
@@ -38,7 +50,7 @@ export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
           <img
             src={user.url_foto_perfil}
             alt={user.nome}
-            className="h-28 w-28 rounded-2xl object-cover shadow-sm border border-slate-100"
+            className="h-28 w-28 rounded-2xl border-2 border-tinta object-cover shadow-vinheta"
           />
         ) : (
           <div
@@ -58,16 +70,25 @@ export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
         )}
       </div>
 
-      <h1 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900">
+      <h1 className="mt-4 font-display text-3xl tracking-wide text-tinta">
         {user.nome}
       </h1>
-      <p className="text-sm font-medium text-slate-500">{user.email}</p>
+      <p className="text-sm font-bold text-aco">{user.email}</p>
 
-      {/* Estatísticas do Corpo Clínico */}
-      <ClinicalStaffStats />
+      {/* Estatísticas: corpo clínico vs. paciente (gamificação) */}
+      {isClinico ? (
+        <ClinicalStaffStats />
+      ) : (
+        <PatientStats
+          nivel={user.nivel}
+          xp={user.xp}
+          streak={user.streak_atual}
+          themeColor={theme.color}
+        />
+      )}
 
       {/* Card de Detalhes da Conta */}
-      <div className="mt-6 w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-left shadow-sm">
+      <div className="mt-6 w-full max-w-md rounded-2xl border-2 border-tinta bg-papel-claro p-6 text-left shadow-vinheta">
         <h2
           className={`text-sm font-bold uppercase tracking-wider ${theme.color} mb-4`}
         >
@@ -75,18 +96,20 @@ export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
         </h2>
         <div className="space-y-4">
           <div>
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            <label className="text-xs font-bold uppercase tracking-wider text-aco">
               Tipo de Utilizador
             </label>
-            <span className="ml-2 inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium border bg-indigo-50 text-indigo-700 border-indigo-200">
-              Corpo Clínico
+            <span
+              className={`ml-2 inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${theme.badge}`}
+            >
+              {theme.label}
             </span>
           </div>
-          <div className="border-t border-slate-100 pt-3">
-            <label className="text-xs font-bold uppercase tracking-wider text-slate-400">
+          <div className="border-t border-tinta/10 pt-3">
+            <label className="text-xs font-bold uppercase tracking-wider text-aco">
               Membro desde
             </label>
-            <p className="text-base font-semibold text-slate-800">
+            <p className="text-base font-bold text-tinta">
               {new Date(user.data_registo).toLocaleDateString("pt-PT")}
             </p>
           </div>
@@ -94,11 +117,7 @@ export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
       </div>
 
       {onBack && (
-        <BtnGlobal
-          onClick={onBack}
-          variant="primary"
-          className={`mt-8 rounded-xl px-10 py-3.5 text-sm font-bold text-white shadow-lg transition-all ${theme.btn}`}
-        >
+        <BtnGlobal onClick={onBack} variant="primary" className="mt-8 px-10 py-3.5">
           Voltar ao Menu
         </BtnGlobal>
       )}
