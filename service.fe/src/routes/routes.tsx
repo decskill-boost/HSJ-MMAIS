@@ -3,7 +3,6 @@ import { Layout } from "./Layout";
 import { UserRole } from "../types/permissions";
 
 import WelcomePage from "../components/WelcomePage";
-import MissaoProposito from "../components/MissaoProposito";
 import ExperimentarPlanos from "../components/ExperimentarPlanos";
 import PersonalInfo from "../components/PersonalInfo";
 import PageNotFound from "../components/PageNotFound";
@@ -30,10 +29,6 @@ export const router = createBrowserRouter([
       {
         path: "",
         element: <WelcomePage />,
-      },
-      {
-        path: "missao",
-        element: <MissaoProposito />,
       },
       {
         path: "experimentar",
