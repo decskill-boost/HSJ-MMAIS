@@ -4,6 +4,7 @@ import { UserRole } from "../types/permissions";
 
 import WelcomePage from "../components/WelcomePage";
 import MissaoProposito from "../components/MissaoProposito";
+import ExperimentarPlanos from "../components/ExperimentarPlanos";
 import PersonalInfo from "../components/PersonalInfo";
 import PageNotFound from "../components/PageNotFound";
 import Login from "../components/Login";
@@ -33,6 +34,10 @@ export const router = createBrowserRouter([
       {
         path: "missao",
         element: <MissaoProposito />,
+      },
+      {
+        path: "experimentar",
+        element: <ExperimentarPlanos />,
       },
       {
         path: "login",

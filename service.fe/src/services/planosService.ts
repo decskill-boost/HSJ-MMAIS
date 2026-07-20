@@ -88,7 +88,6 @@ export const planosService = {
   getTodosPlanosPorPaciente: async (
     idPaciente: string,
   ): Promise<{ ativo: PlanoAtivo | null; historico: PlanoAtivo[] }> => {
-    // 1. Buscar prescrições
     const { data: prescricoes, error: errP } = await supabase
       .from("prescricoes")
       .select(
@@ -100,7 +99,6 @@ export const planosService = {
     if (!prescricoes || prescricoes.length === 0)
       return { ativo: null, historico: [] };
 
-    // 2. Buscar relações prescrição-exercício
     const ids = prescricoes.map((p) => p.id_prescricao);
     const { data: peData, error: errPE } = await supabase
       .from("prescricoes_exercicios")
@@ -131,7 +129,6 @@ export const planosService = {
       };
     }
 
-    // 3. Buscar exercícios pelos IDs
     const exercicioIds = [...new Set(peData.map((pe) => pe.id_exercicio))];
     const { data: exerciciosData, error: errE } = await supabase
       .from("exercicios")
@@ -142,7 +139,6 @@ export const planosService = {
 
     if (errE) throw new Error(errE.message);
 
-    // 4. Juntar tudo
     const mapPlano = (p: any): PlanoAtivo => {
       return {
         id_plano: p.id_prescricao,
@@ -162,7 +158,6 @@ export const planosService = {
             if (!e) return null;
             return {
               ...e,
-              // Override exercise duration if custom duration exists in prescription relation
               duracao_segundos: pe.duracao_segundos ?? e.duracao_segundos,
             };
           })
@@ -177,7 +172,6 @@ export const planosService = {
   },
 
   getPlanosStandard: async (): Promise<PlanoAtivo[]> => {
-    // 1. Buscar prescrições standard
     const { data: prescricoes, error: errP } = await supabase
       .from("prescricoes")
       .select(
@@ -189,7 +183,6 @@ export const planosService = {
     if (errP) throw new Error(errP.message);
     if (!prescricoes || prescricoes.length === 0) return [];
 
-    // 2. Buscar relações prescrição-exercício
     const ids = prescricoes.map((p) => p.id_prescricao);
     const { data: peData, error: errPE } = await supabase
       .from("prescricoes_exercicios")
@@ -209,7 +202,6 @@ export const planosService = {
       }));
     }
 
-    // 3. Buscar exercícios pelos IDs
     const exercicioIds = [...new Set(peData.map((pe) => pe.id_exercicio))];
     const { data: exerciciosData, error: errE } = await supabase
       .from("exercicios")
@@ -220,7 +212,6 @@ export const planosService = {
 
     if (errE) throw new Error(errE.message);
 
-    // 4. Juntar tudo
     return prescricoes.map((p) => ({
       id_plano: p.id_prescricao,
       frequencia_semanal: p.frequencia_semanal,
@@ -233,6 +224,72 @@ export const planosService = {
       condicao_clinica: p.condicao_clinica ?? null,
       is_standard: p.is_standard,
       exercicios: peData
+        .filter((pe) => pe.id_prescricao === p.id_prescricao)
+        .map((pe) => {
+          const e = (exerciciosData ?? []).find(
+            (ex) => ex.id_exercicio === pe.id_exercicio,
+          );
+          if (!e) return null;
+          return {
+            ...e,
+            duracao_segundos: pe.duracao_segundos ?? e.duracao_segundos,
+          };
+        })
+        .filter(Boolean) as ExercicioDoPlano[],
+    }));
+  },
+
+  // Planos disponíveis na área pública (sem login) — lista controlada manualmente
+  getPlanosPublicos: async (): Promise<PlanoAtivo[]> => {
+    const IDS_PLANOS_PUBLICOS = [
+      "050a0dc5-f3bf-48c2-ab0d-8558b10f0daf",
+      "2f22e589-e54e-497f-9ac3-d85953a8ce73",
+    ];
+
+    const { data: prescricoes, error: errP } = await supabase
+      .from("prescricoes")
+      .select(
+        "id_prescricao, frequencia_semanal, notas_medicas, data_inicio, data_validade, data_fim, ativo, dificuldade, condicao_clinica, is_standard",
+      )
+      .in("id_prescricao", IDS_PLANOS_PUBLICOS)
+      .eq("ativo", true);
+
+    if (errP) throw new Error(errP.message);
+    if (!prescricoes || prescricoes.length === 0) return [];
+
+    const ids = prescricoes.map((p) => p.id_prescricao);
+    const { data: peData, error: errPE } = await supabase
+      .from("prescricoes_exercicios")
+      .select("id_prescricao, id_exercicio, duracao_segundos")
+      .in("id_prescricao", ids);
+
+    if (errPE) throw new Error(errPE.message);
+
+    const exercicioIds = [...new Set((peData ?? []).map((pe) => pe.id_exercicio))];
+    const { data: exerciciosData, error: errE } =
+      exercicioIds.length > 0
+        ? await supabase
+            .from("exercicios")
+            .select(
+              "id_exercicio, nome_exercicio, duracao_segundos, dificuldade_clinica, recompensa_xp, url_video",
+            )
+            .in("id_exercicio", exercicioIds)
+        : { data: [], error: null };
+
+    if (errE) throw new Error(errE.message);
+
+    return prescricoes.map((p) => ({
+      id_plano: p.id_prescricao,
+      frequencia_semanal: p.frequencia_semanal,
+      notas_medicas: p.notas_medicas,
+      data_inicio: p.data_inicio,
+      data_validade: p.data_validade,
+      data_fim: p.data_fim,
+      ativo: p.ativo === true,
+      dificuldade: p.dificuldade ?? "A",
+      condicao_clinica: p.condicao_clinica ?? null,
+      is_standard: p.is_standard,
+      exercicios: (peData ?? [])
         .filter((pe) => pe.id_prescricao === p.id_prescricao)
         .map((pe) => {
           const e = (exerciciosData ?? []).find(
@@ -263,7 +320,6 @@ export const planosService = {
     await apiClient.patch(`/prescricoes/${idPrescricao}/cancel`);
   },
 
-  // CRIAR um plano (prescrição) através do backend
   criarPlano: async (dados: {
     id_paciente: string | null;
     id_medico: string;
