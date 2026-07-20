@@ -1,4 +1,3 @@
-
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { ExercicioDoPlano } from "../../services/planosService";
 import AvaliacaoExercicio from "./AvaliacaoExercicio";
@@ -7,6 +6,7 @@ interface Props {
   exercicio: ExercicioDoPlano;
   idPrescricao: string;
   idPaciente: string;
+  modoConvidado?: boolean;
   onVoltar: () => void;
   onConcluir: () => void;
 }
@@ -17,7 +17,14 @@ const formatTime = (seconds: number) => {
   return `${m}:${s}`;
 };
 
-const ExercicioPlayer = ({ exercicio, idPrescricao, idPaciente, onVoltar, onConcluir }: Props) => {
+const ExercicioPlayer = ({
+  exercicio,
+  idPrescricao,
+  idPaciente,
+  modoConvidado = false,
+  onVoltar,
+  onConcluir,
+}: Props) => {
   const [timeLeft, setTimeLeft] = useState(exercicio.duracao_segundos);
   const [isPaused, setIsPaused] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
@@ -147,8 +154,25 @@ const ExercicioPlayer = ({ exercicio, idPrescricao, idPaciente, onVoltar, onConc
           </div>
         )}
 
-        {/* Overlay de avaliação */}
-        {isFinished && (
+        {/* Overlay de fim — convidado (simples) ou avaliação clínica completa */}
+        {isFinished && modoConvidado && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/80 backdrop-blur-sm">
+            <span className="animate-bounce text-7xl">🎉</span>
+            <h3 className="text-3xl font-extrabold text-white">Muito bem!</h3>
+            <p className="max-w-xs text-center text-slate-300">
+              Experimentaste um exercício do +MMAis. Cria uma conta para teres
+              o teu plano personalizado e acompanhares o teu progresso!
+            </p>
+            <button
+              onClick={onConcluir}
+              className="mt-2 flex items-center gap-3 rounded-2xl bg-emerald-500 px-8 py-4 text-xl font-extrabold text-white shadow-lg transition hover:bg-emerald-400 active:scale-95"
+            >
+              🏆 Ver outro exercício
+            </button>
+          </div>
+        )}
+
+        {isFinished && !modoConvidado && (
           <AvaliacaoExercicio
             idPaciente={idPaciente}
             idExercicio={exercicio.id_exercicio}
