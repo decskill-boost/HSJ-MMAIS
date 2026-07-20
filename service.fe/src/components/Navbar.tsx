@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import BtnGlobal from "./BtnGlobal";
 import UserMenu from "./UserMenu";
 import type { UserProfile } from "../types/user";
@@ -50,9 +50,6 @@ export const Navbar = ({
   isMenuOpen,
   onMenuToggle,
 }: NavbarProps) => {
-  const location = useLocation();
-  const isPaginaInicial = location.pathname === "/";
-
   const isClinico = user?.tipo_utilizador === "corpo_clinico";
   const brandColor = isClinico
     ? "text-indigo-600 hover:text-indigo-700"
@@ -85,16 +82,6 @@ export const Navbar = ({
           >
             +MMAis
           </Link>
-
-          {/* Link "Missão e Propósito" — só na página inicial, estilo texto como o logo */}
-          {isPaginaInicial && (
-            <Link
-              to="/missao"
-              className="hidden text-lg font-extrabold tracking-tight text-blue-600 transition-colors hover:text-blue-700 sm:ml-90 sm:inline-block"
-            >
-              Missão e Propósito
-            </Link>
-          )}
         </div>
 
         {/* Canto direito: avatar + dropdown com sessão; senão, "Entrar" */}
