@@ -7,6 +7,9 @@ interface Props {
   idPrescricao: string;
   idPaciente: string;
   modoConvidado?: boolean;
+  modoPlano?: boolean;
+  exercicioNumero?: number;
+  totalExercicios?: number;
   onVoltar: () => void;
   onConcluir: () => void;
 }
@@ -22,6 +25,9 @@ const ExercicioPlayer = ({
   idPrescricao,
   idPaciente,
   modoConvidado = false,
+  modoPlano = false,
+  exercicioNumero,
+  totalExercicios,
   onVoltar,
   onConcluir,
 }: Props) => {
@@ -47,10 +53,9 @@ const ExercicioPlayer = ({
         return prev + 1;
       });
     }, 1000);
-  }, []);
+  }, [exercicio.duracao_segundos]);
 
   useEffect(() => {
-    // Vídeo corre em loop mas timer NÃO começa automaticamente
     setTimeout(() => {
       videoRef.current?.play().catch(() => {});
     }, 150);
@@ -93,7 +98,13 @@ const ExercicioPlayer = ({
     if (intervalRef.current) clearInterval(intervalRef.current);
     videoRef.current?.pause();
     setIsFinished(true);
+    setIsPaused(false);
   };
+
+  const isUltimoExercicio =
+    exercicioNumero !== undefined &&
+    totalExercicios !== undefined &&
+    exercicioNumero >= totalExercicios;
 
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black">
@@ -105,9 +116,16 @@ const ExercicioPlayer = ({
         >
           ← Voltar
         </button>
-        <h2 className="max-w-xs truncate text-base font-semibold text-slate-900">
-          {exercicio.nome_exercicio}
-        </h2>
+        <div className="flex flex-col items-center">
+          <h2 className="max-w-xs truncate text-base font-semibold text-slate-900">
+            {exercicio.nome_exercicio}
+          </h2>
+          {modoPlano && exercicioNumero && totalExercicios && (
+            <span className="text-xs text-slate-400 font-medium">
+              Exercício {exercicioNumero} de {totalExercicios}
+            </span>
+          )}
+        </div>
         <div className="w-16" />
       </div>
 
@@ -134,6 +152,11 @@ const ExercicioPlayer = ({
               <span className="text-6xl">💪</span>
               <h3 className="text-2xl font-extrabold text-white">Pronto para começar?</h3>
               <p className="text-sm text-slate-300">O tempo começa a contar quando clicares!</p>
+              {modoPlano && exercicioNumero && totalExercicios && (
+                <p className="text-xs text-slate-400 bg-white/10 px-3 py-1 rounded-full mt-1">
+                  Exercício {exercicioNumero} de {totalExercicios}
+                </p>
+              )}
             </div>
             <button
               onClick={handleIniciar}
@@ -160,7 +183,7 @@ const ExercicioPlayer = ({
                 {formatTime(timeElapsed)}
               </p>
             </div>
-            <div className="flex w-56 flex-col items-center gap-3">
+            <div className="flex w-64 flex-col items-center gap-3">
               <button
                 onClick={handleRetomar}
                 className="flex w-full items-center justify-center gap-3 rounded-2xl bg-green-500 px-6 py-4 text-lg font-extrabold text-white shadow-lg transition hover:bg-green-400 active:scale-95"
@@ -173,23 +196,34 @@ const ExercicioPlayer = ({
               >
                 <span className="text-2xl">🔄</span> Recomeçar
               </button>
-              <button
-                onClick={handleConcluir}
-                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-emerald-600 px-6 py-4 text-lg font-extrabold text-white shadow-lg transition hover:bg-emerald-500 active:scale-95"
-              >
-                <span className="text-2xl">🏁</span> Concluir
-              </button>
+              {modoPlano ? (
+                <button
+                  onClick={handleConcluir}
+                  className="flex w-full items-center justify-center gap-3 rounded-2xl bg-emerald-600 px-6 py-4 text-lg font-extrabold text-white shadow-lg transition hover:bg-emerald-500 active:scale-95"
+                >
+                  <span className="text-2xl">{isUltimoExercicio ? "🏁" : "⏭️"}</span>
+                  {isUltimoExercicio ? "Concluir Plano" : "Próximo exercício"}
+                </button>
+              ) : (
+                <button
+                  onClick={handleConcluir}
+                  className="flex w-full items-center justify-center gap-3 rounded-2xl bg-emerald-600 px-6 py-4 text-lg font-extrabold text-white shadow-lg transition hover:bg-emerald-500 active:scale-95"
+                >
+                  <span className="text-2xl">🏁</span> Concluir
+                </button>
+              )}
               <button
                 onClick={onVoltar}
                 className="flex w-full items-center justify-center gap-3 rounded-2xl bg-slate-600 px-6 py-4 text-lg font-extrabold text-white shadow-lg transition hover:bg-slate-500 active:scale-95"
               >
-                <span className="text-2xl">🏠</span> Sair
+                <span className="text-2xl">🏠</span>
+                {modoPlano ? "Sair do plano" : "Sair"}
               </button>
             </div>
           </div>
         )}
 
-        {/* Overlay de fim — convidado */}
+        {/* Overlay fim — convidado */}
         {isFinished && modoConvidado && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/80 backdrop-blur-sm">
             <span className="animate-bounce text-7xl">🎉</span>
@@ -207,7 +241,36 @@ const ExercicioPlayer = ({
           </div>
         )}
 
-        {isFinished && !modoConvidado && (
+        {/* Overlay fim — modo plano: ecrã rápido sem AvaliacaoExercicio */}
+        {isFinished && modoPlano && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/80 backdrop-blur-sm">
+            <span className="animate-bounce text-7xl">
+              {isUltimoExercicio ? "🏆" : "✅"}
+            </span>
+            <h3 className="text-3xl font-extrabold text-white text-center px-4">
+              {isUltimoExercicio
+                ? "Último exercício concluído!"
+                : `Exercício ${exercicioNumero} concluído!`}
+            </h3>
+            <div className="rounded-2xl bg-white/10 px-8 py-4 text-center backdrop-blur-sm">
+              <p className="text-xs font-semibold uppercase tracking-widest text-slate-300 mb-1">
+                XP ganho
+              </p>
+              <p className="text-4xl font-extrabold text-yellow-400">
+                +{exercicio.recompensa_xp} XP
+              </p>
+            </div>
+            <button
+              onClick={onConcluir}
+              className="mt-2 flex items-center gap-3 rounded-2xl bg-emerald-500 px-10 py-5 text-xl font-extrabold text-white shadow-lg transition hover:bg-emerald-400 active:scale-95"
+            >
+              {isUltimoExercicio ? "🎉 Ver resultados" : "Próximo exercício →"}
+            </button>
+          </div>
+        )}
+
+        {/* Overlay fim — modo normal: AvaliacaoExercicio */}
+        {isFinished && !modoConvidado && !modoPlano && (
           <AvaliacaoExercicio
             idPaciente={idPaciente}
             idExercicio={exercicio.id_exercicio}
@@ -220,40 +283,61 @@ const ExercicioPlayer = ({
       </div>
 
       {/* Barra de baixo */}
-      {isStarted && !isPaused && !isFinished && (
-        <div className="flex flex-col items-center gap-3 bg-white px-4 pb-5 pt-4 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]">
-          <div className="flex flex-col items-center gap-1">
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
-              Tempo de exercício
-            </p>
-            <p className="text-5xl font-extrabold tabular-nums text-slate-900">
-              {formatTime(timeElapsed)}
-            </p>
-          </div>
-          <div className="flex items-center gap-4">
+    {isStarted && !isPaused && !isFinished && (
+      <div className="flex flex-col items-center gap-3 bg-white px-4 pb-5 pt-4 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]">
+        <div className="flex flex-col items-center gap-1">
+          <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+            Tempo de exercício
+          </p>
+          <p className="text-5xl font-extrabold tabular-nums text-slate-900">
+            {formatTime(timeElapsed)}
+          </p>
+          {exercicio.duracao_segundos > 0 && (
+            <div className="w-64 h-2 bg-slate-100 rounded-full overflow-hidden mt-1">
+              <div
+                className="h-full bg-blue-500 rounded-full transition-all duration-1000"
+                style={{ width: `${Math.min((timeElapsed / exercicio.duracao_segundos) * 100, 100)}%` }}
+              />
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handlePausar}
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition hover:bg-slate-700"
+            aria-label="Pausar"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+              <rect x="6" y="4" width="4" height="16" rx="1" />
+              <rect x="14" y="4" width="4" height="16" rx="1" />
+            </svg>
+          </button>
+          <button
+            onClick={handleRecomecar}
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition hover:bg-slate-700"
+            aria-label="Recomeçar"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
+            </svg>
+          </button>
+          {/* Botão de avançar — só aparece no modo plano */}
+          {modoPlano && (
             <button
-              onClick={handlePausar}
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition hover:bg-slate-700"
-              aria-label="Pausar"
+              onClick={handleConcluir}
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg transition hover:bg-emerald-500"
+              aria-label={isUltimoExercicio ? "Concluir plano" : "Próximo exercício"}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                <rect x="6" y="4" width="4" height="16" rx="1" />
-                <rect x="14" y="4" width="4" height="16" rx="1" />
+                <path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 0 1 0 1.971l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653Z" />
+                <path d="M17.25 5.25v13.5" strokeWidth="1.5" strokeLinecap="round" stroke="currentColor" fill="none" />
               </svg>
             </button>
-            <button
-              onClick={handleRecomecar}
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition hover:bg-slate-700"
-              aria-label="Recomeçar"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                <path d="M3 3v5h5" />
-              </svg>
-            </button>
-          </div>
+          )}
         </div>
-      )}
+      </div>
+    )}
     </div>
   );
 };
