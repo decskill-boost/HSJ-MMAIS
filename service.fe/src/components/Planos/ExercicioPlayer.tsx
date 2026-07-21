@@ -36,7 +36,16 @@ const ExercicioPlayer = ({
   const startInterval = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
-      setTimeElapsed((prev) => prev + 1);
+      setTimeElapsed((prev) => {
+        if (prev + 1 >= exercicio.duracao_segundos) {
+          clearInterval(intervalRef.current!);
+          intervalRef.current = null;
+          videoRef.current?.pause();
+          setIsFinished(true);
+          return exercicio.duracao_segundos;
+        }
+        return prev + 1;
+      });
     }, 1000);
   }, []);
 
