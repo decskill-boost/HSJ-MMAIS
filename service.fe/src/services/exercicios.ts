@@ -7,9 +7,10 @@ export interface Exercicio {
   categoria: string;
   url_video?: string;
   duracao_segundos: number;
-  dificuldade_clinica: number;
+  dificuldade_clinica: string;
   descricao?: string;
-  materiais_necessarios?: string; // <-- NOVA PROPRIEDADE ADICIONADA AQUI
+  materiais_necessarios?: string;
+  condicao_paciente?: string;
   ativo: boolean;
 }
 

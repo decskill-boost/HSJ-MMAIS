@@ -35,15 +35,16 @@ const MATERIAIS_OPCOES = [
 ];
 
 const DIFICULDADE_OPCOES = [
-  { label: "Fácil", value: 3 },
-  { label: "Médio", value: 6 },
-  { label: "Difícil", value: 9 },
+  { label: "Fácil", value: "facil" },
+  { label: "Médio", value: "medio" },
+  { label: "Difícil", value: "dificil" },
 ];
 
-function getDificuldadeLabel(value: number): string {
-  if (value <= 3) return "Fácil";
-  if (value <= 6) return "Médio";
-  return "Difícil";
+function getDificuldadeLabel(value: string): string {
+  if (value === "facil") return "Fácil";
+  if (value === "medio") return "Médio";
+  if (value === "dificil") return "Difícil";
+  return value;
 }
 
 const FORMATOS_ACEITES = ["video/mp4", "video/quicktime"];
@@ -363,11 +364,12 @@ const ExerciciosPage = () => {
                     {ex.nome_exercicio}
                   </h3>
                   <div className="mt-2 flex flex-col gap-1 text-xs text-slate-500">
-                    <div className="flex gap-3">
+                    <div className="flex flex-wrap gap-x-3 gap-y-1">
                       <span>⏱ {Math.floor(ex.duracao_segundos / 60)} min</span>
                       <span>
                         💪 {getDificuldadeLabel(ex.dificuldade_clinica)}
                       </span>
+                      <span>👤 Condição {ex.condicao_paciente || "A"}</span>
                       <span>⭐ {ex.recompensa_xp} XP</span>
                     </div>
                     {ex.materiais_necessarios && (
@@ -504,13 +506,18 @@ const ExerciciosPage = () => {
                           )}
                         </p>
                       </div>
-                    </div>
-
-                    <div className="rounded-xl bg-slate-50 p-3">
-                      <p className="text-xs text-slate-500">Recompensa XP</p>
-                      <p className="font-bold text-slate-800">
-                        {exercicioAberto.recompensa_xp} XP
-                      </p>
+                      <div className="rounded-xl bg-slate-50 p-3">
+                        <p className="text-xs text-slate-500">Condição do Paciente</p>
+                        <p className="font-bold text-slate-800">
+                          {exercicioAberto.condicao_paciente || "A"}
+                        </p>
+                      </div>
+                      <div className="rounded-xl bg-slate-50 p-3">
+                        <p className="text-xs text-slate-500">Recompensa XP</p>
+                        <p className="font-bold text-slate-800">
+                          {exercicioAberto.recompensa_xp} XP
+                        </p>
+                      </div>
                     </div>
                     {exercicioAberto.descricao && (
                       <div className="rounded-xl bg-slate-50 p-3">
@@ -711,7 +718,7 @@ const ExerciciosPage = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-xs font-medium text-slate-600">
                       Duração (seg)
@@ -737,37 +744,6 @@ const ExerciciosPage = () => {
                   </div>
                   <div>
                     <label className="text-xs font-medium text-slate-600">
-                      Dificuldade
-                    </label>
-                    <select
-                      className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white"
-                      value={
-                        getDificuldadeLabel(
-                          exercicioEditando.dificuldade_clinica,
-                        ) === "Fácil"
-                          ? 3
-                          : getDificuldadeLabel(
-                                exercicioEditando.dificuldade_clinica,
-                              ) === "Médio"
-                            ? 6
-                            : 9
-                      }
-                      onChange={(e) =>
-                        setExercicioEditando({
-                          ...exercicioEditando,
-                          dificuldade_clinica: Number(e.target.value),
-                        })
-                      }
-                    >
-                      {DIFICULDADE_OPCOES.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-slate-600">
                       Recompensa XP
                     </label>
                     <input
@@ -786,6 +762,46 @@ const ExerciciosPage = () => {
                     {erroXpEdit && (
                       <p className="text-xs text-red-500 mt-1">{erroXpEdit}</p>
                     )}
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-slate-600">
+                      Dificuldade
+                    </label>
+                    <select
+                      className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white"
+                      value={exercicioEditando.dificuldade_clinica}
+                      onChange={(e) =>
+                        setExercicioEditando({
+                          ...exercicioEditando,
+                          dificuldade_clinica: e.target.value,
+                        })
+                      }
+                    >
+                      {DIFICULDADE_OPCOES.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-slate-600">
+                      Condição do Paciente
+                    </label>
+                    <select
+                      className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white"
+                      value={exercicioEditando.condicao_paciente || "A"}
+                      onChange={(e) =>
+                        setExercicioEditando({
+                          ...exercicioEditando,
+                          condicao_paciente: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="A">A</option>
+                      <option value="B">B</option>
+                      <option value="C">C</option>
+                    </select>
                   </div>
                 </div>
 

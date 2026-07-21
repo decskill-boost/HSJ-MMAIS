@@ -94,8 +94,9 @@ CREATE TABLE public.exercicios (
   categoria           varchar NOT NULL,
   url_video           text,
   duracao_segundos    integer NOT NULL,
-  dificuldade_clinica integer NOT NULL,
+  dificuldade_clinica varchar(20) NOT NULL DEFAULT 'facil',
   ativo               boolean NOT NULL DEFAULT true,
+  condicao_paciente   varchar(1) DEFAULT 'A',
   CONSTRAINT exercicios_pkey PRIMARY KEY (id_exercicio)
 );
 

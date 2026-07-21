@@ -8,12 +8,11 @@ const formatarDuracao = (s: number) =>
   s < 60 ? `${s} seg` : `${Math.round(s / 60)} min`;
 
 // Mostrar dificuldade em texto, como a biblioteca
-const textoDificuldade = (d: number) =>
-  d <= 3 ? "Fácil" : d <= 6 ? "Médio" : "Difícil";
+const textoDificuldade = (d: string) =>
+  d === "facil" ? "Fácil" : d === "medio" ? "Médio" : "Difícil";
 
 // Faixas dos filtros (iguais às da biblioteca)
-const faixaDificuldade = (d: number) =>
-  d <= 3 ? "facil" : d <= 6 ? "medio" : "dificil";
+const faixaDificuldade = (d: string) => d;
 const faixaDuracao = (s: number) =>
   s <= 300 ? "ate5" : s <= 900 ? "5a15" : "mais15"; // ≤5min / 5–15min / +15min
 
