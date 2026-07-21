@@ -6,7 +6,6 @@ import {
   type PlanoPorPaciente,
 } from "../../services/planosService";
 import type { UserProfile } from "../../types/user";
-import { supabase } from "../../services/supabaseClient";
 
 interface LayoutContext {
   user: UserProfile | null;
@@ -14,91 +13,12 @@ interface LayoutContext {
   handleLogout: () => void;
 }
 
-interface UltimaSessao {
-  id_paciente: string;
-  data_hora: string;
-  esforco_1_a_10: number | null;
-  diversao_1_a_5: number | null;
-  fc_media: number | null;
-  fc_maxima: number | null;
-  teve_problemas: boolean;
-}
-
-const renderEsforco = (esforco: number | null | undefined) => {
-  if (esforco === null || esforco === undefined) {
-    return <span className="font-medium text-slate-400">-</span>;
-  }
-  let colorClass = "bg-emerald-50 text-emerald-700 border-emerald-100";
-  if (esforco >= 8) {
-    colorClass = "bg-rose-50 text-rose-700 border-rose-100";
-  } else if (esforco >= 4) {
-    colorClass = "bg-amber-50 text-amber-700 border-amber-100";
-  }
-
-  return (
-    <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-bold ${colorClass}`}>
-      {esforco}/10
-    </span>
-  );
-};
-
-const renderDivertimento = (diversao: number | null | undefined) => {
-  if (diversao === null || diversao === undefined) {
-    return <span className="font-medium text-slate-400">-</span>;
-  }
-  const emojis = ["😴", "😕", "😊", "😄", "🤩"];
-  const emoji = emojis[diversao - 1] ?? "❓";
-  return (
-    <span className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700">
-      <span className="text-base" title={`Nível ${diversao}/5`}>{emoji}</span>
-      <span className="text-xs text-slate-500">({diversao})</span>
-    </span>
-  );
-};
-
-const formatFC = (fcMedia: number | null | undefined, fcMaxima: number | null | undefined) => {
-  if (!fcMedia && !fcMaxima) return <span className="text-slate-400 font-medium">-</span>;
-  const mediaStr = fcMedia ? `${fcMedia}` : "-";
-  const maxStr = fcMaxima ? `${fcMaxima}` : "-";
-  return (
-    <span className="font-mono text-xs font-medium text-slate-700">
-      {mediaStr}/{maxStr} <span className="text-[10px] text-slate-400">bpm</span>
-    </span>
-  );
-};
-
-const renderAlertas = (teveProblemas: boolean | null | undefined, hasSession: boolean) => {
-  if (!hasSession) return <span className="text-slate-400 font-medium">-</span>;
-  if (teveProblemas) {
-    return (
-      <span
-        className="inline-flex items-center gap-1 rounded-full border border-rose-150 bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700 animate-pulse"
-        title="Reportou problemas durante o exercício"
-      >
-        <svg className="h-3 w-3 text-rose-500 fill-current" viewBox="0 0 16 16">
-          <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044 8.089V6.262H7.018v3.843h1.964zm0 2.222v-1.111H7.018v1.111h1.964z"/>
-        </svg>
-        Aviso
-      </span>
-    );
-  }
-  return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-      <svg className="h-3 w-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-      </svg>
-      Sem problemas
-    </span>
-  );
-};
-
 const DashboardCorpoClinico = () => {
   const navigate = useNavigate();
   const { user } = useOutletContext<LayoutContext>();
   const displayName = user?.nome?.split(" ")[0] ?? "Colega";
 
   const [planos, setPlanos] = useState<PlanoPorPaciente[]>([]);
-  const [ultimasSessoes, setUltimasSessoes] = useState<Record<string, UltimaSessao>>({});
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
 
@@ -110,24 +30,6 @@ const DashboardCorpoClinico = () => {
         
         const lista = await planosService.getPlanosPorPacientes();
         setPlanos(lista);
-        
-        // Obter as sessões ordenadas por data descrescente
-        const { data: sessoes, error: errSessao } = await supabase
-          .from("sessoes_realizadas")
-          .select("id_paciente, data_hora, esforco_1_a_10, diversao_1_a_5, fc_media, fc_maxima, teve_problemas")
-          .order("data_hora", { ascending: false });
-          
-        if (errSessao) {
-          console.error("Erro ao obter sessões:", errSessao);
-        } else {
-          const sessoesMapeadas: Record<string, UltimaSessao> = {};
-          (sessoes ?? []).forEach((sessao) => {
-            if (!sessoesMapeadas[sessao.id_paciente]) {
-              sessoesMapeadas[sessao.id_paciente] = sessao as UltimaSessao;
-            }
-          });
-          setUltimasSessoes(sessoesMapeadas);
-        }
       } catch (e) {
         setErro(
           e instanceof Error
@@ -272,17 +174,13 @@ const DashboardCorpoClinico = () => {
                   <tr>
                     <th className="px-4 py-4 font-semibold">Criança</th>
                     <th className="px-4 py-4 font-semibold text-center">Plano Ativo</th>
-                    <th className="px-4 py-4 font-semibold text-center">Esforço (OMNI)</th>
-                    <th className="px-4 py-4 font-semibold text-center">Divertimento</th>
-                    <th className="px-4 py-4 font-semibold text-center">FC Média/Máx</th>
-                    <th className="px-4 py-4 font-semibold text-center">Alertas</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 bg-white">
                   {loading ? (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={2}
                         className="px-4 py-8 text-center text-slate-500"
                       >
                         A carregar pacientes…
@@ -291,7 +189,7 @@ const DashboardCorpoClinico = () => {
                   ) : planos.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={6}
+                        colSpan={2}
                         className="px-4 py-8 text-center text-slate-500"
                       >
                         Nenhum paciente encontrado.
@@ -300,7 +198,6 @@ const DashboardCorpoClinico = () => {
                   ) : (
                     planos.map((paciente) => {
                       const temPlanoAtivo = paciente.planos.some((p) => p.ativo);
-                      const ultimaSessao = ultimasSessoes[paciente.id_paciente];
 
                       return (
                         <tr
@@ -327,18 +224,6 @@ const DashboardCorpoClinico = () => {
                                 Não
                               </span>
                             )}
-                          </td>
-                          <td className="px-4 py-4 text-center">
-                            {renderEsforco(ultimaSessao?.esforco_1_a_10)}
-                          </td>
-                          <td className="px-4 py-4 text-center">
-                            {renderDivertimento(ultimaSessao?.diversao_1_a_5)}
-                          </td>
-                          <td className="px-4 py-4 text-center">
-                            {formatFC(ultimaSessao?.fc_media, ultimaSessao?.fc_maxima)}
-                          </td>
-                          <td className="px-4 py-4 text-center">
-                            {renderAlertas(ultimaSessao?.teve_problemas, !!ultimaSessao)}
                           </td>
                         </tr>
                       );

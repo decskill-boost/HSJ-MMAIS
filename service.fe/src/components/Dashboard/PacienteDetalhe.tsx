@@ -5,6 +5,7 @@ import {
   type PlanoPorPaciente,
 } from "../../services/planosService";
 import BtnGlobal from "../BtnGlobal";
+import { supabase } from "../../services/supabaseClient";
 
 const formatarData = (data?: string | null) => {
   if (!data) return "-";
@@ -15,6 +16,91 @@ const formatarData = (data?: string | null) => {
   });
 };
 
+const formatarDataHora = (data?: string | null) => {
+  if (!data) return "-";
+  return new Date(data).toLocaleString("pt-PT", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const formatarDuracaoSessao = (segundos?: number | null) => {
+  if (segundos === null || segundos === undefined) return "-";
+  if (segundos < 60) return `${segundos} seg`;
+  return `${Math.round(segundos / 60)} min`;
+};
+
+const renderEsforco = (esforco: number | null | undefined) => {
+  if (esforco === null || esforco === undefined) {
+    return <span className="font-medium text-slate-400">-</span>;
+  }
+  let colorClass = "bg-emerald-50 text-emerald-700 border-emerald-100";
+  if (esforco >= 8) {
+    colorClass = "bg-rose-50 text-rose-700 border-rose-100";
+  } else if (esforco >= 4) {
+    colorClass = "bg-amber-50 text-amber-700 border-amber-100";
+  }
+
+  return (
+    <span className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-bold ${colorClass}`}>
+      {esforco}/10
+    </span>
+  );
+};
+
+const renderDivertimento = (diversao: number | null | undefined) => {
+  if (diversao === null || diversao === undefined) {
+    return <span className="font-medium text-slate-400">-</span>;
+  }
+  const emojis = ["😴", "😕", "😊", "😄", "🤩"];
+  const emoji = emojis[diversao - 1] ?? "❓";
+  return (
+    <span className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700">
+      <span className="text-base" title={`Nível ${diversao}/5`}>{emoji}</span>
+      <span className="text-xs text-slate-500">({diversao})</span>
+    </span>
+  );
+};
+
+const formatFC = (fcMedia: number | null | undefined, fcMaxima: number | null | undefined) => {
+  if (!fcMedia && !fcMaxima) return <span className="text-slate-400 font-medium">-</span>;
+  const mediaStr = fcMedia ? `${fcMedia}` : "-";
+  const maxStr = fcMaxima ? `${fcMaxima}` : "-";
+  return (
+    <span className="font-mono text-xs font-medium text-slate-700">
+      {mediaStr}/{maxStr} <span className="text-[10px] text-slate-400">bpm</span>
+    </span>
+  );
+};
+
+const renderAlertas = (teveProblemas: boolean | null | undefined, hasSession: boolean) => {
+  if (!hasSession) return <span className="text-slate-400 font-medium">-</span>;
+  if (teveProblemas) {
+    return (
+      <span
+        className="inline-flex items-center gap-1 rounded-full border border-rose-150 bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700"
+        title="Reportou problemas durante o exercício"
+      >
+        <svg className="h-3 w-3 text-rose-500 fill-current" viewBox="0 0 16 16">
+          <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044 8.089V6.262H7.018v3.843h1.964zm0 2.222v-1.111H7.018v1.111h1.964z"/>
+        </svg>
+        Aviso
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+      <svg className="h-3 w-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+      </svg>
+      Sem problemas
+    </span>
+  );
+};
+
 const PacienteDetalhe = () => {
   const { pacienteId } = useParams<{ pacienteId: string }>();
   const navigate = useNavigate();
@@ -23,6 +109,13 @@ const PacienteDetalhe = () => {
   const [erro, setErro] = useState<string | null>(null);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [sucesso, setSucesso] = useState(false);
+  const [sessoes, setSessoes] = useState<any[]>([]);
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const [paginaSessoes, setPaginaSessoes] = useState(1);
+  const [sessaoDetalhada, setSessaoDetalhada] = useState<any | null>(null);
+  
+  const itensPorPagina = 5;
+  const sessoesPorPagina = 5;
 
   const carregar = async () => {
     if (!pacienteId) return;
@@ -32,6 +125,31 @@ const PacienteDetalhe = () => {
       setErro(null);
       const dados = await planosService.getPlanosPorPaciente(pacienteId);
       setPaciente(dados);
+
+      // Obter todas as sessões concluídas por este paciente, incluindo o nome do exercício
+      const { data: sessoesDados, error: errSessao } = await supabase
+        .from("sessoes_realizadas")
+        .select(`
+          id_sessao, 
+          data_hora, 
+          esforco_1_a_10, 
+          diversao_1_a_5, 
+          fc_media, 
+          fc_maxima, 
+          teve_problemas, 
+          duracao,
+          exercicios (
+            nome_exercicio
+          )
+        `)
+        .eq("id_paciente", pacienteId)
+        .order("data_hora", { ascending: false });
+
+      if (errSessao) {
+        console.error("Erro ao obter histórico de sessões:", errSessao);
+      } else {
+        setSessoes(sessoesDados ?? []);
+      }
     } catch (err) {
       setErro(
         err instanceof Error ? err.message : "Erro ao carregar o paciente.",
@@ -42,6 +160,8 @@ const PacienteDetalhe = () => {
   };
 
   useEffect(() => {
+    setPaginaAtual(1);
+    setPaginaSessoes(1);
     void carregar();
   }, [pacienteId]);
 
@@ -69,6 +189,27 @@ const PacienteDetalhe = () => {
     () => paciente?.planos.filter((p) => p.ativo) ?? [],
     [paciente],
   );
+
+  const totalPaginas = useMemo(
+    () => Math.ceil((paciente?.planos.length ?? 0) / itensPorPagina),
+    [paciente?.planos, itensPorPagina]
+  );
+
+  const planosPaginados = useMemo(() => {
+    if (!paciente?.planos) return [];
+    const inicio = (paginaAtual - 1) * itensPorPagina;
+    return paciente.planos.slice(inicio, inicio + itensPorPagina);
+  }, [paciente?.planos, paginaAtual, itensPorPagina]);
+
+  const totalPaginasSessoes = useMemo(
+    () => Math.ceil(sessoes.length / sessoesPorPagina),
+    [sessoes, sessoesPorPagina]
+  );
+
+  const sessoesPaginadas = useMemo(() => {
+    const inicio = (paginaSessoes - 1) * sessoesPorPagina;
+    return sessoes.slice(inicio, inicio + sessoesPorPagina);
+  }, [sessoes, paginaSessoes, sessoesPorPagina]);
 
   if (loading) {
     return (
@@ -173,79 +314,384 @@ const PacienteDetalhe = () => {
         </article>
       </div>
 
-      <div className="mt-8 overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <table className="min-w-full border-collapse text-left text-sm">
-          <thead className="bg-slate-50 text-slate-600">
-            <tr>
-              <th className="px-4 py-4 font-semibold">Plano</th>
-              <th className="px-4 py-4 font-semibold">Início</th>
-              <th className="px-4 py-4 font-semibold">Validade</th>
-              <th className="px-4 py-4 font-semibold">Status</th>
-              <th className="px-4 py-4 font-semibold">Notas</th>
-              <th className="px-4 py-4 font-semibold">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {paciente.planos.length === 0 ? (
+      {/* Histórico de Treinos / Sessões */}
+      <div className="mt-8 rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-slate-100">
+          <h2 className="text-lg font-bold text-slate-900">Histórico de Treinos / Sessões</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Lista de treinos e sessões de exercícios concluídas por esta criança.
+          </p>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="min-w-full border-collapse text-left text-sm">
+            <thead className="bg-slate-50 text-slate-600">
               <tr>
-                <td
-                  colSpan={6}
-                  className="px-4 py-8 text-center text-sm text-slate-500"
-                >
-                  Nenhum plano atribuído a este paciente.
-                </td>
+                <th className="px-4 py-4 font-semibold">Data e Hora</th>
+                <th className="px-4 py-4 font-semibold">Exercício</th>
+                <th className="px-4 py-4 font-semibold">Duração</th>
+                <th className="px-4 py-4 font-semibold text-center">Esforço</th>
+                <th className="px-4 py-4 text-center font-semibold">Alertas</th>
+                <th className="px-4 py-4 text-right font-semibold">Ações</th>
               </tr>
-            ) : (
-              paciente.planos.map((plano) => (
-                <tr
-                  key={plano.id_plano}
-                  className="border-t border-slate-200 last:border-b"
-                >
-                  <td className="px-4 py-4">
-                    <p className="font-semibold text-slate-900">
-                      {plano.frequencia_semanal}x/semana
-                    </p>
-                  </td>
-                  <td className="px-4 py-4 text-slate-700">
-                    {formatarData(plano.data_inicio)}
-                  </td>
-                  <td className="px-4 py-4 text-slate-700">
-                    {formatarData(plano.data_validade)}
-                  </td>
-                  <td className="px-4 py-4">
-                    <span
-                      className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${plano.ativo ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
-                    >
-                      {plano.ativo ? "Ativo" : "Inativo"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-4 text-slate-500">
-                    {plano.notas_medicas ?? "Sem notas médicas."}
-                  </td>
-                  <td className="px-4 py-4">
-                    {plano.ativo ? (
-                      <button
-                        type="button"
-                        onClick={() => handleCancelarPlano(plano.id_plano)}
-                        disabled={cancellingId === plano.id_plano}
-                        className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        {cancellingId === plano.id_plano
-                          ? "A cancelar…"
-                          : "Cancelar"}
-                      </button>
-                    ) : (
-                      <span className="text-xs italic text-slate-400">
-                        Sem ações
-                      </span>
-                    )}
+            </thead>
+            <tbody>
+              {sessoes.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-4 py-8 text-center text-sm text-slate-500"
+                  >
+                    Nenhum treino registado por esta criança.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                sessoesPaginadas.map((sessao: any) => {
+                  const nomeExercicio = (sessao.exercicios as any)?.nome_exercicio ?? "Exercício Geral";
+                  return (
+                    <tr
+                      key={sessao.id_sessao}
+                      className="border-t border-slate-200 last:border-b"
+                    >
+                      <td className="px-4 py-4 text-slate-700 font-medium">
+                        {formatarDataHora(sessao.data_hora)}
+                      </td>
+                      <td className="px-4 py-4 text-slate-900 font-semibold">
+                        {nomeExercicio}
+                      </td>
+                      <td className="px-4 py-4 text-slate-700 font-medium">
+                        {formatarDuracaoSessao(sessao.duracao)}
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        {renderEsforco(sessao.esforco_1_a_10)}
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        {renderAlertas(sessao.teve_problemas, true)}
+                      </td>
+                      <td className="px-4 py-4 text-right">
+                        <button
+                          onClick={() => setSessaoDetalhada(sessao)}
+                          className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100"
+                        >
+                          Ver Métricas
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {totalPaginasSessoes > 1 && (
+          <div className="flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3 sm:px-6">
+            <div className="flex flex-1 justify-between sm:hidden">
+              <button
+                onClick={() => setPaginaSessoes((prev) => Math.max(prev - 1, 1))}
+                disabled={paginaSessoes === 1}
+                className="relative inline-flex items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Anterior
+              </button>
+              <button
+                onClick={() => setPaginaSessoes((prev) => Math.min(prev + 1, totalPaginasSessoes))}
+                disabled={paginaSessoes === totalPaginasSessoes}
+                className="relative ml-3 inline-flex items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Seguinte
+              </button>
+            </div>
+            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs text-slate-600">
+                  A mostrar <span className="font-semibold">{((paginaSessoes - 1) * sessoesPorPagina) + 1}</span> a{" "}
+                  <span className="font-semibold">
+                    {Math.min(paginaSessoes * sessoesPorPagina, sessoes.length)}
+                  </span>{" "}
+                  de <span className="font-semibold">{sessoes.length}</span> treinos
+                </p>
+              </div>
+              <div>
+                <nav className="isolate inline-flex -space-x-px rounded-xl shadow-sm" aria-label="Pagination">
+                  <button
+                    onClick={() => setPaginaSessoes((prev) => Math.max(prev - 1, 1))}
+                    disabled={paginaSessoes === 1}
+                    className="relative inline-flex items-center rounded-l-xl px-2.5 py-2 text-slate-400 ring-1 ring-inset ring-slate-200 hover:bg-slate-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="sr-only">Anterior</span>
+                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  
+                  {Array.from({ length: totalPaginasSessoes }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setPaginaSessoes(p)}
+                      aria-current={p === paginaSessoes ? "page" : undefined}
+                      className={`relative inline-flex items-center px-3 py-1.5 text-xs font-semibold focus:z-20 ${
+                        p === paginaSessoes
+                          ? "z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                          : "text-slate-900 ring-1 ring-inset ring-slate-200 hover:bg-slate-50 focus:outline-offset-0"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+
+                  <button
+                    onClick={() => setPaginaSessoes((prev) => Math.min(prev + 1, totalPaginasSessoes))}
+                    disabled={paginaSessoes === totalPaginasSessoes}
+                    className="relative inline-flex items-center rounded-r-xl px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-200 hover:bg-slate-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="sr-only">Seguinte</span>
+                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </nav>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Tabela de Planos Atribuídos */}
+      <div className="mt-8 rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-slate-100">
+          <h2 className="text-lg font-bold text-slate-900">Planos Prescritos</h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Lista de planos de exercícios prescritos a este paciente.
+          </p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full border-collapse text-left text-sm">
+            <thead className="bg-slate-50 text-slate-600">
+              <tr>
+                <th className="px-4 py-4 font-semibold">Plano</th>
+                <th className="px-4 py-4 font-semibold">Início</th>
+                <th className="px-4 py-4 font-semibold">Validade</th>
+                <th className="px-4 py-4 font-semibold">Status</th>
+                <th className="px-4 py-4 font-semibold">Notas</th>
+                <th className="px-4 py-4 font-semibold">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paciente.planos.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-4 py-8 text-center text-sm text-slate-500"
+                  >
+                    Nenhum plano atribuído a este paciente.
+                  </td>
+                </tr>
+              ) : (
+                planosPaginados.map((plano) => (
+                  <tr
+                    key={plano.id_plano}
+                    className="border-t border-slate-200 last:border-b"
+                  >
+                    <td className="px-4 py-4 font-semibold text-slate-900">
+                      {plano.frequencia_semanal}x/semana
+                    </td>
+                    <td className="px-4 py-4 text-slate-700 font-medium">
+                      {formatarData(plano.data_inicio)}
+                    </td>
+                    <td className="px-4 py-4 text-slate-700 font-medium">
+                      {formatarData(plano.data_validade)}
+                    </td>
+                    <td className="px-4 py-4">
+                      <span
+                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${plano.ativo ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
+                      >
+                        {plano.ativo ? "Ativo" : "Inativo"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 text-slate-500">
+                      {plano.notas_medicas ?? "Sem notas médicas."}
+                    </td>
+                    <td className="px-4 py-4">
+                      {plano.ativo ? (
+                        <button
+                          type="button"
+                          onClick={() => handleCancelarPlano(plano.id_plano)}
+                          disabled={cancellingId === plano.id_plano}
+                          className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {cancellingId === plano.id_plano
+                            ? "A cancelar…"
+                            : "Cancelar"}
+                        </button>
+                      ) : (
+                        <span className="text-xs italic text-slate-400">
+                          Sem ações
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {totalPaginas > 1 && (
+          <div className="flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3 sm:px-6">
+            <div className="flex flex-1 justify-between sm:hidden">
+              <button
+                onClick={() => setPaginaAtual((prev) => Math.max(prev - 1, 1))}
+                disabled={paginaAtual === 1}
+                className="relative inline-flex items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Anterior
+              </button>
+              <button
+                onClick={() => setPaginaAtual((prev) => Math.min(prev + 1, totalPaginas))}
+                disabled={paginaAtual === totalPaginas}
+                className="relative ml-3 inline-flex items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Seguinte
+              </button>
+            </div>
+            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+              <div>
+                <p className="text-xs text-slate-600">
+                  A mostrar <span className="font-semibold">{((paginaAtual - 1) * itensPorPagina) + 1}</span> a{" "}
+                  <span className="font-semibold">
+                    {Math.min(paginaAtual * itensPorPagina, paciente.planos.length)}
+                  </span>{" "}
+                  de <span className="font-semibold">{paciente.planos.length}</span> planos
+                </p>
+              </div>
+              <div>
+                <nav className="isolate inline-flex -space-x-px rounded-xl shadow-sm" aria-label="Pagination">
+                  <button
+                    onClick={() => setPaginaAtual((prev) => Math.max(prev - 1, 1))}
+                    disabled={paginaAtual === 1}
+                    className="relative inline-flex items-center rounded-l-xl px-2.5 py-2 text-slate-400 ring-1 ring-inset ring-slate-200 hover:bg-slate-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="sr-only">Anterior</span>
+                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  
+                  {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setPaginaAtual(p)}
+                      aria-current={p === paginaAtual ? "page" : undefined}
+                      className={`relative inline-flex items-center px-3 py-1.5 text-xs font-semibold focus:z-20 ${
+                        p === paginaAtual
+                          ? "z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                          : "text-slate-900 ring-1 ring-inset ring-slate-200 hover:bg-slate-50 focus:outline-offset-0"
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+
+                  <button
+                    onClick={() => setPaginaAtual((prev) => Math.min(prev + 1, totalPaginas))}
+                    disabled={paginaAtual === totalPaginas}
+                    className="relative inline-flex items-center rounded-r-xl px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-200 hover:bg-slate-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span className="sr-only">Seguinte</span>
+                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </nav>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Modal de Métricas do Treino */}
+      {sessaoDetalhada && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-xl animate-fade-in">
+            <button
+              onClick={() => setSessaoDetalhada(null)}
+              className="absolute right-4 top-4 rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <h3 className="text-xl font-bold text-slate-900">Métricas Detalhadas do Treino</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              Registos clínicos recolhidos nesta sessão de exercício.
+            </p>
+
+            <div className="mt-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Exercício</p>
+                  <p className="mt-1 text-sm font-bold text-slate-800">
+                    {(sessaoDetalhada.exercicios as any)?.nome_exercicio ?? "Exercício Geral"}
+                  </p>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Duração</p>
+                  <p className="mt-1 text-sm font-semibold text-slate-800">
+                    {formatarDuracaoSessao(sessaoDetalhada.duracao)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Data e Hora de Conclusão</p>
+                <p className="mt-1 text-sm font-semibold text-slate-800">
+                  {formatarDataHora(sessaoDetalhada.data_hora)}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 text-center">Esforço (OMNI)</p>
+                  <div className="mt-2 flex justify-center">
+                    {renderEsforco(sessaoDetalhada.esforco_1_a_10)}
+                  </div>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 text-center">Divertimento</p>
+                  <div className="mt-2 flex justify-center">
+                    {renderDivertimento(sessaoDetalhada.diversao_1_a_5)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Frequência Cardíaca (Média / Máxima)</p>
+                <div className="mt-2 flex items-center justify-center">
+                  {formatFC(sessaoDetalhada.fc_media, sessaoDetalhada.fc_maxima)}
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Intercorrências / Alertas</p>
+                <div>
+                  {renderAlertas(sessaoDetalhada.teve_problemas, true)}
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <BtnGlobal
+                onClick={() => setSessaoDetalhada(null)}
+                className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
+              >
+                Fechar
+              </BtnGlobal>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

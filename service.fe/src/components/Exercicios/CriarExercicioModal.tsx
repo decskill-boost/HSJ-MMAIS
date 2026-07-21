@@ -6,9 +6,9 @@ const FORMATOS_ACEITES = ["video/mp4", "video/quicktime"];
 const TAMANHO_MAXIMO_MB = 100;
 
 const DIFICULDADE_OPCOES = [
-  { label: "Fácil", value: 3 },
-  { label: "Médio", value: 6 },
-  { label: "Difícil", value: 9 },
+  { label: "Fácil", value: "facil" },
+  { label: "Médio", value: "medio" },
+  { label: "Difícil", value: "dificil" },
 ];
 
 export const CriarExercicioModal = ({
@@ -31,7 +31,8 @@ export const CriarExercicioModal = ({
     nome_exercicio: "",
     categoria: categorias[0] || "Quadríceps",
     duracao_segundos: 60,
-    dificuldade_clinica: 3,
+    dificuldade_clinica: "facil",
+    condicao_paciente: "A",
     recompensa_xp: 10,
     descricao: "",
     materiais_necessarios: "",
@@ -53,7 +54,8 @@ export const CriarExercicioModal = ({
         nome_exercicio: "",
         categoria: categorias[0] || "Quadríceps",
         duracao_segundos: 60,
-        dificuldade_clinica: 3,
+        dificuldade_clinica: "facil",
+        condicao_paciente: "A",
         recompensa_xp: 10,
         descricao: "",
         materiais_necessarios: "",
@@ -143,6 +145,7 @@ export const CriarExercicioModal = ({
         categoria: form.categoria,
         duracao_segundos: form.duracao_segundos,
         dificuldade_clinica: form.dificuldade_clinica,
+        condicao_paciente: form.condicao_paciente,
         recompensa_xp: form.recompensa_xp,
         descricao: form.descricao,
         materiais_necessarios: form.materiais_necessarios,
@@ -325,7 +328,7 @@ export const CriarExercicioModal = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-xs font-medium text-slate-600">
                       Duração (seg) *
@@ -346,27 +349,6 @@ export const CriarExercicioModal = ({
                   </div>
                   <div>
                     <label className="text-xs font-medium text-slate-600">
-                      Dificuldade *
-                    </label>
-                    <select
-                      className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white"
-                      value={form.dificuldade_clinica}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          dificuldade_clinica: Number(e.target.value),
-                        })
-                      }
-                    >
-                      {DIFICULDADE_OPCOES.map((o) => (
-                        <option key={o.value} value={o.value}>
-                          {o.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-slate-600">
                       XP *
                     </label>
                     <input
@@ -382,6 +364,46 @@ export const CriarExercicioModal = ({
                     {erroXp && (
                       <p className="text-xs text-red-500 mt-1">{erroXp}</p>
                     )}
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-slate-600">
+                      Dificuldade *
+                    </label>
+                    <select
+                      className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white"
+                      value={form.dificuldade_clinica}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          dificuldade_clinica: e.target.value,
+                        })
+                      }
+                    >
+                      {DIFICULDADE_OPCOES.map((o) => (
+                        <option key={o.value} value={o.value}>
+                          {o.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                   <div>
+                    <label className="text-xs font-medium text-slate-600">
+                      Condição do Paciente *
+                    </label>
+                    <select
+                      className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm bg-white"
+                      value={form.condicao_paciente}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          condicao_paciente: e.target.value,
+                        })
+                      }
+                    >
+                      <option value="A">A</option>
+                      <option value="B">B</option>
+                      <option value="C">C</option>
+                    </select>
                   </div>
                 </div>
 

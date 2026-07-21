@@ -16,7 +16,7 @@ const mockExercicio = (overrides: Partial<Exercicio> = {}): Exercicio =>
     categoria: 'Relaxamento',
     url_video: null,
     duracao_segundos: 600,
-    dificuldade_clinica: 3,
+    dificuldade_clinica: 'facil',
     descricao: null,
     ativo: true,
     ...overrides,
