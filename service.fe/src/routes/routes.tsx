@@ -17,6 +17,7 @@ import CriarPlano from "../components/CriarPlano";
 import PlanosPaciente from "../components/PlanosPaciente";
 import PacientesList from "../components/Pacientes/PacientesList";
 import PacientePerfil from "../components/Pacientes/PacientePerfil";
+import HistoricoRecompensas from "../components/Pacientes/HistoricoRecompensas";
 
 import { ProtectedRoute } from "./ProtectedRoute";
 
@@ -25,97 +26,47 @@ export const router = createBrowserRouter([
     path: "/",
     element: <Layout />,
     children: [
-      // 🟢 ROTAS PÚBLICAS
-      {
-        path: "",
-        element: <WelcomePage />,
-      },
-      {
-        path: "experimentar",
-        element: <ExperimentarPlanos />,
-      },
-      {
-        path: "login",
-        element: <Login />,
-      },
+      { path: "", element: <WelcomePage /> },
+      { path: "experimentar", element: <ExperimentarPlanos /> },
+      { path: "login", element: <Login /> },
 
-      // 🟡 ROTAS AUTENTICADAS (Apenas precisa de login, sem perfil específico)
       {
         element: <ProtectedRoute />,
         children: [
-          {
-            path: "perfil",
-            element: <PersonalInfo />,
-          },
+          { path: "perfil", element: <PersonalInfo /> },
         ],
       },
 
-      // 🔴 ROTAS CORPO CLÍNICO (Protegidas por perfil)
       {
         element: <ProtectedRoute role={UserRole.CORPO_CLINICO} />,
         children: [
-          {
-            path: "dashboard/medico",
-            element: <DashboardCorpoClinico />,
-          },
-          {
-            path: "dashboard/medico/pacientes",
-            element: <PlanosCorpoClinico />,
-          },
-          {
-            path: "dashboard/medico/pacientes/:pacienteId",
-            element: <PacienteDetalhe />,
-          },
-          {
-            path: "exercicios",
-            element: <ExerciciosPage />,
-          },
-          {
-            path: "plano/criar",
-            element: <CriarPlano />,
-          },
-          {
-            path: "dashboard/medico/adesao",
-            element: <PacientesList />,
-          },
-          {
-            path: "dashboard/medico/adesao/:idPaciente",
-            element: <PacientePerfil />,
-          },
+          { path: "dashboard/medico", element: <DashboardCorpoClinico /> },
+          { path: "dashboard/medico/pacientes", element: <PlanosCorpoClinico /> },
+          { path: "dashboard/medico/pacientes/:pacienteId", element: <PacienteDetalhe /> },
+          { path: "exercicios", element: <ExerciciosPage /> },
+          { path: "plano/criar", element: <CriarPlano /> },
+          { path: "dashboard/medico/adesao", element: <PacientesList /> },
+          { path: "dashboard/medico/adesao/:idPaciente", element: <PacientePerfil /> },
         ],
       },
 
-      // 🟣 ROTAS ADMIN (Protegidas por Admin)
       {
         element: <ProtectedRoute role={UserRole.ADMIN} />,
         children: [
-          {
-            path: "dashboard/admin",
-            element: <DashboardAdmin />,
-          },
+          { path: "dashboard/admin", element: <DashboardAdmin /> },
         ],
       },
 
-      // 🔵 ROTAS PACIENTE (Protegidas por perfil)
       {
         element: <ProtectedRoute role={UserRole.PACIENTE} />,
         children: [
-          {
-            path: "dashboard/paciente",
-            element: <DashboardPaciente />,
-          },
-          {
-            path: "paciente/planos",
-            element: <PlanosPaciente />,
-          },
+          { path: "dashboard/paciente", element: <DashboardPaciente /> },
+          { path: "paciente/planos", element: <PlanosPaciente /> },
+          { path: "paciente/historico", element: <HistoricoRecompensas /> },
         ],
       },
 
-      // ⚪ ROTA NÃO ENCONTRADA (Catch-all)
-      {
-        path: "*",
-        element: <PageNotFound />,
-      },
+      { path: "*", element: <PageNotFound /> },
     ],
   },
 ]);
