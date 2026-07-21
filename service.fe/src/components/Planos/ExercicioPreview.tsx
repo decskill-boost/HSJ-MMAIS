@@ -40,6 +40,9 @@ const ExercicioPreview = ({ exercicio, onVoltar, onComecar }: Props) => {
             <video
               src={exercicio.url_video}
               className="w-full max-h-96 object-contain"
+              autoPlay
+              muted
+              loop
               playsInline
             />
           ) : (

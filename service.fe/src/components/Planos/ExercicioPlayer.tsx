@@ -25,7 +25,8 @@ const ExercicioPlayer = ({
   onVoltar,
   onConcluir,
 }: Props) => {
-  const [timeLeft, setTimeLeft] = useState(exercicio.duracao_segundos);
+  const [timeElapsed, setTimeElapsed] = useState(0);
+  const [isStarted, setIsStarted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
 
@@ -35,26 +36,24 @@ const ExercicioPlayer = ({
   const startInterval = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
     intervalRef.current = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(intervalRef.current!);
-          setIsFinished(true);
-          return 0;
-        }
-        return prev - 1;
-      });
+      setTimeElapsed((prev) => prev + 1);
     }, 1000);
   }, []);
 
   useEffect(() => {
+    // Vídeo corre em loop mas timer NÃO começa automaticamente
     setTimeout(() => {
       videoRef.current?.play().catch(() => {});
-      startInterval();
     }, 150);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [startInterval]);
+  }, []);
+
+  const handleIniciar = () => {
+    setIsStarted(true);
+    startInterval();
+  };
 
   const handlePausar = () => {
     if (intervalRef.current) {
@@ -73,14 +72,18 @@ const ExercicioPlayer = ({
 
   const handleRecomecar = () => {
     if (intervalRef.current) clearInterval(intervalRef.current);
-    videoRef.current?.pause();
-    setTimeLeft(exercicio.duracao_segundos);
+    setTimeElapsed(0);
     setIsPaused(false);
-    setIsFinished(false);
     setTimeout(() => {
       videoRef.current?.play().catch(() => {});
       startInterval();
     }, 100);
+  };
+
+  const handleConcluir = () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    videoRef.current?.pause();
+    setIsFinished(true);
   };
 
   return (
@@ -115,6 +118,23 @@ const ExercicioPlayer = ({
           </div>
         )}
 
+        {/* Overlay de início */}
+        {!isStarted && !isFinished && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/60 backdrop-blur-sm">
+            <div className="flex flex-col items-center gap-2">
+              <span className="text-6xl">💪</span>
+              <h3 className="text-2xl font-extrabold text-white">Pronto para começar?</h3>
+              <p className="text-sm text-slate-300">O tempo começa a contar quando clicares!</p>
+            </div>
+            <button
+              onClick={handleIniciar}
+              className="flex items-center gap-3 rounded-2xl bg-green-500 px-10 py-5 text-xl font-extrabold text-white shadow-lg transition hover:bg-green-400 active:scale-95"
+            >
+              <span className="text-2xl">▶️</span> Iniciar!
+            </button>
+          </div>
+        )}
+
         {/* Overlay de pausa */}
         {isPaused && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/70 backdrop-blur-sm">
@@ -125,10 +145,10 @@ const ExercicioPlayer = ({
             </div>
             <div className="rounded-2xl bg-white/10 px-6 py-3 text-center backdrop-blur-sm">
               <p className="text-xs font-semibold uppercase tracking-widest text-slate-300">
-                Tempo restante
+                Tempo de exercício
               </p>
               <p className="text-4xl font-extrabold tabular-nums text-white">
-                {formatTime(timeLeft)}
+                {formatTime(timeElapsed)}
               </p>
             </div>
             <div className="flex w-56 flex-col items-center gap-3">
@@ -145,6 +165,12 @@ const ExercicioPlayer = ({
                 <span className="text-2xl">🔄</span> Recomeçar
               </button>
               <button
+                onClick={handleConcluir}
+                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-emerald-600 px-6 py-4 text-lg font-extrabold text-white shadow-lg transition hover:bg-emerald-500 active:scale-95"
+              >
+                <span className="text-2xl">🏁</span> Concluir
+              </button>
+              <button
                 onClick={onVoltar}
                 className="flex w-full items-center justify-center gap-3 rounded-2xl bg-slate-600 px-6 py-4 text-lg font-extrabold text-white shadow-lg transition hover:bg-slate-500 active:scale-95"
               >
@@ -154,7 +180,7 @@ const ExercicioPlayer = ({
           </div>
         )}
 
-        {/* Overlay de fim — convidado (simples) ou avaliação clínica completa */}
+        {/* Overlay de fim — convidado */}
         {isFinished && modoConvidado && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/80 backdrop-blur-sm">
             <span className="animate-bounce text-7xl">🎉</span>
@@ -177,7 +203,7 @@ const ExercicioPlayer = ({
             idPaciente={idPaciente}
             idExercicio={exercicio.id_exercicio}
             idPrescricao={idPrescricao}
-            duracaoSegundos={exercicio.duracao_segundos}
+            duracaoSegundos={timeElapsed}
             recompensaXp={exercicio.recompensa_xp}
             onConcluir={onConcluir}
           />
@@ -185,16 +211,14 @@ const ExercicioPlayer = ({
       </div>
 
       {/* Barra de baixo */}
-      {!isPaused && !isFinished && (
+      {isStarted && !isPaused && !isFinished && (
         <div className="flex flex-col items-center gap-3 bg-white px-4 pb-5 pt-4 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]">
           <div className="flex flex-col items-center gap-1">
             <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
-              Tempo restante
+              Tempo de exercício
             </p>
-            <p className={`text-5xl font-extrabold tabular-nums transition-colors ${
-              timeLeft <= 10 ? "text-red-500" : "text-slate-900"
-            }`}>
-              {formatTime(timeLeft)}
+            <p className="text-5xl font-extrabold tabular-nums text-slate-900">
+              {formatTime(timeElapsed)}
             </p>
           </div>
           <div className="flex items-center gap-4">
