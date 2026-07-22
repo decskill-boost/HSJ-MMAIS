@@ -106,6 +106,10 @@ const ExercicioPlayer = ({
     totalExercicios !== undefined &&
     exercicioNumero >= totalExercicios;
 
+  const materiais = exercicio.materiais_necessarios
+    ? exercicio.materiais_necessarios.split(",").map((m) => m.trim()).filter(Boolean)
+    : [];
+
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black">
       {/* Barra de cima */}
@@ -147,7 +151,7 @@ const ExercicioPlayer = ({
 
         {/* Overlay de início */}
         {!isStarted && !isFinished && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/60 backdrop-blur-sm">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-black/60 backdrop-blur-sm px-6 overflow-y-auto py-8">
             <div className="flex flex-col items-center gap-2">
               <span className="text-6xl">💪</span>
               <h3 className="text-2xl font-extrabold text-white">Pronto para começar?</h3>
@@ -158,6 +162,29 @@ const ExercicioPlayer = ({
                 </p>
               )}
             </div>
+
+            {/* Checklist de materiais */}
+            {materiais.length > 0 && (
+              <div className="w-full max-w-xs rounded-2xl bg-white/10 backdrop-blur-sm p-4 border border-white/20">
+                <p className="text-xs font-semibold uppercase tracking-widest text-slate-300 mb-3">
+                  🛠 Tens tudo o que precisas?
+                </p>
+                <div className="flex flex-col gap-2.5">
+                  {materiais.map((m) => (
+                    <label key={m} className="flex items-center gap-3 cursor-pointer group">
+                      <input
+                        type="checkbox"
+                        className="h-5 w-5 rounded accent-green-400 cursor-pointer shrink-0"
+                      />
+                      <span className="text-sm text-white font-medium group-hover:text-green-300 transition">
+                        {m}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <button
               onClick={handleIniciar}
               className="flex items-center gap-3 rounded-2xl bg-green-500 px-10 py-5 text-xl font-extrabold text-white shadow-lg transition hover:bg-green-400 active:scale-95"
@@ -241,7 +268,7 @@ const ExercicioPlayer = ({
           </div>
         )}
 
-        {/* Overlay fim — modo plano: ecrã rápido sem AvaliacaoExercicio */}
+        {/* Overlay fim — modo plano */}
         {isFinished && modoPlano && (
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/80 backdrop-blur-sm">
             <span className="animate-bounce text-7xl">
@@ -269,7 +296,7 @@ const ExercicioPlayer = ({
           </div>
         )}
 
-        {/* Overlay fim — modo normal: AvaliacaoExercicio */}
+        {/* Overlay fim — modo normal */}
         {isFinished && !modoConvidado && !modoPlano && (
           <AvaliacaoExercicio
             idPaciente={idPaciente}
@@ -283,61 +310,60 @@ const ExercicioPlayer = ({
       </div>
 
       {/* Barra de baixo */}
-    {isStarted && !isPaused && !isFinished && (
-      <div className="flex flex-col items-center gap-3 bg-white px-4 pb-5 pt-4 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]">
-        <div className="flex flex-col items-center gap-1">
-          <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
-            Tempo de exercício
-          </p>
-          <p className="text-5xl font-extrabold tabular-nums text-slate-900">
-            {formatTime(timeElapsed)}
-          </p>
-          {exercicio.duracao_segundos > 0 && (
-            <div className="w-64 h-2 bg-slate-100 rounded-full overflow-hidden mt-1">
-              <div
-                className="h-full bg-blue-500 rounded-full transition-all duration-1000"
-                style={{ width: `${Math.min((timeElapsed / exercicio.duracao_segundos) * 100, 100)}%` }}
-              />
-            </div>
-          )}
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handlePausar}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition hover:bg-slate-700"
-            aria-label="Pausar"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-              <rect x="6" y="4" width="4" height="16" rx="1" />
-              <rect x="14" y="4" width="4" height="16" rx="1" />
-            </svg>
-          </button>
-          <button
-            onClick={handleRecomecar}
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition hover:bg-slate-700"
-            aria-label="Recomeçar"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
-              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-              <path d="M3 3v5h5" />
-            </svg>
-          </button>
-          {/* Botão de avançar — só aparece no modo plano */}
-          {modoPlano && (
+      {isStarted && !isPaused && !isFinished && (
+        <div className="flex flex-col items-center gap-3 bg-white px-4 pb-5 pt-4 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]">
+          <div className="flex flex-col items-center gap-1">
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
+              Tempo de exercício
+            </p>
+            <p className="text-5xl font-extrabold tabular-nums text-slate-900">
+              {formatTime(timeElapsed)}
+            </p>
+            {exercicio.duracao_segundos > 0 && (
+              <div className="w-64 h-2 bg-slate-100 rounded-full overflow-hidden mt-1">
+                <div
+                  className="h-full bg-blue-500 rounded-full transition-all duration-1000"
+                  style={{ width: `${Math.min((timeElapsed / exercicio.duracao_segundos) * 100, 100)}%` }}
+                />
+              </div>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
             <button
-              onClick={handleConcluir}
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg transition hover:bg-emerald-500"
-              aria-label={isUltimoExercicio ? "Concluir plano" : "Próximo exercício"}
+              onClick={handlePausar}
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition hover:bg-slate-700"
+              aria-label="Pausar"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 0 1 0 1.971l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653Z" />
-                <path d="M17.25 5.25v13.5" strokeWidth="1.5" strokeLinecap="round" stroke="currentColor" fill="none" />
+                <rect x="6" y="4" width="4" height="16" rx="1" />
+                <rect x="14" y="4" width="4" height="16" rx="1" />
               </svg>
             </button>
-          )}
+            <button
+              onClick={handleRecomecar}
+              className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition hover:bg-slate-700"
+              aria-label="Recomeçar"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+            </button>
+            {modoPlano && (
+              <button
+                onClick={handleConcluir}
+                className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg transition hover:bg-emerald-500"
+                aria-label={isUltimoExercicio ? "Concluir plano" : "Próximo exercício"}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 0 1 0 1.971l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653Z" />
+                  <path d="M17.25 5.25v13.5" strokeWidth="1.5" strokeLinecap="round" stroke="currentColor" fill="none" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
-      </div>
-    )}
+      )}
     </div>
   );
 };
