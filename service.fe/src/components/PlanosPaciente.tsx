@@ -8,6 +8,7 @@ import {
 import type { UserProfile } from "../types/user";
 import ExercicioPlayer from "./Planos/ExercicioPlayer";
 import ExercicioPreview from "./Planos/ExercicioPreview";
+import BibliotecaExercicios from "./Pacientes/BibliotecaExercicios";
 
 interface LayoutContext {
   user: UserProfile | null;
@@ -161,7 +162,7 @@ export const PlanosPaciente = () => {
             ← Voltar
           </button>
           <div className="flex flex-col items-center">
-            <h2 className="text-base font-semibold text-slate-900">Tutorial do Plano</h2>
+            <h2 className="text-base font-semibold text-slate-900">Prévia do Plano</h2>
             <span className="text-xs text-slate-400">{previewIndex + 1} / {total}</span>
           </div>
           <div className="w-16" />
@@ -317,7 +318,7 @@ export const PlanosPaciente = () => {
           ← Voltar
         </button>
         <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Escolhe um plano 📋</h1>
-        <p className="mt-1 text-sm text-slate-500">Podes ver o tutorial de cada exercício antes de começar!</p>
+        <p className="mt-1 text-sm text-slate-500">Podes ver a prévia de cada exercício antes de começar!</p>
 
         {loading ? (
           <p className="mt-10 text-sm text-slate-400">A carregar planos...</p>
@@ -358,7 +359,7 @@ export const PlanosPaciente = () => {
                   onClick={() => abrirPreviewPlano(plano)}
                   className="w-full rounded-xl bg-blue-600 py-3 text-sm font-extrabold text-white transition hover:bg-blue-500 active:scale-95"
                 >
-                  Ver tutorial e começar ▶
+                  Ver prévia e começar ▶
                 </button>
               </div>
             ))}
@@ -368,64 +369,16 @@ export const PlanosPaciente = () => {
     );
   }
 
-  // ─── list (exercícios individuais) ─────────────────────────────────────────
+  // ─── list: biblioteca de exercícios ────────────────────────────────────────
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-10">
-      <button
-        onClick={() => setView("escolha")}
-        className="mb-6 text-sm font-medium text-slate-500 transition hover:text-slate-900"
-      >
-        ← Voltar
-      </button>
-      <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Escolhe um exercício ⚡</h1>
-      <p className="mt-1 text-sm text-slate-500">Escolhe o exercício que queres fazer hoje!</p>
-
-      {loading ? (
-        <p className="mt-10 text-sm text-slate-400">A carregar exercícios...</p>
-      ) : planos.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-8 text-center">
-          <p className="text-slate-500">Ainda não existem planos disponíveis.</p>
-        </div>
-      ) : (
-        <div className="mt-8 grid gap-6 sm:grid-cols-2">
-          {planos.map((plano) => (
-            <div key={plano.id_plano} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-bold text-indigo-600 uppercase tracking-wide">
-                  Intensidade: Nível {plano.dificuldade}
-                </span>
-              </div>
-              {plano.notas_medicas && (
-                <p className="text-xs text-slate-600 italic mb-3 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                  {plano.notas_medicas}
-                </p>
-              )}
-              <div className="space-y-2">
-                {plano.exercicios.map((ex) => (
-                  <button
-                    key={ex.id_exercicio}
-                    onClick={() => {
-                      setExercicioSelecionado(ex);
-                      setPlanoSelecionadoId(plano.id_plano);
-                      setView("preview");
-                    }}
-                    className="w-full flex items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 hover:bg-slate-100/80 p-3 text-left transition"
-                  >
-                    <div>
-                      <p className="font-bold text-slate-800 text-sm">{ex.nome_exercicio}</p>
-                      <p className="text-[10px] text-slate-400 font-medium mt-0.5">
-                        ⏱ {formatDuration(ex.duracao_segundos)} · +{ex.recompensa_xp} XP
-                      </p>
-                    </div>
-                    <span className="text-indigo-600 text-sm font-bold shrink-0">Começar →</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+    <BibliotecaExercicios
+      onVoltar={() => setView("escolha")}
+      onSelecionarExercicio={(ex) => {
+        setExercicioSelecionado(ex);
+        setPlanoSelecionadoId("");
+        setView("preview");
+      }}
+    />
   );
 };
 

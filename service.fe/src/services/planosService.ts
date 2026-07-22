@@ -9,6 +9,11 @@ export interface ExercicioDoPlano {
   dificuldade_clinica: number;
   recompensa_xp: number;
   url_video: string;
+
+  categoria?: string;
+  materiais_necessarios?: string;
+  condicao_paciente?: string;
+  descricao?: string;
 }
 
 export interface PlanoAtivo {
