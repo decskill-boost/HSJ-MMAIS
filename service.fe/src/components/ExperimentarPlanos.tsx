@@ -61,7 +61,7 @@ export const ExperimentarPlanos = () => {
         <CapitaoMais className="h-14 w-auto animate-balancar" title="" />
         <div>
           <h1 className="font-display text-3xl tracking-wide text-tinta">
-            Experimenta um treino MMAIS<span className="text-raio-fundo">+</span>
+            Experimenta um treino MMAIS<span className="texto-raio-contorno">+</span>
           </h1>
           <p className="mt-1 text-sm text-aco">
             Sem precisares de conta — escolhe um exercício e começa já.
@@ -99,7 +99,7 @@ export const ExperimentarPlanos = () => {
                       Intensidade: Nível {plano.dificuldade}
                     </span>
                     <span className="rounded-full border-2 border-tinta bg-raio px-3 py-0.5 text-xs font-bold text-tinta">
-                      Standard
+                      Base
                     </span>
                   </div>
 

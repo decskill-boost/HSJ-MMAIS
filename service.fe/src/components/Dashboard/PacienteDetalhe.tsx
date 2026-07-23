@@ -233,12 +233,12 @@ const PacienteDetalhe = () => {
       <div className="mx-auto w-full max-w-6xl px-4 py-10">
         <div className="rounded-2xl bg-papel p-6 shadow-sm">
           <p className="text-tinta">Paciente não encontrado.</p>
-          <BtnGlobal
+          <button
             onClick={() => navigate("/dashboard/medico/pacientes")}
-            className="mt-4 rounded-xl bg-tinta px-4 py-2 text-sm font-semibold text-white hover:bg-tinta"
+            className="mt-4 rounded-(--radius-vinheta) border-[3px] border-tinta bg-tinta px-4 py-2 text-sm font-semibold text-papel shadow-vinheta transition hover:bg-tinta/90 active:scale-95 active:shadow-none"
           >
             Voltar para lista
-          </BtnGlobal>
+          </button>
         </div>
       </div>
     );
@@ -260,16 +260,16 @@ const PacienteDetalhe = () => {
             onClick={() =>
               navigate(`/plano/criar?paciente=${paciente.id_paciente}`)
             }
-            className="rounded-xl bg-cobalto px-4 py-3 text-sm text-white hover:bg-cobalto-vivo"
+            className="rounded-(--radius-vinheta) px-4 py-3 text-sm font-semibold"
           >
             Atribuir novo plano
           </BtnGlobal>
-          <BtnGlobal
+          <button
             onClick={() => navigate("/dashboard/medico/pacientes")}
-            className="rounded-xl bg-tinta px-4 py-3 text-sm text-white hover:bg-tinta"
+            className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-tinta px-4 py-3 text-sm font-semibold text-papel shadow-vinheta transition hover:bg-tinta/90 active:scale-95 active:shadow-none"
           >
             Voltar para lista
-          </BtnGlobal>
+          </button>
         </div>
       </div>
 
@@ -614,7 +614,7 @@ const PacienteDetalhe = () => {
       {/* Modal de Métricas do Treino */}
       {sessaoDetalhada && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-tinta/60 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-lg rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-xl animate-fade-in">
+          <div className="relative w-full max-w-lg rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-xl entrada-pop">
             <button
               onClick={() => setSessaoDetalhada(null)}
               className="absolute right-4 top-4 rounded-xl p-1.5 text-aco hover:bg-papel hover:text-aco"
@@ -683,12 +683,12 @@ const PacienteDetalhe = () => {
             </div>
 
             <div className="mt-6 flex justify-end">
-              <BtnGlobal
+              <button
                 onClick={() => setSessaoDetalhada(null)}
-                className="rounded-xl bg-tinta px-4 py-2.5 text-sm font-semibold text-white hover:bg-tinta"
+                className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-tinta px-4 py-2.5 text-sm font-semibold text-papel shadow-vinheta transition hover:bg-tinta/90 active:scale-95 active:shadow-none"
               >
                 Fechar
-              </BtnGlobal>
+              </button>
             </div>
           </div>
         </div>

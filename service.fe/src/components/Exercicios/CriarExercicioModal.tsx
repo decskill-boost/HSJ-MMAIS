@@ -205,7 +205,7 @@ export const CriarExercicioModal = ({ isOpen, onClose, onSucesso, categorias, ma
                 <div>
                   <label className="text-xs font-medium text-aco">Categoria *</label>
                   <select
-                    className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm bg-white"
+                    className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm bg-papel-claro"
                     value={form.categoria}
                     onChange={(e) => setForm({ ...form, categoria: e.target.value })}
                   >
@@ -279,9 +279,9 @@ export const CriarExercicioModal = ({ isOpen, onClose, onSucesso, categorias, ma
                     {erroXp && <p className="text-xs text-capa-escura mt-1">{erroXp}</p>}
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-aco">Dificuldade *</label>
+                    <label className="text-xs font-medium text-aco">Intensidade *</label>
                     <select
-                      className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm bg-white"
+                      className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm bg-papel-claro"
                       value={form.dificuldade_clinica}
                       onChange={(e) => setForm({ ...form, dificuldade_clinica: e.target.value })}
                     >
@@ -291,7 +291,7 @@ export const CriarExercicioModal = ({ isOpen, onClose, onSucesso, categorias, ma
                   <div>
                     <label className="text-xs font-medium text-aco">Condição do Paciente *</label>
                     <select
-                      className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm bg-white"
+                      className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm bg-papel-claro"
                       value={form.condicao_paciente}
                       onChange={(e) => setForm({ ...form, condicao_paciente: e.target.value })}
                     >
@@ -303,7 +303,7 @@ export const CriarExercicioModal = ({ isOpen, onClose, onSucesso, categorias, ma
                   {/* Campo de repetições */}
                   <div className="col-span-2">
                     <label className="text-xs font-medium text-aco">
-                      Repetições <span className="text-aco"></span>
+                      Repetições <span className="text-aco">(opcional)</span>
                     </label>
                     <input
                       type="number"

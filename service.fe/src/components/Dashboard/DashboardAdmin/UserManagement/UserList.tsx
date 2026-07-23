@@ -43,7 +43,7 @@ const UserList = ({ users, loading, onEdit, onDisable }: Props) => {
             Lista de utilizadores
           </h2>
           <p className="mt-1 text-sm text-aco">
-            Gerencie as contas de acesso à plataforma.
+            Faça a gestão das contas de acesso à plataforma.
           </p>
         </div>
         <span className="rounded-full bg-papel px-3 py-1.5 text-xs font-semibold text-tinta">

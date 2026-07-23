@@ -96,7 +96,7 @@ const UserForm = ({
         )}
         <div>
           <label className="block text-sm font-semibold text-tinta">
-            Role
+            Perfil
           </label>
           <select
             value={form.tipo_utilizador}

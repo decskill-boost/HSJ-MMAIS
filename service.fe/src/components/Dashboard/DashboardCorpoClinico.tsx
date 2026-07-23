@@ -166,7 +166,7 @@ const DashboardCorpoClinico = () => {
               </div>
               <BtnGlobal
                 onClick={() => navigate("/dashboard/medico/adesao")}
-                className="rounded-xl bg-cobalto px-4 py-2.5 text-sm font-semibold text-papel shadow-sm hover:bg-cobalto"
+                className="px-4 py-2.5 text-sm font-semibold"
               >
                 Gerir planos
               </BtnGlobal>
@@ -275,24 +275,24 @@ const DashboardCorpoClinico = () => {
               </div>
             </div>
             <div className="mt-5 space-y-3">
-              <BtnGlobal
+              <button
                 onClick={() => navigate("/plano/criar")}
-                className="w-full rounded-xl bg-cobalto px-4 py-3 text-sm font-semibold text-papel hover:bg-cobalto"
+                className="w-full rounded-(--radius-vinheta) border-[3px] border-tinta bg-cobalto px-4 py-3 text-sm font-bold text-papel shadow-vinheta transition hover:bg-cobalto-vivo active:scale-95 active:shadow-none"
               >
                 Criar novo plano
-              </BtnGlobal>
-              <BtnGlobal
+              </button>
+              <button
                 onClick={() => navigate("/dashboard/medico/pacientes")}
-                className="w-full rounded-xl bg-tinta px-4 py-3 text-sm font-semibold text-papel hover:bg-tinta"
+                className="w-full rounded-(--radius-vinheta) border-[3px] border-tinta bg-tinta px-4 py-3 text-sm font-bold text-papel shadow-vinheta transition hover:bg-tinta/90 active:scale-95 active:shadow-none"
               >
                 Gerir planos de pacientes
-              </BtnGlobal>
-              <BtnGlobal
+              </button>
+              <button
                 onClick={() => navigate("/exercicios")}
-                className="w-full rounded-xl border border-tinta/15 bg-papel-claro px-4 py-3 text-sm font-semibold !text-tinta hover:bg-papel"
+                className="w-full rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro px-4 py-3 text-sm font-bold text-tinta shadow-vinheta transition hover:bg-papel active:scale-95 active:shadow-none"
               >
                 Biblioteca de exercícios
-              </BtnGlobal>
+              </button>
             </div>
           </article>
         </section>

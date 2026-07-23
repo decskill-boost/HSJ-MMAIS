@@ -122,7 +122,7 @@ const WelcomePage = () => {
       <section className="w-full border-y-[3px] border-tinta bg-papel px-4 py-16 text-center sm:py-24">
         <div className="mx-auto max-w-3xl">
           <span className="inline-flex items-center gap-2 rounded-full border-2 border-tinta bg-papel-claro px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-cobalto shadow-vinheta">
-            MMAIS<span className="text-raio-fundo">+</span>
+            MMAIS<span className="texto-raio-contorno">+</span>
           </span>
           <h2 className="mx-auto mt-5 font-display text-3xl tracking-wide text-tinta sm:text-5xl">
             A nossa missão e propósito

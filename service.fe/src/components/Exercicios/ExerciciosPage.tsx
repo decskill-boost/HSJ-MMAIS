@@ -237,7 +237,7 @@ const ExerciciosPage = () => {
             <select
               value={filtroCategoria}
               onChange={(e) => setFiltroCategoria(e.target.value)}
-              className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-white focus:outline-none focus:ring-2 focus:ring-cobalto/30"
+              className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/30"
             >
               {categorias.map((c) => <option key={c}>{c}</option>)}
             </select>
@@ -247,17 +247,17 @@ const ExerciciosPage = () => {
             <select
               value={filtroDuracao}
               onChange={(e) => setFiltroDuracao(e.target.value)}
-              className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-white focus:outline-none focus:ring-2 focus:ring-cobalto/30"
+              className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/30"
             >
               {["Todas", "Até 5 min", "5–15 min", "Mais de 15 min"].map((o) => <option key={o}>{o}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-aco mb-1">Dificuldade</label>
+            <label className="block text-xs font-medium text-aco mb-1">Intensidade</label>
             <select
               value={filtroDificuldade}
               onChange={(e) => setFiltroDificuldade(e.target.value)}
-              className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-white focus:outline-none focus:ring-2 focus:ring-cobalto/30"
+              className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/30"
             >
               {["Todas", "Fácil", "Médio", "Difícil"].map((o) => <option key={o}>{o}</option>)}
             </select>
@@ -267,7 +267,7 @@ const ExerciciosPage = () => {
             <select
               value={filtroCondicao}
               onChange={(e) => setFiltroCondicao(e.target.value)}
-              className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-white focus:outline-none focus:ring-2 focus:ring-cobalto/30"
+              className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/30"
             >
               {["Todas", "A", "B", "C"].map((o) => <option key={o}>{o}</option>)}
             </select>
@@ -386,7 +386,7 @@ const ExerciciosPage = () => {
 
       {/* Modal de detalhe */}
       {exercicioAberto && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-tinta/50 flex items-center justify-center z-50 p-4">
           <div className="bg-papel-claro rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
             <div className="flex flex-col md:flex-row">
               {exercicioAberto.url_video ? (
@@ -424,7 +424,7 @@ const ExerciciosPage = () => {
                         <p className="font-bold text-tinta">{Math.floor(exercicioAberto.duracao_segundos / 60)} min</p>
                       </div>
                       <div className="rounded-xl bg-papel p-3">
-                        <p className="text-xs text-aco">Dificuldade</p>
+                        <p className="text-xs text-aco">Intensidade</p>
                         <p className="font-bold text-tinta">{getDificuldadeLabel(exercicioAberto.dificuldade_clinica)}</p>
                       </div>
                       <div className="rounded-xl bg-papel p-3">
@@ -486,7 +486,7 @@ const ExerciciosPage = () => {
 
       {/* Modal de edição */}
       {exercicioEditando && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-tinta/40 flex items-center justify-center z-50 p-4">
           <div className="bg-papel-claro rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <h2 className="text-lg font-bold text-tinta mb-5">Editar Exercício</h2>
@@ -505,7 +505,7 @@ const ExerciciosPage = () => {
                     ) : exercicioEditando.url_video ? (
                       <div className="relative">
                         <video src={exercicioEditando.url_video} className="w-full max-h-48 object-cover rounded-xl" />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-xl hover:bg-black/40 transition">
+                        <div className="absolute inset-0 flex items-center justify-center bg-tinta/30 rounded-xl hover:bg-tinta/40 transition">
                           <p className="text-white text-sm font-medium">Clica para substituir o vídeo</p>
                         </div>
                       </div>
@@ -535,7 +535,7 @@ const ExerciciosPage = () => {
                 <div>
                   <label className="text-xs font-medium text-aco">Categoria</label>
                   <select
-                    className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm bg-white"
+                    className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm bg-papel-claro"
                     value={exercicioEditando.categoria}
                     onChange={(e) => setExercicioEditando({ ...exercicioEditando, categoria: e.target.value })}
                   >
@@ -599,9 +599,9 @@ const ExerciciosPage = () => {
                     {erroXpEdit && <p className="text-xs text-capa mt-1">{erroXpEdit}</p>}
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-aco">Dificuldade</label>
+                    <label className="text-xs font-medium text-aco">Intensidade</label>
                     <select
-                      className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm bg-white"
+                      className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm bg-papel-claro"
                       value={exercicioEditando.dificuldade_clinica}
                       onChange={(e) => setExercicioEditando({ ...exercicioEditando, dificuldade_clinica: e.target.value })}
                     >
@@ -611,7 +611,7 @@ const ExerciciosPage = () => {
                   <div>
                     <label className="text-xs font-medium text-aco">Condição do Paciente</label>
                     <select
-                      className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm bg-white"
+                      className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm bg-papel-claro"
                       value={exercicioEditando.condicao_paciente || "A"}
                       onChange={(e) => setExercicioEditando({ ...exercicioEditando, condicao_paciente: e.target.value })}
                     >
@@ -695,7 +695,7 @@ const ExerciciosPage = () => {
 
       {/* Modal de confirmação de eliminação */}
       {exercicioAEliminar && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-tinta/40 flex items-center justify-center z-50">
           <div className="bg-papel-claro rounded-2xl shadow-xl p-6 w-full max-w-sm">
             <h2 className="text-lg font-bold text-tinta mb-2">Eliminar Exercício</h2>
             <p className="text-sm text-aco mb-6">

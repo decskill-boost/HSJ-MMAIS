@@ -208,7 +208,7 @@ export const CriarPlano = () => {
 
               <div className="min-w-[140px] flex-1">
                 <label className="block text-xs font-semibold text-aco">
-                  Dificuldade
+                  Intensidade
                 </label>
                 <select
                   value={filtroDificuldade}
@@ -273,7 +273,7 @@ export const CriarPlano = () => {
               {loading ? (
                 <LoadingSpinner mensagem="A carregar exercícios..." />
               ) : erro ? (
-                <p className="text-center text-sm text-capa py-10">
+                <p className="text-center text-sm text-capa-escura py-10">
                   {erro}
                 </p>
               ) : exerciciosFiltrados.length === 0 ? (
@@ -299,7 +299,7 @@ export const CriarPlano = () => {
                                 {ex.nome_exercicio}
                               </span>
                               <span className="block text-xs text-aco">
-                                {ex.categoria} · Duração padrão: {formatarDuracao(ex.duracao_segundos)} · Dificuldade: {textoDificuldade(ex.dificuldade_clinica)} · Condição: Nível {ex.condicao_paciente || "A"}
+                                {ex.categoria} · Duração padrão: {formatarDuracao(ex.duracao_segundos)} · Intensidade: {textoDificuldade(ex.dificuldade_clinica)} · Condição: Nível {ex.condicao_paciente || "A"}
                               </span>
                             </span>
                           </label>
@@ -395,7 +395,7 @@ export const CriarPlano = () => {
                   />
                 </div>
               )}
-              {/* Dificuldade do Plano */}
+              {/* Intensidade do Plano */}
               <div>
                 <label className="block text-xs font-semibold text-aco">Classificação de Intensidade</label>
                 <select

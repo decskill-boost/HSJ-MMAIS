@@ -14,7 +14,7 @@ const getDificuldadeLabel = (value: number) => {
 
 const getDificuldadeColor = (value: number) => {
   if (value <= 3) return "bg-turbo/15 text-turbo-escuro";
-  if (value <= 6) return "bg-raio/25 text-raio-fundo";
+  if (value <= 6) return "bg-raio/25 text-tinta";
   return "bg-capa/20 text-capa-escura";
 };
 
@@ -66,7 +66,7 @@ const ExercicioPreview = ({ exercicio, onVoltar, onComecar }: Props) => {
               playsInline
             />
           ) : (
-            <div className="flex h-48 items-center justify-center text-sm text-papel/80">
+            <div className="flex h-48 items-center justify-center text-sm text-papel">
               Sem vídeo disponível
             </div>
           )}
@@ -96,7 +96,7 @@ const ExercicioPreview = ({ exercicio, onVoltar, onComecar }: Props) => {
             </div>
             <div className="col-span-2 rounded-xl bg-papel p-3">
               <p className="text-xs font-semibold uppercase tracking-wide text-aco">
-                Dificuldade
+                Intensidade
               </p>
               <span className={`mt-1 inline-flex rounded-full px-3 py-0.5 text-sm font-semibold ${getDificuldadeColor(exercicio.dificuldade_clinica)}`}>
                 {getDificuldadeLabel(exercicio.dificuldade_clinica)}

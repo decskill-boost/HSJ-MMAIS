@@ -123,7 +123,7 @@ const BibliotecaExercicios = ({ onVoltar, onSelecionarExercicio }: Props) => {
             <button
               key={ex.id_exercicio}
               onClick={() => onSelecionarExercicio(mapExercicio(ex))}
-              className={`entrada-pop${idx > 0 ? `-${Math.min((idx % 4) + 1, 4)}` : ""} flex flex-col overflow-hidden rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro text-left shadow-vinheta transition hover:-translate-y-0.5 active:translate-y-0 active:shadow-none`}
+              className={`entrada-pop${["", "-2", "-3", "-4"][idx % 4]} flex flex-col overflow-hidden rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro text-left shadow-vinheta transition hover:-translate-y-0.5 active:translate-y-0 active:shadow-none`}
             >
               {/* Thumbnail */}
               <div className="relative h-44 w-full flex-shrink-0 border-b-[3px] border-tinta bg-papel">

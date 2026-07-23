@@ -1,5 +1,6 @@
 import { useOutletContext } from "react-router-dom";
 import BtnGlobal from "./BtnGlobal"; // Ajusta o path se necessário
+import AvatarHeroi from "./AvatarHeroi";
 import type { UserProfile } from "../types/user";
 
 interface PersonalInfoProps {
@@ -46,10 +47,15 @@ export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
                   className="h-24 w-24 rounded-full border border-tinta/15 object-cover shadow-sm"
                 />
               ) : (
-                <div className="flex h-24 w-24 items-center justify-center rounded-full border border-cobalto/20 bg-cobalto/10 text-cobalto shadow-sm">
-                  <span className="text-3xl font-bold uppercase">
-                    {user?.nome?.charAt(0) || "?"}
-                  </span>
+                <div className="h-24 w-24 overflow-hidden rounded-full border-2 border-tinta bg-cobalto/10 shadow-sm">
+                  <AvatarHeroi
+                    variante={
+                      user?.role === "paciente" || user?.tipo_utilizador === "paciente"
+                        ? "crianca"
+                        : "clinico"
+                    }
+                    className="h-full w-full"
+                  />
                 </div>
               )}
             </div>
@@ -101,10 +107,7 @@ export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
           {/* Botão de Voltar (se aplicável) */}
           {onBack && (
             <div className="mt-8 border-t border-tinta/15 pt-6">
-              <BtnGlobal
-                onClick={onBack}
-                className="w-full rounded-xl bg-cobalto py-3.5 text-sm font-bold text-white shadow-sm transition-all hover:bg-cobalto-vivo sm:w-auto sm:px-8"
-              >
+              <BtnGlobal onClick={onBack} className="w-full sm:w-auto">
                 Voltar ao Menu
               </BtnGlobal>
             </div>

@@ -217,7 +217,7 @@ const AvaliacaoExercicio = ({
                   </button>
                 ))}
               </div>
-              <p className="text-xs font-bold text-[#C9D3F5]">Toca na carinha certa!</p>
+              <p className="text-xs font-bold text-[#EAEFFF]">Toca na carinha certa!</p>
             </div>
           </div>
         )}
@@ -236,7 +236,7 @@ const AvaliacaoExercicio = ({
                     key={n}
                     onClick={() => { setEsforco(n); avancoAutomatico(); }}
                     aria-pressed={esforco === n}
-                    className={`flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-tinta font-display text-xl tracking-wide transition-all active:scale-90 sm:h-16 sm:w-16 ${
+                    className={`flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-tinta font-display text-xl tracking-wide transition-all active:scale-90 sm:h-16 sm:w-16 ${
                       esforco === n
                         ? "scale-110 bg-turbo text-tinta shadow-vinheta"
                         : "bg-papel-claro/15 text-papel hover:bg-papel-claro/30"
@@ -246,7 +246,7 @@ const AvaliacaoExercicio = ({
                   </button>
                 ))}
               </div>
-              <p className="text-xs font-bold text-[#C9D3F5]">1 = passeio · 10 = esforço máximo</p>
+              <p className="text-xs font-bold text-[#EAEFFF]">1 = passeio · 10 = esforço máximo</p>
             </div>
           </div>
         )}
@@ -278,7 +278,7 @@ const AvaliacaoExercicio = ({
                   </button>
                 ))}
               </div>
-              <p className="text-xs font-bold text-[#C9D3F5]">Toca na carinha certa!</p>
+              <p className="text-xs font-bold text-[#EAEFFF]">Toca na carinha certa!</p>
             </div>
           </div>
         )}
@@ -398,7 +398,7 @@ const AvaliacaoExercicio = ({
           <button
             onClick={() => setStep((s) => s - 1)}
             aria-label="Passo anterior"
-            className="flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-tinta bg-papel-claro/15 text-xl text-papel transition hover:bg-papel-claro/25"
+            className="flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-tinta bg-papel-claro/15 text-xl text-papel transition hover:bg-papel-claro/25"
           >
             ←
           </button>

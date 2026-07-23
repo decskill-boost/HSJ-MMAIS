@@ -236,7 +236,7 @@ export const PlanosPaciente = () => {
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-black/70 backdrop-blur-sm overflow-y-auto py-6 px-4">
               <div className="flex flex-col items-center gap-2">
                 <span className="text-5xl">📋</span>
-                <h3 className="text-2xl font-extrabold text-white text-center">
+                <h3 className="text-2xl font-display text-white text-center">
                   Pronto para o plano?
                 </h3>
                 <p className="text-sm text-papel/90 text-center">
@@ -309,7 +309,7 @@ export const PlanosPaciente = () => {
             className={`w-full rounded-(--radius-vinheta) border-[3px] border-tinta py-4 text-lg font-display tracking-wide shadow-vinheta transition active:scale-95 active:shadow-none ${
               todosMarcados
                 ? "bg-raio text-tinta hover:brightness-105"
-                : "bg-aco/40 text-papel/70 cursor-not-allowed"
+                : "bg-tinta/10 text-tinta/40 cursor-not-allowed"
             }`}
           >
             Iniciar Plano ({total} exercícios) ▶
