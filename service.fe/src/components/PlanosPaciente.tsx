@@ -47,6 +47,7 @@ export const PlanosPaciente = () => {
   const [planoEmCurso, setPlanoEmCurso] = useState<PlanoAtivo | null>(null);
   const [previewIndex, setPreviewIndex] = useState(0);
   const [exercicioIndex, setExercicioIndex] = useState(0);
+  const [materiaisPlanoChecked, setMateriaisPlanoChecked] = useState<string[]>([]);
 
   const previewVideoRef = useRef<HTMLVideoElement>(null);
 
@@ -75,6 +76,7 @@ export const PlanosPaciente = () => {
     setPlanoEmCurso(plano);
     setPreviewIndex(0);
     setExercicioIndex(0);
+    setMateriaisPlanoChecked([]);
     setView("plano-preview");
   };
 
@@ -152,6 +154,20 @@ export const PlanosPaciente = () => {
   if (view === "plano-preview" && planoEmCurso) {
     const total = planoEmCurso.exercicios.length;
     const ex = planoEmCurso.exercicios[previewIndex];
+
+    const todosMateriaisPlano = [
+      ...new Set(
+        planoEmCurso.exercicios.flatMap((e) =>
+          e.materiais_necessarios
+            ? e.materiais_necessarios.split(",").map((m) => m.trim()).filter(Boolean)
+            : []
+        )
+      ),
+    ];
+    const todosMarcados =
+      todosMateriaisPlano.length === 0 ||
+      todosMateriaisPlano.every((m) => materiaisPlanoChecked.includes(m));
+
     return (
       <div className="fixed inset-0 z-50 flex flex-col bg-black">
         <div className="flex items-center justify-between bg-white px-5 py-4 shadow-sm">
@@ -186,7 +202,8 @@ export const PlanosPaciente = () => {
             </div>
           )}
 
-          {previewIndex > 0 && (
+          {/* Setas do carrossel — só visíveis quando checklist está completa */}
+          {todosMarcados && previewIndex > 0 && (
             <button
               onClick={() => setPreviewIndex((i) => i - 1)}
               className="absolute left-3 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-black/50 text-white text-2xl font-bold backdrop-blur-sm transition hover:bg-black/70 active:scale-95"
@@ -194,7 +211,7 @@ export const PlanosPaciente = () => {
               ‹
             </button>
           )}
-          {previewIndex < total - 1 && (
+          {todosMarcados && previewIndex < total - 1 && (
             <button
               onClick={() => setPreviewIndex((i) => i + 1)}
               className="absolute right-3 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-black/50 text-white text-2xl font-bold backdrop-blur-sm transition hover:bg-black/70 active:scale-95"
@@ -203,11 +220,61 @@ export const PlanosPaciente = () => {
             </button>
           )}
 
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm rounded-full px-4 py-1.5">
-            <p className="text-xs font-semibold text-white">
-              Exercício {previewIndex + 1} de {total}
-            </p>
-          </div>
+          {todosMarcados && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm rounded-full px-4 py-1.5">
+              <p className="text-xs font-semibold text-white">
+                Exercício {previewIndex + 1} de {total}
+              </p>
+            </div>
+          )}
+
+          {/* Overlay de checklist — estilo igual ao ExercicioPlayer */}
+          {todosMateriaisPlano.length > 0 && !todosMarcados && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-black/70 backdrop-blur-sm overflow-y-auto py-6 px-4">
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-5xl">📋</span>
+                <h3 className="text-2xl font-extrabold text-white text-center">
+                  Pronto para o plano?
+                </h3>
+                <p className="text-sm text-slate-300 text-center">
+                  Verifica se tens todos os materiais antes de começar
+                </p>
+              </div>
+              <div className="w-full max-w-xs bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-300 mb-3 text-center">
+                  ✅ Tens tudo o que precisas?
+                </p>
+                <div className="flex flex-col gap-2">
+                  {todosMateriaisPlano.map((m) => (
+                    <label key={m} className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={materiaisPlanoChecked.includes(m)}
+                        onChange={() =>
+                          setMateriaisPlanoChecked((prev) =>
+                            prev.includes(m)
+                              ? prev.filter((x) => x !== m)
+                              : [...prev, m]
+                          )
+                        }
+                        className="w-5 h-5 rounded accent-green-400 cursor-pointer"
+                      />
+                      <span className={`text-sm transition ${
+                        materiaisPlanoChecked.includes(m)
+                          ? "line-through text-slate-400"
+                          : "text-white"
+                      }`}>
+                        {m}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <p className="mt-3 text-xs text-amber-400 font-medium text-center">
+                  ⚠️ Marca todos os materiais antes de começar
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="bg-white px-5 pt-4 pb-6">
@@ -221,9 +288,13 @@ export const PlanosPaciente = () => {
             {planoEmCurso.exercicios.map((_, i) => (
               <button
                 key={i}
-                onClick={() => setPreviewIndex(i)}
+                onClick={() => todosMarcados && setPreviewIndex(i)}
                 className={`h-2 rounded-full transition-all duration-200 ${
-                  i === previewIndex ? "w-6 bg-blue-600" : i < previewIndex ? "w-2 bg-blue-300" : "w-2 bg-slate-200"
+                  i === previewIndex
+                    ? "w-6 bg-blue-600"
+                    : i < previewIndex
+                    ? "w-2 bg-blue-300"
+                    : "w-2 bg-slate-200"
                 }`}
               />
             ))}
@@ -231,11 +302,16 @@ export const PlanosPaciente = () => {
 
           <button
             onClick={iniciarPlano}
-            className="w-full rounded-2xl bg-blue-600 py-4 text-lg font-extrabold text-white shadow-lg transition hover:bg-blue-500 active:scale-95"
+            disabled={!todosMarcados}
+            className={`w-full rounded-2xl py-4 text-lg font-extrabold text-white shadow-lg transition active:scale-95 ${
+              todosMarcados
+                ? "bg-blue-600 hover:bg-blue-500"
+                : "bg-slate-300 cursor-not-allowed"
+            }`}
           >
             Iniciar Plano ({total} exercícios) ▶
           </button>
-          {previewIndex < total - 1 && (
+          {todosMarcados && previewIndex < total - 1 && (
             <p className="mt-2 text-center text-xs text-slate-400">
               Desliza → para ver todos os {total} exercícios antes de começar
             </p>

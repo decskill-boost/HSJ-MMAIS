@@ -23,6 +23,7 @@ function mapExercicio(ex: Exercicio): ExercicioDoPlano {
     materiais_necessarios: ex.materiais_necessarios,
     condicao_paciente: ex.condicao_paciente,
     descricao: ex.descricao,
+    repeticoes: ex.repeticoes,
   };
 }
 

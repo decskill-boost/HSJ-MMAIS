@@ -26,7 +26,6 @@ export class Exercicio {
   @Column({ type: 'text', nullable: true })
   descricao: string;
 
-  // ADICIONA ESTA LINHA ABAIXO
   @Column({ type: 'text', nullable: true })
   materiais_necessarios: string;
 
@@ -35,4 +34,7 @@ export class Exercicio {
 
   @Column({ type: 'varchar', length: 1, default: 'A', nullable: true })
   condicao_paciente: string;
+
+  @Column({ type: 'int', nullable: true })   
+  repeticoes: number;
 }

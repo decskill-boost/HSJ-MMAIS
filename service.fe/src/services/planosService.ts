@@ -9,11 +9,11 @@ export interface ExercicioDoPlano {
   dificuldade_clinica: number;
   recompensa_xp: number;
   url_video: string;
-
   categoria?: string;
   materiais_necessarios?: string;
   condicao_paciente?: string;
   descricao?: string;
+  repeticoes?: number;
 }
 
 export interface PlanoAtivo {
@@ -24,7 +24,7 @@ export interface PlanoAtivo {
   data_validade?: string | null;
   data_fim?: string | null;
   ativo?: boolean;
-  dificuldade?: string; // 'A' | 'B' | 'C'
+  dificuldade?: string;
   condicao_clinica?: string | null;
   is_standard?: boolean;
   exercicios: ExercicioDoPlano[];
@@ -138,37 +138,35 @@ export const planosService = {
     const { data: exerciciosData, error: errE } = await supabase
       .from("exercicios")
       .select(
-        "id_exercicio, nome_exercicio, duracao_segundos, dificuldade_clinica, recompensa_xp, url_video",
+        "id_exercicio, nome_exercicio, duracao_segundos, dificuldade_clinica, recompensa_xp, url_video, repeticoes, materiais_necessarios",
       )
       .in("id_exercicio", exercicioIds);
 
     if (errE) throw new Error(errE.message);
 
-    const mapPlano = (p: any): PlanoAtivo => {
-      return {
-        id_plano: p.id_prescricao,
-        frequencia_semanal: p.frequencia_semanal,
-        notas_medicas: p.notas_medicas,
-        data_inicio: p.data_inicio,
-        data_validade: p.data_validade,
-        data_fim: p.data_fim,
-        ativo: isPlanoAtivo(p),
-        dificuldade: p.dificuldade ?? "A",
-        exercicios: peData
-          .filter((pe) => pe.id_prescricao === p.id_prescricao)
-          .map((pe) => {
-            const e = (exerciciosData ?? []).find(
-              (ex) => ex.id_exercicio === pe.id_exercicio,
-            );
-            if (!e) return null;
-            return {
-              ...e,
-              duracao_segundos: pe.duracao_segundos ?? e.duracao_segundos,
-            };
-          })
-          .filter(Boolean) as ExercicioDoPlano[],
-      };
-    };
+    const mapPlano = (p: any): PlanoAtivo => ({
+      id_plano: p.id_prescricao,
+      frequencia_semanal: p.frequencia_semanal,
+      notas_medicas: p.notas_medicas,
+      data_inicio: p.data_inicio,
+      data_validade: p.data_validade,
+      data_fim: p.data_fim,
+      ativo: isPlanoAtivo(p),
+      dificuldade: p.dificuldade ?? "A",
+      exercicios: peData
+        .filter((pe) => pe.id_prescricao === p.id_prescricao)
+        .map((pe) => {
+          const e = (exerciciosData ?? []).find(
+            (ex) => ex.id_exercicio === pe.id_exercicio,
+          );
+          if (!e) return null;
+          return {
+            ...e,
+            duracao_segundos: pe.duracao_segundos ?? e.duracao_segundos,
+          };
+        })
+        .filter(Boolean) as ExercicioDoPlano[],
+    });
 
     const ativos = prescricoes.filter(isPlanoAtivo).map(mapPlano);
     const historico = prescricoes.filter((p) => !isPlanoAtivo(p)).map(mapPlano);
@@ -211,7 +209,7 @@ export const planosService = {
     const { data: exerciciosData, error: errE } = await supabase
       .from("exercicios")
       .select(
-        "id_exercicio, nome_exercicio, duracao_segundos, dificuldade_clinica, recompensa_xp, url_video",
+        "id_exercicio, nome_exercicio, duracao_segundos, dificuldade_clinica, recompensa_xp, url_video, repeticoes, materiais_necessarios",
       )
       .in("id_exercicio", exercicioIds);
 
@@ -244,7 +242,6 @@ export const planosService = {
     }));
   },
 
-  // Planos disponíveis na área pública (sem login) — lista controlada manualmente
   getPlanosPublicos: async (): Promise<PlanoAtivo[]> => {
     const IDS_PLANOS_PUBLICOS = [
       "050a0dc5-f3bf-48c2-ab0d-8558b10f0daf",
@@ -276,7 +273,7 @@ export const planosService = {
         ? await supabase
             .from("exercicios")
             .select(
-              "id_exercicio, nome_exercicio, duracao_segundos, dificuldade_clinica, recompensa_xp, url_video",
+              "id_exercicio, nome_exercicio, duracao_segundos, dificuldade_clinica, recompensa_xp, url_video, repeticoes, materiais_necessarios",
             )
             .in("id_exercicio", exercicioIds)
         : { data: [], error: null };
