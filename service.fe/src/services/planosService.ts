@@ -25,6 +25,7 @@ export interface PlanoAtivo {
   data_fim?: string | null;
   ativo?: boolean;
   dificuldade?: string;
+  condicao_paciente?: string;
   condicao_clinica?: string | null;
   is_standard?: boolean;
   exercicios: ExercicioDoPlano[];
@@ -47,7 +48,7 @@ const fetchPlanosPorPacientes = async (): Promise<PlanoPorPaciente[]> => {
   const { data: prescricoes, error } = await supabase
     .from("prescricoes")
     .select(
-      "id_prescricao, frequencia_semanal, notas_medicas, data_inicio, data_validade, data_fim, ativo, id_paciente",
+      "id_prescricao, frequencia_semanal, notas_medicas, data_inicio, data_validade, data_fim, ativo, id_paciente, dificuldade, condicao_paciente, condicao_clinica, is_standard",
     )
     .in("id_paciente", pacienteIds)
     .order("data_inicio", { ascending: false });
@@ -73,6 +74,10 @@ const fetchPlanosPorPacientes = async (): Promise<PlanoPorPaciente[]> => {
         data_validade: prescricao.data_validade ?? null,
         data_fim: prescricao.data_fim ?? null,
         ativo: isPlanoAtivo(prescricao),
+        dificuldade: prescricao.dificuldade ?? "facil",
+        condicao_paciente: prescricao.condicao_paciente ?? "A",
+        condicao_clinica: prescricao.condicao_clinica ?? null,
+        is_standard: prescricao.is_standard ?? false,
         exercicios: [],
       }))
       .sort(
@@ -96,7 +101,7 @@ export const planosService = {
     const { data: prescricoes, error: errP } = await supabase
       .from("prescricoes")
       .select(
-        "id_prescricao, frequencia_semanal, notas_medicas, data_inicio, data_validade, data_fim, ativo, dificuldade",
+        "id_prescricao, frequencia_semanal, notas_medicas, data_inicio, data_validade, data_fim, ativo, dificuldade, condicao_paciente",
       )
       .eq("id_paciente", idPaciente);
 
@@ -120,7 +125,8 @@ export const planosService = {
               id_plano: ativos[0].id_prescricao,
               frequencia_semanal: ativos[0].frequencia_semanal,
               notas_medicas: ativos[0].notas_medicas,
-              dificuldade: ativos[0].dificuldade ?? "A",
+              dificuldade: ativos[0].dificuldade ?? "facil",
+              condicao_paciente: ativos[0].condicao_paciente ?? "A",
               exercicios: [],
             }
           : null,
@@ -128,7 +134,8 @@ export const planosService = {
           id_plano: p.id_prescricao,
           frequencia_semanal: p.frequencia_semanal,
           notas_medicas: p.notas_medicas,
-          dificuldade: p.dificuldade ?? "A",
+          dificuldade: p.dificuldade ?? "facil",
+          condicao_paciente: p.condicao_paciente ?? "A",
           exercicios: [],
         })),
       };
@@ -152,7 +159,8 @@ export const planosService = {
       data_validade: p.data_validade,
       data_fim: p.data_fim,
       ativo: isPlanoAtivo(p),
-      dificuldade: p.dificuldade ?? "A",
+      dificuldade: p.dificuldade ?? "facil",
+      condicao_paciente: p.condicao_paciente ?? "A",
       exercicios: peData
         .filter((pe) => pe.id_prescricao === p.id_prescricao)
         .map((pe) => {
@@ -178,7 +186,7 @@ export const planosService = {
     const { data: prescricoes, error: errP } = await supabase
       .from("prescricoes")
       .select(
-        "id_prescricao, frequencia_semanal, notas_medicas, data_inicio, data_validade, data_fim, ativo, dificuldade, condicao_clinica, is_standard",
+        "id_prescricao, frequencia_semanal, notas_medicas, data_inicio, data_validade, data_fim, ativo, dificuldade, condicao_paciente, condicao_clinica, is_standard",
       )
       .is("id_paciente", null)
       .eq("ativo", true);
@@ -198,7 +206,8 @@ export const planosService = {
         id_plano: p.id_prescricao,
         frequencia_semanal: p.frequencia_semanal,
         notas_medicas: p.notas_medicas,
-        dificuldade: p.dificuldade ?? "A",
+        dificuldade: p.dificuldade ?? "facil",
+        condicao_paciente: p.condicao_paciente ?? "A",
         condicao_clinica: p.condicao_clinica ?? null,
         is_standard: p.is_standard,
         exercicios: [],
@@ -223,7 +232,8 @@ export const planosService = {
       data_validade: p.data_validade,
       data_fim: p.data_fim,
       ativo: p.ativo === true,
-      dificuldade: p.dificuldade ?? "A",
+      dificuldade: p.dificuldade ?? "facil",
+      condicao_paciente: p.condicao_paciente ?? "A",
       condicao_clinica: p.condicao_clinica ?? null,
       is_standard: p.is_standard,
       exercicios: peData
@@ -251,7 +261,7 @@ export const planosService = {
     const { data: prescricoes, error: errP } = await supabase
       .from("prescricoes")
       .select(
-        "id_prescricao, frequencia_semanal, notas_medicas, data_inicio, data_validade, data_fim, ativo, dificuldade, condicao_clinica, is_standard",
+        "id_prescricao, frequencia_semanal, notas_medicas, data_inicio, data_validade, data_fim, ativo, dificuldade, condicao_paciente, condicao_clinica, is_standard",
       )
       .in("id_prescricao", IDS_PLANOS_PUBLICOS)
       .eq("ativo", true);
@@ -288,7 +298,8 @@ export const planosService = {
       data_validade: p.data_validade,
       data_fim: p.data_fim,
       ativo: p.ativo === true,
-      dificuldade: p.dificuldade ?? "A",
+      dificuldade: p.dificuldade ?? "facil",
+      condicao_paciente: p.condicao_paciente ?? "A",
       condicao_clinica: p.condicao_clinica ?? null,
       is_standard: p.is_standard,
       exercicios: (peData ?? [])
@@ -330,6 +341,7 @@ export const planosService = {
     notas_medicas: string;
     is_standard?: boolean;
     dificuldade?: string;
+    condicao_paciente?: string;
     condicao_clinica?: string | null;
     exercicios: (string | { id_exercicio: string; duracao_segundos?: number })[];
   }): Promise<void> => {

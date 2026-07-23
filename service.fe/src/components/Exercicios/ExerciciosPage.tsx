@@ -3,6 +3,7 @@ import { exerciciosService } from "../../services/exercicios";
 import type { Exercicio } from "../../services/exercicios";
 import { supabase } from "../../services/supabaseClient";
 import { CriarExercicioModal } from "./CriarExercicioModal";
+import LoadingSpinner from "../LoadingSpinner";
 
 const CATEGORIAS_OPCOES = [
   "Quadríceps",
@@ -72,6 +73,7 @@ const ExerciciosPage = () => {
   const [filtroCategoria, setFiltroCategoria] = useState("Todas");
   const [filtroDuracao, setFiltroDuracao] = useState("Todas");
   const [filtroDificuldade, setFiltroDificuldade] = useState("Todas");
+  const [filtroCondicao, setFiltroCondicao] = useState("Todas");
 
   const [modalCriarAberto, setModalCriarAberto] = useState(false);
 
@@ -201,15 +203,19 @@ const ExerciciosPage = () => {
       const label = getDificuldadeLabel(ex.dificuldade_clinica);
       if (label !== filtroDificuldade) return false;
     }
+    if (filtroCondicao !== "Todas") {
+      if (ex.condicao_paciente !== filtroCondicao) return false;
+    }
     return true;
   });
 
   const temFiltrosAtivos =
     filtroCategoria !== "Todas" ||
     filtroDuracao !== "Todas" ||
-    filtroDificuldade !== "Todas";
+    filtroDificuldade !== "Todas" ||
+    filtroCondicao !== "Todas";
 
-  if (loading) return <p className="p-8 text-slate-500">A carregar exercícios...</p>;
+  if (loading) return <LoadingSpinner mensagem="A carregar biblioteca de exercícios..." />;
 
   return (
     <div className="p-8">
@@ -256,9 +262,24 @@ const ExerciciosPage = () => {
               {["Todas", "Fácil", "Médio", "Difícil"].map((o) => <option key={o}>{o}</option>)}
             </select>
           </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">Condição</label>
+            <select
+              value={filtroCondicao}
+              onChange={(e) => setFiltroCondicao(e.target.value)}
+              className="rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {["Todas", "A", "B", "C"].map((o) => <option key={o}>{o}</option>)}
+            </select>
+          </div>
           {temFiltrosAtivos && (
             <button
-              onClick={() => { setFiltroCategoria("Todas"); setFiltroDuracao("Todas"); setFiltroDificuldade("Todas"); }}
+              onClick={() => {
+                setFiltroCategoria("Todas");
+                setFiltroDuracao("Todas");
+                setFiltroDificuldade("Todas");
+                setFiltroCondicao("Todas");
+              }}
               className="rounded-lg bg-blue-600 hover:bg-blue-700 px-4 py-2 text-sm font-bold text-white transition"
             >
               Limpar filtros

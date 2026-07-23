@@ -9,6 +9,7 @@ import type { UserProfile } from "../types/user";
 import ExercicioPlayer from "./Planos/ExercicioPlayer";
 import ExercicioPreview from "./Planos/ExercicioPreview";
 import BibliotecaExercicios from "./Pacientes/BibliotecaExercicios";
+import LoadingSpinner from "./LoadingSpinner";
 
 interface LayoutContext {
   user: UserProfile | null;
@@ -397,7 +398,7 @@ export const PlanosPaciente = () => {
         <p className="mt-1 text-sm text-slate-500">Podes ver a prévia de cada exercício antes de começar!</p>
 
         {loading ? (
-          <p className="mt-10 text-sm text-slate-400">A carregar planos...</p>
+          <LoadingSpinner mensagem="A carregar planos de treino..." />
         ) : planos.filter((p) => p.exercicios.length > 0).length === 0 ? (
           <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-8 text-center">
             <p className="text-slate-500">Ainda não existem planos disponíveis.</p>

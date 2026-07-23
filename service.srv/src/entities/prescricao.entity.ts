@@ -40,6 +40,9 @@ export class Prescricao {
   is_standard: boolean;
 
   @Column({ type: 'varchar', length: 1, default: 'A', nullable: true })
+  condicao_paciente: string;
+
+  @Column({ type: 'varchar', length: 20, default: 'facil', nullable: true })
   dificuldade: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true, default: null })
