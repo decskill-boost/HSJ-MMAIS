@@ -6,6 +6,7 @@ import {
   type PlanoPorPaciente,
 } from "../../services/planosService";
 import type { UserProfile } from "../../types/user";
+import LoadingSpinner from "../LoadingSpinner";
 
 interface LayoutContext {
   user: UserProfile | null;
@@ -21,6 +22,17 @@ const DashboardCorpoClinico = () => {
   const [planos, setPlanos] = useState<PlanoPorPaciente[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
+
+  // Paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const paginatedPlanos = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return planos.slice(startIndex, startIndex + itemsPerPage);
+  }, [planos, currentPage]);
+
+  const totalPaginas = Math.ceil(planos.length / itemsPerPage);
 
   useEffect(() => {
     const carregar = async () => {
@@ -69,7 +81,7 @@ const DashboardCorpoClinico = () => {
   return (
     <div className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        {/* Cabeçalho Gradiente que o Claude apagou */}
+        {/* Cabeçalho */}
         <section className="rounded-3xl border border-tinta/15 bg-gradient-to-br from-cobalto to-tinta p-6 text-papel shadow-sm sm:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
@@ -103,7 +115,7 @@ const DashboardCorpoClinico = () => {
           </div>
         </section>
 
-        {/* As tuas 3 métricas novas e limpas */}
+        {/* Métricas */}
         <section className="grid gap-4 lg:grid-cols-3">
           <article className="rounded-2xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
             <p className="text-sm font-bold uppercase tracking-[0.14em] text-tinta">
@@ -142,7 +154,7 @@ const DashboardCorpoClinico = () => {
           </article>
         </section>
 
-        {/* Tabela de pacientes e botões de ação que o Claude apagou */}
+        {/* Tabela de pacientes e ações rápidas */}
         <section className="grid gap-6 xl:grid-cols-[1.6fr_0.9fr]">
           <article className="rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -166,39 +178,37 @@ const DashboardCorpoClinico = () => {
               </div>
             )}
 
-            <div className="mt-6 overflow-hidden rounded-3xl border border-tinta/15 bg-papel">
+            <div className="mt-6 overflow-x-auto rounded-3xl border border-tinta/15 bg-papel">
               <table className="min-w-full text-left text-sm">
                 <thead className="bg-papel-claro text-aco">
                   <tr>
                     <th className="px-4 py-4 font-semibold">Criança</th>
-                    <th className="px-4 py-4 font-semibold">Planos totais</th>
-                    <th className="px-4 py-4 font-semibold">Planos ativos</th>
+                    <th className="px-4 py-4 text-center font-semibold">
+                      Plano ativo
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-tinta/15 bg-papel-claro">
                   {loading ? (
                     <tr>
-                      <td
-                        colSpan={3}
-                        className="px-4 py-8 text-center text-aco"
-                      >
-                        A carregar pacientes…
+                      <td colSpan={2} className="px-4 py-8">
+                        <LoadingSpinner mensagem="A carregar pacientes..." />
                       </td>
                     </tr>
                   ) : planos.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={3}
+                        colSpan={2}
                         className="px-4 py-8 text-center text-aco"
                       >
                         Nenhum paciente encontrado.
                       </td>
                     </tr>
                   ) : (
-                    planos.map((paciente) => {
-                      const planosAtivos = paciente.planos.filter(
+                    paginatedPlanos.map((paciente) => {
+                      const temPlanoAtivo = paciente.planos.some(
                         (p) => p.ativo,
-                      ).length;
+                      );
 
                       return (
                         <tr
@@ -213,11 +223,18 @@ const DashboardCorpoClinico = () => {
                           <td className="px-4 py-4 font-semibold text-tinta">
                             {paciente.nome}
                           </td>
-                          <td className="px-4 py-4 text-tinta">
-                            {paciente.planos.length}
-                          </td>
-                          <td className="px-4 py-4 text-tinta">
-                            {planosAtivos}
+                          <td className="px-4 py-4 text-center">
+                            {temPlanoAtivo ? (
+                              <span className="inline-flex items-center gap-1.5 rounded-full border border-turbo/30 bg-turbo/15 px-2.5 py-0.5 text-xs font-semibold text-turbo-escuro">
+                                <span className="h-1.5 w-1.5 rounded-full bg-turbo"></span>
+                                Sim
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 rounded-full border border-tinta/15 bg-tinta/5 px-2.5 py-0.5 text-xs font-semibold text-aco">
+                                <span className="h-1.5 w-1.5 rounded-full bg-aco"></span>
+                                Não
+                              </span>
+                            )}
                           </td>
                         </tr>
                       );
@@ -226,17 +243,35 @@ const DashboardCorpoClinico = () => {
                 </tbody>
               </table>
             </div>
+
+            {totalPaginas > 1 && (
+              <div className="mt-4 flex items-center justify-between gap-4 border-t border-tinta/10 pt-4">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev) => prev - 1)}
+                  className="rounded-xl border border-tinta/15 bg-papel-claro px-3 py-1.5 text-xs font-semibold text-tinta transition hover:bg-papel disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Anterior
+                </button>
+                <span className="text-xs font-medium text-aco">
+                  Página {currentPage} de {totalPaginas}
+                </span>
+                <button
+                  disabled={currentPage === totalPaginas}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                  className="rounded-xl border border-tinta/15 bg-papel-claro px-3 py-1.5 text-xs font-semibold text-tinta transition hover:bg-papel disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Seguinte
+                </button>
+              </div>
+            )}
           </article>
 
           <article className="rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-sm">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-lg font-bold text-tinta">
-                  Ações rápidas
-                </h2>
-                <p className="mt-1 text-sm text-aco">
-                  Atalhos para o dia a dia.
-                </p>
+                <h2 className="text-lg font-bold text-tinta">Ações rápidas</h2>
+                <p className="mt-1 text-sm text-aco">Atalhos para o dia a dia.</p>
               </div>
             </div>
             <div className="mt-5 space-y-3">

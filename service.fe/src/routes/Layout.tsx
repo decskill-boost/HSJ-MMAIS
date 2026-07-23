@@ -12,47 +12,41 @@ import Sidebar, {
 } from "../components/Sidebar";
 import { useAuthActions } from "../hooks/useAuthActions";
 
+const IconeTrofeu = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M6 9H4a2 2 0 0 1-2-2V5h4" />
+    <path d="M18 9h2a2 2 0 0 0 2-2V5h-4" />
+    <path d="M12 17v4" />
+    <path d="M8 21h8" />
+    <rect x="6" y="2" width="12" height="13" rx="2" />
+  </svg>
+);
+
 const linksAdmin: SidebarLink[] = [
-  {
-    to: "/dashboard/admin",
-    label: "Gestão de Utilizadores",
-    Icon: IconePlano,
-    end: true,
-  },
+  { to: "/dashboard/admin", label: "Gestão de Utilizadores", Icon: IconePlano, end: true },
 ];
 
 const linksMedico: SidebarLink[] = [
   { to: "/dashboard/medico", label: "Início", Icon: IconeInicio, end: true },
-  {
-    to: "/dashboard/medico/pacientes",
-    label: "Gerir Planos",
-    Icon: IconePlanos,
-  },
-  {
-    to: "/exercicios",
-    label: "Biblioteca de Exercícios",
-    Icon: IconeBiblioteca,
-  },
+  { to: "/dashboard/medico/pacientes", label: "Gerir Planos", Icon: IconePlanos },
+  { to: "/exercicios", label: "Biblioteca de Exercícios", Icon: IconeBiblioteca },
   { to: "/plano/criar", label: "Criar Plano", Icon: IconePlano },
 ];
 
 const linksPaciente: SidebarLink[] = [
   { to: "/dashboard/paciente", label: "Início", Icon: IconeInicio, end: true },
   { to: "/paciente/planos", label: "Ver Planos", Icon: IconePlanos },
+  { to: "/paciente/historico", label: "Histórico & Prémios", Icon: IconeTrofeu },
 ];
 
-// Páginas onde a sidebar NÃO deve aparecer
-const paginasSemSidebar = ["/", "/login", "/missao"];
+const paginasSemSidebar = ["/", "/login", "/experimentar"];
 
 export const Layout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, handleLogin, handleLogout } = useAuthActions();
-
-  // Estado do menu mobile (hamburger + sidebar flutuante)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  // Escolhe os links da sidebar conforme o tipo de utilizador
   const isClinico = user?.role === "corpo_clinico";
   const isPaciente = user?.role === "paciente";
   const isAdmin = user?.role === "admin";
@@ -65,12 +59,11 @@ export const Layout = () => {
         ? linksPaciente
         : null;
 
-  // Só mostra a sidebar se houver links E a página atual não estiver na lista de exceções
   const mostrarSidebar =
     linksDoUtilizador && !paginasSemSidebar.includes(location.pathname);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden">
+    <div className="flex h-screen w-screen overflow-hidden bg-papel">
       {/* 1. COLUNA ESQUERDA: Sidebar ocupa a altura inteira */}
       {mostrarSidebar && (
         <Sidebar
@@ -80,7 +73,6 @@ export const Layout = () => {
         />
       )}
 
-      {/* 2. COLUNA DIREITA: Navbar, Main Content e Footer empilhados */}
       <div className="flex flex-1 flex-col overflow-hidden">
         <Navbar
           user={user}

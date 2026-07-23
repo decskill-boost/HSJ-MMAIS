@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
 import BtnGlobal from "./BtnGlobal";
 import CapitaoMais from "./CapitaoMais";
 import UserMenu from "./UserMenu";
@@ -51,9 +51,6 @@ export const Navbar = ({
   isMenuOpen,
   onMenuToggle,
 }: NavbarProps) => {
-  const location = useLocation();
-  const isPaginaInicial = location.pathname === "/";
-
   return (
     <header className="h-[68px] sticky top-0 z-50 border-b-[3px] border-tinta bg-papel-claro/95 backdrop-blur-sm px-4 py-0 sm:px-6 lg:px-8">
       {/* ZERO px aqui dentro! Só mx-auto e max-w-6xl */}
@@ -86,16 +83,6 @@ export const Navbar = ({
               MMAIS<span className="texto-raio-contorno">+</span>
             </span>
           </Link>
-
-          {/* Link "Missão e Propósito" — só na página inicial, estilo texto como o logo */}
-          {isPaginaInicial && (
-            <Link
-              to="/missao"
-              className="hidden font-display text-lg tracking-wide text-cobalto transition-colors hover:text-cobalto-vivo sm:ml-90 sm:inline-block"
-            >
-              Missão e Propósito
-            </Link>
-          )}
         </div>
 
         {/* Canto direito: avatar + dropdown com sessão; senão, "Entrar" */}

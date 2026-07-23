@@ -40,6 +40,8 @@ export class Utilizador {
   @Column({ type: 'varchar', length: 255, nullable: true })
   url_foto_perfil: string | null;
 
+
+
   // 👇 ESTA É A PARTE QUE FALTAVA PARA O TYPESCRIPT FICAR FELIZ 👇
   @ManyToMany(() => Permissao, { eager: true })
   @JoinTable({

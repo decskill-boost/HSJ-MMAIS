@@ -9,7 +9,7 @@ import PageNotFound from "../components/PageNotFound";
 import Login from "../components/Login";
 
 // Restantes rotas: code-splitting — cada perfil só descarrega o que usa
-const MissaoProposito = lazy(() => import("../components/MissaoProposito"));
+const ExperimentarPlanos = lazy(() => import("../components/ExperimentarPlanos"));
 const PersonalInfo = lazy(() => import("../components/PersonalInfo"));
 const DashboardPaciente = lazy(
   () => import("../components/Dashboard/DashboardPaciente"),
@@ -37,6 +37,9 @@ const PacientesList = lazy(
 const PacientePerfil = lazy(
   () => import("../components/Pacientes/PacientePerfil"),
 );
+const HistoricoRecompensas = lazy(
+  () => import("../components/Pacientes/HistoricoRecompensas"),
+);
 
 import { ProtectedRoute } from "./ProtectedRoute";
 
@@ -51,8 +54,8 @@ export const router = createBrowserRouter([
         element: <WelcomePage />,
       },
       {
-        path: "missao",
-        element: <MissaoProposito />,
+        path: "experimentar",
+        element: <ExperimentarPlanos />,
       },
       {
         path: "login",
@@ -127,6 +130,10 @@ export const router = createBrowserRouter([
           {
             path: "paciente/planos",
             element: <PlanosPaciente />,
+          },
+          {
+            path: "paciente/historico",
+            element: <HistoricoRecompensas />,
           },
         ],
       },

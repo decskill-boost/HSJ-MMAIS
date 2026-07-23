@@ -94,8 +94,9 @@ CREATE TABLE public.exercicios (
   categoria           varchar NOT NULL,
   url_video           text,
   duracao_segundos    integer NOT NULL,
-  dificuldade_clinica integer NOT NULL,
+  dificuldade_clinica varchar(20) NOT NULL DEFAULT 'facil',
   ativo               boolean NOT NULL DEFAULT true,
+  condicao_paciente   varchar(1) DEFAULT 'A',
   CONSTRAINT exercicios_pkey PRIMARY KEY (id_exercicio)
 );
 
@@ -104,13 +105,19 @@ CREATE TABLE public.exercicios (
 -- Prescrição de exercício feita por um médico a um paciente.
 -- ============================================================
 CREATE TABLE public.prescricoes (
-  id_prescricao     uuid      NOT NULL DEFAULT uuid_generate_v4(),
-  frequencia_semanal integer  NOT NULL,
-  data_validade     timestamp NOT NULL,
-  ativo             boolean   NOT NULL DEFAULT true,
-  notas_medicas     text,
-  id_paciente       uuid,
-  id_medico         uuid,
+  id_prescricao      uuid      NOT NULL DEFAULT uuid_generate_v4(),
+  data_inicio        timestamp NOT NULL DEFAULT timezone('utc'::text, now()),
+  frequencia_semanal integer   NOT NULL,
+  data_validade      timestamp,
+  ativo              boolean   NOT NULL DEFAULT true,
+  notas_medicas      text,
+  id_paciente        uuid,
+  id_medico          uuid      NOT NULL,
+  is_standard        boolean   NOT NULL DEFAULT false,
+  condicao_paciente  varchar(1) DEFAULT 'A'::character varying,
+  dificuldade        varchar(20) NOT NULL DEFAULT 'facil'::character varying,
+  condicao_clinica   varchar(255),
+  data_fim           timestamp,
   CONSTRAINT prescricoes_pkey PRIMARY KEY (id_prescricao),
   CONSTRAINT fk_prescricoes_paciente
     FOREIGN KEY (id_paciente) REFERENCES public.utilizadores(id_user),

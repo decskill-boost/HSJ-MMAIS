@@ -57,6 +57,7 @@ export class UsersService {
       ),
       urlFotoPerfil: user.url_foto_perfil,
       permissions,
+      data_registo: user.data_registo,
     };
   }
 

@@ -69,18 +69,15 @@ async function getAccessToken(): Promise<string> {
 export const pacientesService = {
   // Busca todos os utilizadores que são pacientes
   async getPacientes(): Promise<Paciente[]> {
-    const { data, error } = await supabase
-      .from("utilizadores")
-      .select("id_user, nome, email")
-      .eq("tipo_utilizador", "paciente")
-      .order("nome", { ascending: true });
-
-    if (error) {
-      console.error("Erro ao carregar pacientes:", error.message);
-      throw new Error(error.message);
-    }
-
-    return data ?? [];
+    const token = await getAccessToken();
+    const response = await apiClient.get<PacienteComAdesao[]>("/pacientes", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data.map((p) => ({
+      id_user: p.idUser,
+      nome: p.nome,
+      email: p.email,
+    }));
   },
 
   // Busca os dados básicos de um paciente para o cabeçalho do perfil

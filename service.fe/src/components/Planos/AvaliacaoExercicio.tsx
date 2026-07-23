@@ -45,7 +45,7 @@ const FRASES_CAPITAO: Record<number, string> = {
 };
 
 const AvaliacaoExercicio = ({
-  idPaciente, idExercicio, idPrescricao, duracaoSegundos, recompensaXp, onConcluir,
+  idExercicio, idPrescricao, duracaoSegundos, recompensaXp, onConcluir,
 }: Props) => {
   const [step, setStep] = useState(1);
   const [diversao, setDiversao] = useState(3);
@@ -60,6 +60,7 @@ const AvaliacaoExercicio = ({
   const [companhia, setCompanhia] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
   const [concluido, setConcluido] = useState(false);
+  const [xpGanho, setXpGanho] = useState(recompensaXp);
 
   const validarBpm = (raw: string, setter: (v: string) => void, setErro: (e: string) => void) => {
     if (raw === "") { setter(""); setErro(""); return; }
@@ -91,20 +92,18 @@ const AvaliacaoExercicio = ({
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      await sessoesService.registarSessao({
-        id_paciente: idPaciente,
+      const resultado = await sessoesService.registarSessao({
         id_exercicio: idExercicio,
         id_prescricao: idPrescricao,
         duracao: duracaoSegundos,
         diversao_1_a_5: diversao,
         esforco_1_a_10: esforco,
-        dificuldade_crianca: dificuldade,
-        bpm_medio: parseInt(bpmMedio),
-        bpm_maximo: parseInt(bpmMaximo),
-        problemas_treino: problemas,
-        companhia,
-        descricao_problema: problemas ? descricaoProblema : null,
+        fc_media: parseInt(bpmMedio),
+        fc_maxima: parseInt(bpmMaximo),
+        teve_problemas: problemas ?? false,
+        participacao_familiares: companhia ?? false,
       });
+      setXpGanho(resultado.xpGained);
       setConcluido(true);
     } catch (err) {
       console.error(err);
@@ -146,7 +145,7 @@ const AvaliacaoExercicio = ({
         </p>
         <div className="entrada-pop-2 relative rounded-2xl border-[3px] border-tinta bg-linear-to-b from-raio to-raio-fundo px-6 py-2 shadow-vinheta">
           <p className="font-display text-2xl tracking-wide text-tinta">
-            ⭐ +{recompensaXp} XP
+            ⭐ +{xpGanho} XP
           </p>
         </div>
         <button

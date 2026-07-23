@@ -20,13 +20,12 @@ export class Exercicio {
   @Column({ type: 'int' })
   duracao_segundos: number;
 
-  @Column({ type: 'int' })
-  dificuldade_clinica: number;
+  @Column({ type: 'varchar', length: 20, default: 'facil' })
+  dificuldade_clinica: string;
 
   @Column({ type: 'text', nullable: true })
   descricao: string;
 
-  // ADICIONA ESTA LINHA ABAIXO
   @Column({ type: 'text', nullable: true })
   materiais_necessarios: string;
 
@@ -34,5 +33,8 @@ export class Exercicio {
   ativo: boolean;
 
   @Column({ type: 'varchar', length: 1, default: 'A', nullable: true })
-  dificuldade: string;
+  condicao_paciente: string;
+
+  @Column({ type: 'int', nullable: true })   
+  repeticoes: number;
 }

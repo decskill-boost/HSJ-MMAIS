@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { pacientesService, type PacienteComAdesao } from "../../services/pacientes";
+import LoadingSpinner from "../LoadingSpinner";
 
 type FiltroAdesao = "todos" | "critico" | "moderado" | "ideal";
 type Coluna = "nome" | "email" | "adesao";
@@ -88,7 +89,7 @@ const PacientesList = () => {
 
       <div className="mt-6 rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-sm">
         {loading ? (
-          <p className="text-sm text-aco">A carregar pacientes...</p>
+          <LoadingSpinner mensagem="A carregar pacientes..." />
         ) : erro ? (
           <p className="text-sm text-capa-escura">{erro}</p>
         ) : pacientes.length === 0 ? (
