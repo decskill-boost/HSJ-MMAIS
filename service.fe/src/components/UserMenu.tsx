@@ -12,10 +12,10 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
   const menuRef = useRef<HTMLDivElement>(null);
 
   const isClinico = user.tipo_utilizador === "corpo_clinico";
-  const avatarColor = isClinico ? "bg-indigo-600" : "bg-blue-600";
+  const avatarColor = isClinico ? "bg-cobalto" : "bg-cobalto";
   const ringColor = isClinico
-    ? "focus:ring-indigo-500/30"
-    : "focus:ring-blue-500/30";
+    ? "focus:ring-cobalto/30"
+    : "focus:ring-cobalto/30";
 
   // Inicial a partir do nome (ou do email, se não houver nome)
   const initial = (user.nome || user.email || "?")
@@ -49,7 +49,7 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-full text-sm font-bold text-white transition focus:outline-none focus:ring-2 ${avatarColor} ${ringColor}`}
+        className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-full text-sm font-bold text-papel transition focus:outline-none focus:ring-2 ${avatarColor} ${ringColor}`}
       >
         {user.url_foto_perfil ? (
           <img
@@ -66,20 +66,20 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
+          className="absolute right-0 z-50 mt-2 w-60 overflow-hidden rounded-xl border border-tinta/15 bg-papel-claro shadow-lg"
         >
-          <div className="border-b border-slate-100 px-4 py-3">
-            <p className="truncate text-sm font-semibold text-slate-900">
+          <div className="border-b border-tinta/10 px-4 py-3">
+            <p className="truncate text-sm font-semibold text-tinta">
               {user.nome}
             </p>
-            <p className="truncate text-sm text-slate-500">{user.email}</p>
+            <p className="truncate text-sm text-aco">{user.email}</p>
           </div>
 
           <Link
             to="/perfil"
             role="menuitem"
             onClick={() => setOpen(false)}
-            className="block w-full px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+            className="block w-full px-4 py-3 text-left text-sm font-medium text-tinta transition hover:bg-papel"
           >
             Informação pessoal
           </Link>
@@ -91,7 +91,7 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
               setOpen(false);
               onLogout?.();
             }}
-            className="block w-full border-t border-slate-100 px-4 py-3 text-left text-sm font-medium text-red-600 transition hover:bg-slate-50"
+            className="block w-full border-t border-tinta/10 px-4 py-3 text-left text-sm font-medium text-capa-escura transition hover:bg-papel"
           >
             Terminar sessão
           </button>

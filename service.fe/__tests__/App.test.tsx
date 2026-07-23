@@ -1,24 +1,20 @@
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import App from '../src/App'
+import CapitaoMais from '../src/components/CapitaoMais'
+import BtnGlobal from '../src/components/BtnGlobal'
 
-describe('App', () => {
-  it('renderiza o título "Get started"', () => {
-    render(<App />)
+// Smoke tests da identidade MMAIS (substituem os testes obsoletos do template Vite)
+describe('Identidade MMAIS', () => {
+  it('renderiza a mascote Capitão Mais', () => {
+    render(<CapitaoMais />)
     expect(
-      screen.getByRole('heading', { name: /get started/i }),
+      screen.getByRole('img', { name: /capitão mais/i }),
     ).toBeInTheDocument()
   })
 
-  it('incrementa o contador ao clicar no botão', async () => {
-    const user = userEvent.setup()
-    render(<App />)
-
-    const button = screen.getByRole('button', { name: /count is 0/i })
-    await user.click(button)
-
+  it('renderiza o botão global com o texto correto', () => {
+    render(<BtnGlobal variant="raio">Começar!</BtnGlobal>)
     expect(
-      screen.getByRole('button', { name: /count is 1/i }),
+      screen.getByRole('button', { name: /começar/i }),
     ).toBeInTheDocument()
   })
 })

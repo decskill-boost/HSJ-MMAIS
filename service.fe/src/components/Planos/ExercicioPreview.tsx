@@ -13,9 +13,9 @@ const getDificuldadeLabel = (value: number) => {
 };
 
 const getDificuldadeColor = (value: number) => {
-  if (value <= 3) return "bg-green-100 text-green-700";
-  if (value <= 6) return "bg-yellow-100 text-yellow-700";
-  return "bg-red-100 text-red-700";
+  if (value <= 3) return "bg-turbo/15 text-turbo-escuro";
+  if (value <= 6) return "bg-raio/25 text-tinta";
+  return "bg-capa/20 text-capa-escura";
 };
 
 const formatTime = (seconds: number) => {
@@ -48,14 +48,14 @@ const ExercicioPreview = ({ exercicio, onVoltar, onComecar }: Props) => {
     <div className="mx-auto w-full max-w-5xl px-4 py-6">
       <button
         onClick={onVoltar}
-        className="mb-4 text-sm font-medium text-slate-500 transition hover:text-slate-900"
+        className="mb-4 text-sm font-medium text-aco transition hover:text-tinta"
       >
         ← Voltar
       </button>
 
       <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
         {/* Vídeo */}
-        <div className="overflow-hidden rounded-2xl bg-black shadow-lg">
+        <div className="overflow-hidden rounded-2xl bg-tinta shadow-lg">
           {exercicio.url_video ? (
             <video
               src={exercicio.url_video}
@@ -66,37 +66,37 @@ const ExercicioPreview = ({ exercicio, onVoltar, onComecar }: Props) => {
               playsInline
             />
           ) : (
-            <div className="flex h-48 items-center justify-center text-sm text-slate-400">
+            <div className="flex h-48 items-center justify-center text-sm text-papel">
               Sem vídeo disponível
             </div>
           )}
         </div>
 
         <div className="flex flex-col gap-3">
-          <h2 className="text-xl font-extrabold text-slate-900">
+          <h2 className="text-xl font-extrabold text-tinta">
             {exercicio.nome_exercicio}
           </h2>
 
           <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-xl bg-slate-50 p-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <div className="rounded-xl bg-papel p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-aco">
                 Duração
               </p>
-              <p className="mt-0.5 text-lg font-bold text-slate-900">
+              <p className="mt-0.5 text-lg font-bold text-tinta">
                 {formatTime(exercicio.duracao_segundos)}
               </p>
             </div>
-            <div className="rounded-xl bg-slate-50 p-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <div className="rounded-xl bg-papel p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-aco">
                 XP
               </p>
-              <p className="mt-0.5 text-lg font-bold text-blue-600">
+              <p className="mt-0.5 text-lg font-bold text-cobalto">
                 +{exercicio.recompensa_xp} XP
               </p>
             </div>
-            <div className="col-span-2 rounded-xl bg-slate-50 p-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                Dificuldade
+            <div className="col-span-2 rounded-xl bg-papel p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-aco">
+                Intensidade
               </p>
               <span className={`mt-1 inline-flex rounded-full px-3 py-0.5 text-sm font-semibold ${getDificuldadeColor(exercicio.dificuldade_clinica)}`}>
                 {getDificuldadeLabel(exercicio.dificuldade_clinica)}
@@ -106,15 +106,15 @@ const ExercicioPreview = ({ exercicio, onVoltar, onComecar }: Props) => {
 
           {/* Materiais necessários */}
           {materiais.length > 0 && (
-            <div className="rounded-xl border border-blue-100 bg-blue-50 p-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-blue-600 mb-2">
+            <div className="rounded-xl border border-cobalto/20 bg-cobalto/5 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-cobalto mb-2">
                 🛠 O que precisas para este exercício
               </p>
               <div className="flex flex-wrap gap-2">
                 {materiais.map((m) => (
                   <span
                     key={m}
-                    className="flex items-center gap-1 rounded-full bg-white border border-blue-200 px-3 py-1 text-xs font-medium text-slate-700"
+                    className="flex items-center gap-1 rounded-full bg-papel-claro border border-cobalto/20 px-3 py-1 text-xs font-medium text-tinta"
                   >
                     <span>{getMaterialEmoji(m)}</span>
                     {m}
@@ -126,11 +126,11 @@ const ExercicioPreview = ({ exercicio, onVoltar, onComecar }: Props) => {
 
           {/* Instruções */}
           {exercicio.descricao && (
-            <div className="rounded-xl bg-slate-50 p-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-1">
+            <div className="rounded-xl bg-papel p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-aco mb-1">
                 Instruções
               </p>
-              <p className="text-sm text-slate-700 whitespace-pre-line">
+              <p className="text-sm text-tinta whitespace-pre-line">
                 {exercicio.descricao}
               </p>
             </div>
@@ -138,7 +138,7 @@ const ExercicioPreview = ({ exercicio, onVoltar, onComecar }: Props) => {
 
           <button
             onClick={onComecar}
-            className="mt-auto rounded-xl bg-blue-600 py-2.5 text-base font-semibold text-white shadow-sm transition hover:bg-blue-700"
+            className="mt-auto rounded-xl bg-cobalto py-2.5 text-base font-semibold text-papel shadow-sm transition hover:bg-cobalto-vivo"
           >
             Começar exercício ▶
           </button>

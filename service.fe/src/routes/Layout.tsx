@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { Navbar } from "../components/Navbar";
+import CarregandoAcademia from "../components/CarregandoAcademia";
 import Footer from "../components/Footer";
 import Sidebar, {
   IconeInicio,
@@ -38,7 +39,7 @@ const linksPaciente: SidebarLink[] = [
   { to: "/paciente/historico", label: "Histórico & Prémios", Icon: IconeTrofeu },
 ];
 
-const paginasSemSidebar = ["/", "/login", "/missao"];
+const paginasSemSidebar = ["/", "/login", "/experimentar"];
 
 export const Layout = () => {
   const navigate = useNavigate();
@@ -62,7 +63,8 @@ export const Layout = () => {
     linksDoUtilizador && !paginasSemSidebar.includes(location.pathname);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-slate-50">
+    <div className="flex h-screen w-screen overflow-hidden bg-papel">
+      {/* 1. COLUNA ESQUERDA: Sidebar ocupa a altura inteira */}
       {mostrarSidebar && (
         <Sidebar
           links={linksDoUtilizador}
@@ -81,7 +83,9 @@ export const Layout = () => {
         />
 
         <main className="flex-1 overflow-y-auto pb-16">
-          <Outlet context={{ user, handleLogin, handleLogout }} />
+          <Suspense fallback={<CarregandoAcademia />}>
+            <Outlet context={{ user, handleLogin, handleLogout }} />
+          </Suspense>
         </main>
 
         <Footer />

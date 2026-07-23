@@ -1,4 +1,5 @@
 import BtnGlobal from "./BtnGlobal";
+import CapitaoMais from "./CapitaoMais";
 import { useAuth } from "../hooks/useAuth";
 
 const Login = () => {
@@ -14,21 +15,24 @@ const Login = () => {
   } = useAuth();
 
   return (
-    <div className="flex flex-1 items-center justify-center bg-slate-50 px-4 py-8">
-      <div className="w-full max-w-md space-y-8 rounded-2xl bg-white p-10 shadow-xl border border-slate-100">
+    <div className="flex min-h-full flex-1 items-center justify-center px-4 py-8">
+      <div className="w-full max-w-md space-y-8 rounded-2xl border-[3px] border-tinta bg-papel-claro p-10 shadow-vinheta">
         <div className="text-center">
-          <h2 className="text-4xl font-extrabold tracking-tight text-blue-600">
-            +MMAis
+          <div className="flex justify-center">
+            <span className="animate-flutuar">
+              <CapitaoMais className="h-28 w-auto" />
+            </span>
+          </div>
+          <h2 className="mt-3 font-display text-4xl tracking-wide text-tinta">
+            MMAIS<span className="texto-raio-contorno">+</span>
           </h2>
-          <p className="mt-3 text-slate-500 font-medium">
-            Plataforma de Apoio Clínico
-          </p>
+          <p className="mt-2 font-bold text-aco">Plataforma de Apoio Clínico</p>
         </div>
 
         {success ? (
-          <div className="rounded-xl bg-green-50 p-4 text-center animate-pulse">
-            <p className="text-sm font-semibold text-green-800">
-              Sessão iniciada! A redirecionar...
+          <div className="rounded-xl border-2 border-turbo bg-turbo/10 p-4 text-center">
+            <p className="text-sm font-bold text-turbo-escuro">
+              Sessão iniciada. A redirecionar…
             </p>
           </div>
         ) : (
@@ -37,7 +41,7 @@ const Login = () => {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-semibold text-slate-700"
+                  className="block text-sm font-bold text-tinta"
                 >
                   Email Institucional
                 </label>
@@ -47,7 +51,7 @@ const Login = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1 block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="mt-1 block w-full rounded-xl border-2 border-tinta/20 bg-papel px-4 py-3 text-tinta transition focus:border-cobalto focus:bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/25"
                   placeholder="exemplo@ulsjoao.min-saude.pt"
                 />
               </div>
@@ -55,7 +59,7 @@ const Login = () => {
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-semibold text-slate-700"
+                  className="block text-sm font-bold text-tinta"
                 >
                   Palavra-passe
                 </label>
@@ -65,14 +69,14 @@ const Login = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="mt-1 block w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 transition focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="mt-1 block w-full rounded-xl border-2 border-tinta/20 bg-papel px-4 py-3 text-tinta transition focus:border-cobalto focus:bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/25"
                   placeholder="••••••••"
                 />
               </div>
             </div>
 
             {errorMsg && (
-              <div className="rounded-lg bg-red-50 p-3 text-sm font-medium text-red-800 border border-red-100 text-center">
+              <div className="rounded-xl border-2 border-capa/40 bg-capa/10 p-3 text-center text-sm font-bold text-capa-escura">
                 {errorMsg}
               </div>
             )}
@@ -81,9 +85,9 @@ const Login = () => {
               type="submit"
               disabled={loading}
               isLoading={loading}
-              className="group relative flex w-full justify-center rounded-xl bg-blue-600 py-3 text-sm font-bold text-white shadow-lg transition-all hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500/30 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full py-3"
             >
-              Entrar na conta
+              {loading ? "A verificar…" : "Entrar na conta"}
             </BtnGlobal>
           </form>
         )}

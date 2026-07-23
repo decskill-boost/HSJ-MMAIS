@@ -55,48 +55,48 @@ const PlanosCorpoClinico = () => {
       {/* Cabeçalho: empilhado em mobile, em linha a partir de sm */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-extrabold tracking-tight text-tinta">
             Gestão de planos clínicos
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-aco">
             Veja todos os pacientes, o plano atual e assinale novos planos
             quando necessário.
           </p>
         </div>
         <BtnGlobal
           onClick={() => navigate("/plano/criar")}
-          className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm text-white hover:bg-indigo-700 sm:w-auto"
+          className="w-full rounded-xl bg-cobalto px-4 py-3 text-sm text-papel hover:bg-cobalto sm:w-auto"
         >
           Criar plano novo
         </BtnGlobal>
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
         <div>
-          <p className="text-sm font-semibold text-slate-500">
+          <p className="text-sm font-semibold text-aco">
             Pacientes listados
           </p>
-          <p className="mt-1 text-2xl font-bold text-slate-900">
+          <p className="mt-1 text-2xl font-bold text-tinta">
             {planos.length}
           </p>
         </div>
         <div>
-          <p className="text-sm font-semibold text-slate-500">Planos ativos</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900">
+          <p className="text-sm font-semibold text-aco">Planos ativos</p>
+          <p className="mt-1 text-2xl font-bold text-tinta">
             {totalPlanosAtivos}
           </p>
         </div>
       </div>
 
       {erro && (
-        <div className="mb-6 rounded-2xl bg-red-50 p-4 text-sm text-red-700">
+        <div className="mb-6 rounded-2xl bg-capa/10 p-4 text-sm text-capa-escura">
           {erro}
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-          <thead className="bg-slate-50 text-slate-600">
+      <div className="overflow-x-auto rounded-3xl border border-tinta/15 bg-papel-claro shadow-sm">
+        <table className="min-w-full divide-y divide-tinta/15 text-left text-sm">
+          <thead className="bg-papel text-aco">
             <tr>
               <th className="px-6 py-4 font-semibold">Criança</th>
               <th className="px-4 py-4 font-semibold">Planos Ativos</th>
@@ -105,12 +105,12 @@ const PlanosCorpoClinico = () => {
               <th className="px-6 py-4 font-semibold">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-tinta/10">
             {loading ? (
               <tr>
                 <td
                   colSpan={5}
-                  className="px-6 py-8 text-center text-sm text-slate-500"
+                  className="px-6 py-8 text-center text-sm text-aco"
                 >
                   A carregar pacientes e planos…
                 </td>
@@ -119,7 +119,7 @@ const PlanosCorpoClinico = () => {
               <tr>
                 <td
                   colSpan={5}
-                  className="px-6 py-8 text-center text-sm text-slate-500"
+                  className="px-6 py-8 text-center text-sm text-aco"
                 >
                   Nenhum paciente encontrado.
                 </td>
@@ -133,8 +133,8 @@ const PlanosCorpoClinico = () => {
                 const temPlanoAtivo = planosAtivos.length > 0;
 
                 return (
-                  <tr key={paciente.id_paciente} className="hover:bg-slate-50">
-                    <td className="px-6 py-4 font-semibold text-slate-900">
+                  <tr key={paciente.id_paciente} className="hover:bg-papel">
+                    <td className="px-6 py-4 font-semibold text-tinta">
                       {paciente.nome}
                     </td>
 
@@ -143,8 +143,8 @@ const PlanosCorpoClinico = () => {
                       <span
                         className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${
                           temPlanoAtivo
-                            ? "bg-emerald-50 text-emerald-700 ring-emerald-600/10"
-                            : "bg-slate-50 text-slate-600 ring-slate-500/10"
+                            ? "bg-turbo/10 text-turbo-escuro ring-turbo-escuro/10"
+                            : "bg-papel text-aco ring-aco/10"
                         }`}
                       >
                         {planosAtivos.length}{" "}
@@ -154,12 +154,12 @@ const PlanosCorpoClinico = () => {
 
                     {/* Planos Totais */}
                     <td className="px-4 py-4">
-                      <span className="inline-flex items-center rounded-md bg-slate-50 px-2 py-1 text-xs font-medium text-slate-600 ring-1 ring-inset ring-slate-500/10">
+                      <span className="inline-flex items-center rounded-md bg-papel px-2 py-1 text-xs font-medium text-aco ring-1 ring-inset ring-aco/10">
                         {planosTotais} {planosTotais === 1 ? "total" : "totais"}
                       </span>
                     </td>
 
-                    <td className="px-4 py-4 text-slate-700">
+                    <td className="px-4 py-4 text-tinta">
                       {formatarData(
                         (paciente as any).data_criacao ??
                           planoMaisRecente?.data_inicio,
@@ -175,7 +175,7 @@ const PlanosCorpoClinico = () => {
                               `/plano/criar?paciente=${paciente.id_paciente}`,
                             )
                           }
-                          className="rounded-xl bg-slate-900 px-3 py-2 text-xs text-white hover:bg-slate-800"
+                          className="rounded-xl bg-tinta px-3 py-2 text-xs text-papel hover:bg-tinta"
                         >
                           Atribuir novo plano
                         </BtnGlobal>
@@ -187,7 +187,7 @@ const PlanosCorpoClinico = () => {
                               `/dashboard/medico/pacientes/${paciente.id_paciente}`,
                             )
                           }
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                          className="rounded-xl border border-tinta/15 bg-papel-claro px-3 py-2 text-xs font-semibold text-tinta hover:bg-papel"
                         >
                           Ir para detalhados
                         </BtnGlobal>

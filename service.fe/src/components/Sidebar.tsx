@@ -86,7 +86,7 @@ export const Sidebar = ({ links, isOpen, onClose }: SidebarProps) => {
       {/* Overlay escuro para mobile quando a sidebar está aberta */}
       {isOpen && (
         <div
-          className="fixed inset-0 top-[68px] z-30 bg-slate-900/50 backdrop-blur-sm transition-opacity md:hidden"
+          className="fixed inset-0 top-[68px] z-30 bg-tinta/50 backdrop-blur-sm transition-opacity md:hidden"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -94,7 +94,7 @@ export const Sidebar = ({ links, isOpen, onClose }: SidebarProps) => {
 
       {/* Sidebar - flutuante em mobile, fixa/estática em desktop */}
       <aside
-        className={`fixed inset-y-0 left-0 top-[68px] z-40 w-60 transform overflow-y-auto border-r border-slate-200 bg-white transition-transform duration-300 ease-in-out md:static md:block md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 top-[68px] z-40 w-60 transform overflow-y-auto border-r border-tinta/15 bg-papel-claro transition-transform duration-300 ease-in-out md:static md:block md:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -106,10 +106,10 @@ export const Sidebar = ({ links, isOpen, onClose }: SidebarProps) => {
               end={end}
               onClick={onClose} // Fecha o menu ao clicar num link (bom para mobile)
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+                `flex items-center gap-3 rounded-xl border-2 px-3 py-2.5 text-sm font-bold transition ${
                   isActive
-                    ? "bg-indigo-50 text-indigo-700"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    ? "border-tinta bg-cobalto/10 text-cobalto shadow-[2px_2px_0_#141F3C]"
+                    : "border-transparent text-aco hover:bg-papel hover:text-tinta"
                 }`
               }
             >

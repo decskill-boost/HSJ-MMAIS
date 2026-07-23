@@ -1,23 +1,45 @@
+import { lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import { Layout } from "./Layout";
 import { UserRole } from "../types/permissions";
 
+// Primeira pintura: carregadas de imediato
 import WelcomePage from "../components/WelcomePage";
-import ExperimentarPlanos from "../components/ExperimentarPlanos";
-import PersonalInfo from "../components/PersonalInfo";
 import PageNotFound from "../components/PageNotFound";
 import Login from "../components/Login";
-import DashboardPaciente from "../components/Dashboard/DashboardPaciente";
-import DashboardCorpoClinico from "../components/Dashboard/DashboardCorpoClinico";
-import PlanosCorpoClinico from "../components/Dashboard/PlanosCorpoClinico";
-import PacienteDetalhe from "../components/Dashboard/PacienteDetalhe";
-import DashboardAdmin from "../components/Dashboard/DashboardAdmin/DashboardAdmin";
-import ExerciciosPage from "../components/Exercicios/ExerciciosPage";
-import CriarPlano from "../components/CriarPlano";
-import PlanosPaciente from "../components/PlanosPaciente";
-import PacientesList from "../components/Pacientes/PacientesList";
-import PacientePerfil from "../components/Pacientes/PacientePerfil";
-import HistoricoRecompensas from "../components/Pacientes/HistoricoRecompensas";
+
+// Restantes rotas: code-splitting — cada perfil só descarrega o que usa
+const ExperimentarPlanos = lazy(() => import("../components/ExperimentarPlanos"));
+const PersonalInfo = lazy(() => import("../components/PersonalInfo"));
+const DashboardPaciente = lazy(
+  () => import("../components/Dashboard/DashboardPaciente"),
+);
+const DashboardCorpoClinico = lazy(
+  () => import("../components/Dashboard/DashboardCorpoClinico"),
+);
+const PlanosCorpoClinico = lazy(
+  () => import("../components/Dashboard/PlanosCorpoClinico"),
+);
+const PacienteDetalhe = lazy(
+  () => import("../components/Dashboard/PacienteDetalhe"),
+);
+const DashboardAdmin = lazy(
+  () => import("../components/Dashboard/DashboardAdmin/DashboardAdmin"),
+);
+const ExerciciosPage = lazy(
+  () => import("../components/Exercicios/ExerciciosPage"),
+);
+const CriarPlano = lazy(() => import("../components/CriarPlano"));
+const PlanosPaciente = lazy(() => import("../components/PlanosPaciente"));
+const PacientesList = lazy(
+  () => import("../components/Pacientes/PacientesList"),
+);
+const PacientePerfil = lazy(
+  () => import("../components/Pacientes/PacientePerfil"),
+);
+const HistoricoRecompensas = lazy(
+  () => import("../components/Pacientes/HistoricoRecompensas"),
+);
 
 import { ProtectedRoute } from "./ProtectedRoute";
 
@@ -26,47 +48,101 @@ export const router = createBrowserRouter([
     path: "/",
     element: <Layout />,
     children: [
-      { path: "", element: <WelcomePage /> },
-      { path: "experimentar", element: <ExperimentarPlanos /> },
-      { path: "login", element: <Login /> },
+      // 🟢 ROTAS PÚBLICAS
+      {
+        path: "",
+        element: <WelcomePage />,
+      },
+      {
+        path: "experimentar",
+        element: <ExperimentarPlanos />,
+      },
+      {
+        path: "login",
+        element: <Login />,
+      },
 
+      // 🟡 ROTAS AUTENTICADAS (Apenas precisa de login, sem perfil específico)
       {
         element: <ProtectedRoute />,
         children: [
-          { path: "perfil", element: <PersonalInfo /> },
+          {
+            path: "perfil",
+            element: <PersonalInfo />,
+          },
         ],
       },
 
+      // 🔴 ROTAS CORPO CLÍNICO (Protegidas por perfil)
       {
         element: <ProtectedRoute role={UserRole.CORPO_CLINICO} />,
         children: [
-          { path: "dashboard/medico", element: <DashboardCorpoClinico /> },
-          { path: "dashboard/medico/pacientes", element: <PlanosCorpoClinico /> },
-          { path: "dashboard/medico/pacientes/:pacienteId", element: <PacienteDetalhe /> },
-          { path: "exercicios", element: <ExerciciosPage /> },
-          { path: "plano/criar", element: <CriarPlano /> },
-          { path: "dashboard/medico/adesao", element: <PacientesList /> },
-          { path: "dashboard/medico/adesao/:idPaciente", element: <PacientePerfil /> },
+          {
+            path: "dashboard/medico",
+            element: <DashboardCorpoClinico />,
+          },
+          {
+            path: "dashboard/medico/pacientes",
+            element: <PlanosCorpoClinico />,
+          },
+          {
+            path: "dashboard/medico/pacientes/:pacienteId",
+            element: <PacienteDetalhe />,
+          },
+          {
+            path: "exercicios",
+            element: <ExerciciosPage />,
+          },
+          {
+            path: "plano/criar",
+            element: <CriarPlano />,
+          },
+          {
+            path: "dashboard/medico/adesao",
+            element: <PacientesList />,
+          },
+          {
+            path: "dashboard/medico/adesao/:idPaciente",
+            element: <PacientePerfil />,
+          },
         ],
       },
 
+      // 🟣 ROTAS ADMIN (Protegidas por Admin)
       {
         element: <ProtectedRoute role={UserRole.ADMIN} />,
         children: [
-          { path: "dashboard/admin", element: <DashboardAdmin /> },
+          {
+            path: "dashboard/admin",
+            element: <DashboardAdmin />,
+          },
         ],
       },
 
+      // 🔵 ROTAS PACIENTE (Protegidas por perfil)
       {
         element: <ProtectedRoute role={UserRole.PACIENTE} />,
         children: [
-          { path: "dashboard/paciente", element: <DashboardPaciente /> },
-          { path: "paciente/planos", element: <PlanosPaciente /> },
-          { path: "paciente/historico", element: <HistoricoRecompensas /> },
+          {
+            path: "dashboard/paciente",
+            element: <DashboardPaciente />,
+          },
+          {
+            path: "paciente/planos",
+            element: <PlanosPaciente />,
+          },
+          {
+            path: "paciente/historico",
+            element: <HistoricoRecompensas />,
+          },
         ],
       },
 
-      { path: "*", element: <PageNotFound /> },
+      // ⚪ ROTA NÃO ENCONTRADA (Catch-all)
+      {
+        path: "*",
+        element: <PageNotFound />,
+      },
     ],
   },
 ]);
