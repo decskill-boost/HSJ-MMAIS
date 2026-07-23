@@ -106,6 +106,18 @@ const WelcomePage = ({ logoSrc }: WelcomePageProps) => {
         >
           {buttonText}
         </BtnGlobal>
+
+        {!isAuthenticated && (
+          <button
+            onClick={() => navigate("/experimentar")}
+            className="group mx-auto mt-4 text-sm font-bold text-blue-600 transition hover:text-blue-700 hover:underline"
+          >
+            Não tens conta? Experimenta um plano grátis{" "}
+            <span className="inline-block text-lg transition-transform group-hover:translate-x-1">
+              →
+            </span>
+          </button>
+        )}
       </div>
 
       {/* MISSÃO E PROPÓSITO */}
@@ -176,25 +188,6 @@ const WelcomePage = ({ logoSrc }: WelcomePageProps) => {
           ))}
         </div>
       </section>
-
-      {/* EXPERIMENTAR SEM CONTA */}
-      {!isAuthenticated && (
-        <div className="mx-auto mb-16 mt-4 flex max-w-xl flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-blue-200 bg-blue-50/60 px-6 py-5">
-          <p className="text-base font-bold text-slate-900">
-            Ainda não tens conta? 🤔
-          </p>
-          <p className="text-sm text-slate-600">
-            Experimenta já os exercícios de um plano, sem precisares de te
-            registares!
-          </p>
-          <button
-            onClick={() => navigate("/experimentar")}
-            className="mt-1 rounded-xl bg-white px-6 py-2.5 text-sm font-bold text-blue-600 shadow-sm ring-2 ring-blue-200 transition hover:bg-blue-600 hover:text-white hover:ring-blue-600"
-          >
-            Experimentar agora →
-          </button>
-        </div>
-      )}
     </div>
   );
 };
