@@ -35,7 +35,8 @@ export class PrescricoesService {
       notas_medicas: dados.notas_medicas ?? null,
       ativo: true,
       is_standard: dados.is_standard ?? false,
-      dificuldade: dados.dificuldade ?? 'A',
+      condicao_paciente: dados.condicao_paciente ?? 'A',
+      dificuldade: dados.dificuldade ?? 'facil',
       condicao_clinica: dados.condicao_clinica ?? null,
     } as any);
 

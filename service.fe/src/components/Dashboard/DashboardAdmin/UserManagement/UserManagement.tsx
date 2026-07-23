@@ -118,8 +118,6 @@ const UserManagement = () => {
       resetForm();
     } catch (err: unknown) {
       console.error(err);
-      // Mostrar mensagem mais informativa quando disponível (Axios)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const anyErr = err as any;
       const serverMessage =
         anyErr?.response?.data?.message ||

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { exerciciosService, type Exercicio } from "../services/exercicios";
 import { useUser } from "../contexts/UserContext";
 import { planosService } from "../services/planosService";
+import LoadingSpinner from "./LoadingSpinner";
 
 // Mostrar duração como a biblioteca (minutos)
 const formatarDuracao = (s: number) =>
@@ -31,7 +32,8 @@ export const CriarPlano = () => {
   // Planos standard e classificação de intensidade e duração personalizada
   const [tipoPlano, setTipoPlano] = useState<"standard" | "personalizavel">("standard");
   const [condicaoClinica, setCondicaoClinica] = useState("");
-  const [dificuldade, setDificuldade] = useState("A");
+  const [dificuldade, setDificuldade] = useState("facil");
+  const [condicaoPaciente, setCondicaoPaciente] = useState("A");
   const [duracoesCustomizadas, setDuracoesCustomizadas] = useState<{ [id: string]: number }>({});
 
   // Estado da gravação
@@ -42,11 +44,13 @@ export const CriarPlano = () => {
   // Filtros (iguais aos da biblioteca)
   const [filtroCategoria, setFiltroCategoria] = useState("todas");
   const [filtroDificuldade, setFiltroDificuldade] = useState("todas");
+  const [filtroCondicao, setFiltroCondicao] = useState("todas");
   const [filtroDuracao, setFiltroDuracao] = useState("todas");
 
   const limparFiltros = () => {
     setFiltroCategoria("todas");
     setFiltroDificuldade("todas");
+    setFiltroCondicao("todas");
     setFiltroDuracao("todas");
   };
 
@@ -86,13 +90,18 @@ export const CriarPlano = () => {
       )
         return false;
       if (
+        filtroCondicao !== "todas" &&
+        ex.condicao_paciente !== filtroCondicao
+      )
+        return false;
+      if (
         filtroDuracao !== "todas" &&
         faixaDuracao(ex.duracao_segundos) !== filtroDuracao
       )
         return false;
       return true;
     });
-  }, [exercicios, filtroCategoria, filtroDificuldade, filtroDuracao]);
+  }, [exercicios, filtroCategoria, filtroDificuldade, filtroCondicao, filtroDuracao]);
 
   const toggle = (id: string) => {
     setGuardado(false);
@@ -131,6 +140,7 @@ export const CriarPlano = () => {
         notas_medicas: notasMedicas,
         is_standard: tipoPlano === "standard",
         dificuldade: dificuldade,
+        condicao_paciente: condicaoPaciente,
         condicao_clinica: tipoPlano === "personalizavel" ? condicaoClinica.trim() : null,
         exercicios: exerciciosComDuracao,
       });
@@ -141,7 +151,8 @@ export const CriarPlano = () => {
       setDuracoesCustomizadas({});
       setFrequenciaSemanal(3);
       setDataValidade("");
-      setDificuldade("A");
+      setDificuldade("facil");
+      setCondicaoPaciente("A");
       setTipoPlano("standard");
       setCondicaoClinica("");
       setFiltroCategoria("todas");
@@ -213,6 +224,22 @@ export const CriarPlano = () => {
 
               <div className="min-w-[140px] flex-1">
                 <label className="block text-xs font-semibold text-slate-600">
+                  Condição
+                </label>
+                <select
+                  value={filtroCondicao}
+                  onChange={(e) => setFiltroCondicao(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none"
+                >
+                  <option value="todas">Todas as condições</option>
+                  <option value="A">Nível A</option>
+                  <option value="B">Nível B</option>
+                  <option value="C">Nível C</option>
+                </select>
+              </div>
+
+              <div className="min-w-[140px] flex-1">
+                <label className="block text-xs font-semibold text-slate-600">
                   Duração
                 </label>
                 <select
@@ -229,6 +256,7 @@ export const CriarPlano = () => {
 
               {(filtroCategoria !== "todas" ||
                 filtroDificuldade !== "todas" ||
+                filtroCondicao !== "todas" ||
                 filtroDuracao !== "todas") && (
                 <button
                   type="button"
@@ -243,9 +271,7 @@ export const CriarPlano = () => {
             {/* Scrollable Exercícios List */}
             <div className="max-h-[500px] overflow-y-auto pr-2 space-y-2 border border-slate-100 rounded-xl p-2 bg-slate-50/50">
               {loading ? (
-                <p className="text-center text-sm text-slate-500 py-10">
-                  A carregar exercícios...
-                </p>
+                <LoadingSpinner mensagem="A carregar exercícios..." />
               ) : erro ? (
                 <p className="text-center text-sm text-red-500 py-10">
                   {erro}
@@ -273,7 +299,7 @@ export const CriarPlano = () => {
                                 {ex.nome_exercicio}
                               </span>
                               <span className="block text-xs text-slate-500">
-                                {ex.categoria} · Duração padrão: {formatarDuracao(ex.duracao_segundos)} · Dificuldade: {textoDificuldade(ex.dificuldade_clinica)}
+                                {ex.categoria} · Duração padrão: {formatarDuracao(ex.duracao_segundos)} · Dificuldade: {textoDificuldade(ex.dificuldade_clinica)} · Condição: Nível {ex.condicao_paciente || "A"}
                               </span>
                             </span>
                           </label>
@@ -369,13 +395,30 @@ export const CriarPlano = () => {
                   />
                 </div>
               )}
-              {/* Dificuldade */}
+              {/* Dificuldade do Plano */}
               <div>
-                <label className="block text-xs font-semibold text-slate-600">Classificação de Intensidade</label>
+                <label className="block text-xs font-semibold text-slate-600">Dificuldade do Plano</label>
                 <select
                   value={dificuldade}
                   onChange={(e) => {
                     setDificuldade(e.target.value);
+                    setGuardado(false);
+                  }}
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                >
+                  <option value="facil">Fácil</option>
+                  <option value="medio">Médio</option>
+                  <option value="dificil">Difícil</option>
+                </select>
+              </div>
+
+              {/* Condição do Paciente */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-600">Condição do Paciente</label>
+                <select
+                  value={condicaoPaciente}
+                  onChange={(e) => {
+                    setCondicaoPaciente(e.target.value);
                     setGuardado(false);
                   }}
                   className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"

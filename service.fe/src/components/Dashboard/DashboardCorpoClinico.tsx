@@ -6,6 +6,7 @@ import {
   type PlanoPorPaciente,
 } from "../../services/planosService";
 import type { UserProfile } from "../../types/user";
+import LoadingSpinner from "../LoadingSpinner";
 
 interface LayoutContext {
   user: UserProfile | null;
@@ -21,6 +22,15 @@ const DashboardCorpoClinico = () => {
   const [planos, setPlanos] = useState<PlanoPorPaciente[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
+
+  // Paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const paginatedPlanos = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return planos.slice(startIndex, startIndex + itemsPerPage);
+  }, [planos, currentPage]);
 
   useEffect(() => {
     const carregar = async () => {
@@ -179,11 +189,8 @@ const DashboardCorpoClinico = () => {
                 <tbody className="divide-y divide-slate-200 bg-white">
                   {loading ? (
                     <tr>
-                      <td
-                        colSpan={2}
-                        className="px-4 py-8 text-center text-slate-500"
-                      >
-                        A carregar pacientes…
+                      <td colSpan={2} className="px-4 py-8">
+                        <LoadingSpinner mensagem="A carregar pacientes..." />
                       </td>
                     </tr>
                   ) : planos.length === 0 ? (
@@ -196,7 +203,7 @@ const DashboardCorpoClinico = () => {
                       </td>
                     </tr>
                   ) : (
-                    planos.map((paciente) => {
+                    paginatedPlanos.map((paciente) => {
                       const temPlanoAtivo = paciente.planos.some((p) => p.ativo);
 
                       return (
@@ -232,6 +239,28 @@ const DashboardCorpoClinico = () => {
                 </tbody>
               </table>
             </div>
+
+            {Math.ceil(planos.length / itemsPerPage) > 1 && (
+              <div className="mt-4 flex items-center justify-between gap-4 border-t border-slate-100 pt-4">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev) => prev - 1)}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  Anterior
+                </button>
+                <span className="text-xs font-medium text-slate-500">
+                  Página {currentPage} de {Math.ceil(planos.length / itemsPerPage)}
+                </span>
+                <button
+                  disabled={currentPage === Math.ceil(planos.length / itemsPerPage)}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  Seguinte
+                </button>
+              </div>
+            )}
           </article>
 
           <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">

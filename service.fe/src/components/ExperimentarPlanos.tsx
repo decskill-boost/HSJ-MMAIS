@@ -6,6 +6,7 @@ import {
 } from "../services/planosService";
 import ExercicioPlayer from "./Planos/ExercicioPlayer";
 import ExercicioPreview from "./Planos/ExercicioPreview";
+import LoadingSpinner from "./LoadingSpinner";
 
 type View = "list" | "preview" | "playing";
 
@@ -62,7 +63,7 @@ export const ExperimentarPlanos = () => {
         Sem precisares de conta — escolhe um exercício e experimenta agora.
       </p>
 
-      {loading && <p className="mt-10 text-sm text-slate-400">A carregar planos…</p>}
+      {loading && <LoadingSpinner mensagem="A carregar planos de treino..." />}
       {erro && (
         <p className="mt-8 rounded-lg bg-red-50 p-3 text-sm font-medium text-red-700">{erro}</p>
       )}

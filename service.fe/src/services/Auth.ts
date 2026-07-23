@@ -55,6 +55,7 @@ export const authService = {
         streakAtual: profile.streak_atual,
         urlFotoPerfil: profile.url_foto_perfil ?? null,
         permissions: [],
+        entityId: profile.entity_id,
         id_user: profile.id_user,
         tipo_utilizador: profile.tipo_utilizador,
         streak_atual: profile.streak_atual,

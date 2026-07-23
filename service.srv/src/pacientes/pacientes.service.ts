@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, In, MoreThanOrEqual, Repository } from 'typeorm';
 import { Prescricao } from '../entities/prescricao.entity';
@@ -44,12 +44,20 @@ export class PacientesService {
     idPaciente: string,
     from?: string,
     to?: string,
+    medicoId?: string,
   ): Promise<HistoricoResultado> {
     const paciente = await this.utilizadorRepo.findOne({
       where: { id_user: idPaciente },
     });
     if (!paciente || paciente.tipo_utilizador !== UserRole.PACIENTE) {
       throw new NotFoundException('Paciente não encontrado');
+    }
+
+    if (medicoId) {
+      const doctor = await this.utilizadorRepo.findOne({ where: { id_user: medicoId } });
+      if (!doctor) {
+        throw new NotFoundException('Médico não encontrado');
+      }
     }
 
     const range = { ...this.defaultRange(), ...(from && { from }), ...(to && { to }) };
@@ -111,11 +119,28 @@ export class PacientesService {
     return deriveHistorico(sessoes, prescricaoWindows, range.from, range.to, hoje);
   }
 
-  async getPacientesComAdesao(): Promise<PacienteComAdesao[]> {
+  async getPacientesComAdesao(medicoId?: string): Promise<PacienteComAdesao[]> {
+    if (medicoId) {
+      const doctor = await this.utilizadorRepo.findOne({ where: { id_user: medicoId } });
+      if (doctor) {
+        console.log(`[getPacientesComAdesao] Médico encontrado: ${doctor.email}`);
+      } else {
+        console.log(`[getPacientesComAdesao] Médico ID ${medicoId} não encontrado na DB`);
+      }
+    } else {
+      console.log(`[getPacientesComAdesao] Sem medicoId (Unit Tests?)`);
+    }
+
+    const whereCondition: any = { tipo_utilizador: UserRole.PACIENTE };
+
+    console.log('[getPacientesComAdesao] Condição da Query:', whereCondition);
+
     const pacientes = await this.utilizadorRepo.find({
-      where: { tipo_utilizador: UserRole.PACIENTE },
+      where: whereCondition,
       order: { nome: 'ASC' },
     });
+
+    console.log(`[getPacientesComAdesao] Pacientes encontrados (${pacientes.length}):`, pacientes.map(p => p.nome));
     if (pacientes.length === 0) {
       return [];
     }

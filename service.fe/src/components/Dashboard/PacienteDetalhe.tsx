@@ -6,6 +6,7 @@ import {
 } from "../../services/planosService";
 import BtnGlobal from "../BtnGlobal";
 import { supabase } from "../../services/supabaseClient";
+import LoadingSpinner from "../LoadingSpinner";
 
 const formatarData = (data?: string | null) => {
   if (!data) return "-";
@@ -214,7 +215,7 @@ const PacienteDetalhe = () => {
   if (loading) {
     return (
       <div className="mx-auto w-full max-w-6xl px-4 py-10">
-        <p className="text-slate-600">A carregar detalhes do paciente...</p>
+        <LoadingSpinner mensagem="A carregar detalhes do paciente..." />
       </div>
     );
   }
