@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { exerciciosService } from "../../services/exercicios";
 import type { Exercicio } from "../../services/exercicios";
 import type { ExercicioDoPlano } from "../../services/planosService";
+import CapitaoMais from "../CapitaoMais";
+import LoadingSpinner from "../LoadingSpinner";
 
 interface Props {
   onVoltar: () => void;
@@ -32,10 +34,10 @@ const getDifLabel = (v: string) =>
 
 const getDifColor = (v: string) =>
   v === "facil"
-    ? "bg-green-100 text-green-700"
+    ? "bg-turbo/15 text-turbo-escuro"
     : v === "medio"
-    ? "bg-yellow-100 text-yellow-700"
-    : "bg-red-100 text-red-700";
+    ? "bg-raio/25 text-tinta"
+    : "bg-capa/10 text-capa-escura";
 
 const formatDuration = (s: number) => {
   const m = Math.floor(s / 60);
@@ -67,34 +69,37 @@ const BibliotecaExercicios = ({ onVoltar, onSelecionarExercicio }: Props) => {
     <div className="mx-auto w-full max-w-5xl px-4 py-10">
       <button
         onClick={onVoltar}
-        className="mb-6 text-sm font-medium text-slate-500 transition hover:text-slate-900"
+        className="mb-6 text-sm font-bold text-aco transition hover:text-tinta"
       >
         ← Voltar
       </button>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
-            Biblioteca de Exercícios ⚡
-          </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Escolhe o exercício que queres fazer hoje!
-          </p>
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <CapitaoMais className="h-12 w-auto animate-balancar" title="" />
+          <div>
+            <h1 className="font-display text-3xl tracking-wide text-tinta">
+              Biblioteca de Treinos ⚡
+            </h1>
+            <p className="mt-1 text-sm text-aco">
+              Escolhe o treino que queres fazer hoje!
+            </p>
+          </div>
         </div>
 
         {/* Filtro por condição */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-aco">
             Condição:
           </span>
           {(["Todos", "A", "B", "C"] as FiltroCondicao[]).map((op) => (
             <button
               key={op}
               onClick={() => setFiltro(op)}
-              className={`rounded-full px-4 py-1.5 text-sm font-bold transition ${
+              className={`rounded-full border-2 border-tinta px-4 py-1.5 text-sm font-bold transition active:scale-95 ${
                 filtro === op
-                  ? "bg-blue-600 text-white shadow"
-                  : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                  ? "bg-cobalto text-papel shadow-vinheta"
+                  : "bg-papel-claro text-tinta hover:bg-papel"
               }`}
             >
               {op === "Todos" ? "Todos" : `Nível ${op}`}
@@ -104,73 +109,76 @@ const BibliotecaExercicios = ({ onVoltar, onSelecionarExercicio }: Props) => {
       </div>
 
       {loading ? (
-        <p className="text-sm text-slate-400">A carregar exercícios...</p>
+        <LoadingSpinner mensagem="A carregar treinos..." />
       ) : lista.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
-          <p className="text-slate-500">Nenhum exercício encontrado.</p>
+        <div className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-8 text-center shadow-vinheta">
+          <div className="mx-auto mb-3 flex justify-center">
+            <CapitaoMais className="h-20 w-auto animate-flutuar" title="" />
+          </div>
+          <p className="text-aco">Nenhum treino encontrado para este filtro.</p>
         </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {lista.map((ex) => (
+          {lista.map((ex, idx) => (
             <button
               key={ex.id_exercicio}
               onClick={() => onSelecionarExercicio(mapExercicio(ex))}
-              className="rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-sm hover:shadow-md transition text-left flex flex-col"
+              className={`entrada-pop${idx > 0 ? `-${Math.min((idx % 4) + 1, 4)}` : ""} flex flex-col overflow-hidden rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro text-left shadow-vinheta transition hover:-translate-y-0.5 active:translate-y-0 active:shadow-none`}
             >
               {/* Thumbnail */}
-              <div className="relative w-full h-44 bg-slate-100 flex-shrink-0">
+              <div className="relative h-44 w-full flex-shrink-0 border-b-[3px] border-tinta bg-papel">
                 {ex.url_video ? (
                   <video
                     src={ex.url_video}
-                    className="w-full h-full object-cover"
+                    className="h-full w-full object-cover"
                     preload="metadata"
                     muted
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-slate-300">
+                  <div className="flex h-full w-full items-center justify-center text-tinta/30">
                     <span className="text-4xl">🎬</span>
                   </div>
                 )}
                 {ex.categoria && (
-                  <span className="absolute top-2 left-2 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-lg">
+                  <span className="absolute left-2 top-2 rounded-lg border-2 border-tinta bg-cobalto px-2 py-1 text-xs font-bold text-papel">
                     {ex.categoria}
                   </span>
                 )}
                 {ex.condicao_paciente && (
-                  <span className="absolute top-2 right-2 bg-white/90 text-slate-700 text-xs font-bold px-2 py-1 rounded-lg">
+                  <span className="absolute right-2 top-2 rounded-lg border-2 border-tinta bg-papel-claro/90 px-2 py-1 text-xs font-bold text-tinta">
                     Cond. {ex.condicao_paciente}
                   </span>
                 )}
               </div>
 
               {/* Info */}
-              <div className="p-4 flex flex-col flex-grow">
-                <h3 className="font-bold text-slate-900 text-base mb-2">
+              <div className="flex flex-grow flex-col p-4">
+                <h3 className="mb-2 text-base font-bold text-tinta">
                   {ex.nome_exercicio}
                 </h3>
 
                 <div className="flex flex-wrap gap-2 text-xs">
-                  <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-full">
+                  <span className="rounded-full bg-papel px-2 py-1 text-aco">
                     ⏱ {formatDuration(ex.duracao_segundos)}
                   </span>
                   <span
-                    className={`px-2 py-1 rounded-full font-semibold ${getDifColor(ex.dificuldade_clinica)}`}
+                    className={`rounded-full px-2 py-1 font-semibold ${getDifColor(ex.dificuldade_clinica)}`}
                   >
                     💪 {getDifLabel(ex.dificuldade_clinica)}
                   </span>
-                  <span className="bg-yellow-50 text-yellow-700 px-2 py-1 rounded-full font-semibold">
+                  <span className="rounded-full border border-tinta/20 bg-raio/20 px-2 py-1 font-semibold text-tinta">
                     ⭐ +{ex.recompensa_xp} XP
                   </span>
                 </div>
 
                 {ex.materiais_necessarios && (
-                  <p className="mt-2 text-xs text-blue-600 font-medium line-clamp-1">
+                  <p className="mt-2 line-clamp-1 text-xs font-medium text-cobalto">
                     🛠 {ex.materiais_necessarios}
                   </p>
                 )}
 
                 <div className="mt-3 flex justify-end">
-                  <span className="text-indigo-600 text-sm font-bold">
+                  <span className="text-sm font-bold text-cobalto">
                     Começar →
                   </span>
                 </div>

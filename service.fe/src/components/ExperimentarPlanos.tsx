@@ -7,6 +7,7 @@ import {
 import ExercicioPlayer from "./Planos/ExercicioPlayer";
 import ExercicioPreview from "./Planos/ExercicioPreview";
 import LoadingSpinner from "./LoadingSpinner";
+import CapitaoMais from "./CapitaoMais";
 
 type View = "list" | "preview" | "playing";
 
@@ -56,39 +57,54 @@ export const ExperimentarPlanos = () => {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-10">
-      <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
-        Experimenta um plano +MMAis
-      </h1>
-      <p className="mt-1 text-sm text-slate-500">
-        Sem precisares de conta — escolhe um exercício e experimenta agora.
-      </p>
+      <div className="flex items-center gap-3">
+        <CapitaoMais className="h-14 w-auto animate-balancar" title="" />
+        <div>
+          <h1 className="font-display text-3xl tracking-wide text-tinta">
+            Experimenta um treino MMAIS<span className="text-raio-fundo">+</span>
+          </h1>
+          <p className="mt-1 text-sm text-aco">
+            Sem precisares de conta — escolhe um exercício e começa já.
+          </p>
+        </div>
+      </div>
 
-      {loading && <LoadingSpinner mensagem="A carregar planos de treino..." />}
+      {loading && <LoadingSpinner mensagem="A carregar treinos..." />}
       {erro && (
-        <p className="mt-8 rounded-lg bg-red-50 p-3 text-sm font-medium text-red-700">{erro}</p>
+        <p className="mt-8 rounded-(--radius-vinheta) border-2 border-capa bg-capa/10 p-3 text-sm font-medium text-capa-escura">
+          {erro}
+        </p>
       )}
 
       {!loading && !erro && (
         <>
           {planos.length === 0 ? (
-            <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-8 text-center">
-              <p className="text-slate-500">Ainda não há planos disponíveis para experimentar.</p>
+            <div className="mt-8 rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-8 text-center shadow-vinheta">
+              <div className="mx-auto mb-3 flex justify-center">
+                <CapitaoMais className="h-20 w-auto animate-flutuar" title="" />
+              </div>
+              <p className="text-aco">
+                Ainda não há treinos disponíveis para experimentar.
+              </p>
             </div>
           ) : (
             <div className="mt-8 grid gap-6 sm:grid-cols-2">
-              {planos.map((plano) => (
-                <div key={plano.id_plano} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              {planos.map((plano, idx) => (
+                <div
+                  key={plano.id_plano}
+                  className={`entrada-pop${idx > 0 ? `-${Math.min(idx + 1, 4)}` : ""} rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-5 shadow-vinheta`}
+                >
                   <div className="mb-3 flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wide text-indigo-600">
+                    <span className="text-xs font-bold uppercase tracking-wide text-cobalto">
                       Intensidade: Nível {plano.dificuldade}
                     </span>
-                    <span className="rounded-full bg-blue-100 px-3 py-0.5 text-xs font-semibold text-blue-700">
+                    <span className="rounded-full border-2 border-tinta bg-raio px-3 py-0.5 text-xs font-bold text-tinta">
                       Standard
                     </span>
                   </div>
 
                   {plano.notas_medicas && (
-                    <p className="mb-3 rounded-xl border border-slate-100 bg-slate-50 p-2.5 text-xs italic text-slate-600">
+                    <p className="mb-3 rounded-xl border border-tinta/15 bg-papel p-2.5 text-xs italic text-aco">
                       {plano.notas_medicas}
                     </p>
                   )}
@@ -101,15 +117,17 @@ export const ExperimentarPlanos = () => {
                           setExercicioSelecionado(ex);
                           setView("preview");
                         }}
-                        className="flex w-full items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3 text-left text-xs font-semibold text-slate-700 transition hover:bg-slate-100/80"
+                        className="flex w-full items-center justify-between gap-3 rounded-xl border-2 border-tinta/15 bg-papel p-3 text-left text-xs font-semibold text-tinta transition hover:border-cobalto hover:bg-cobalto/5 active:scale-[0.99]"
                       >
                         <div>
-                          <p className="font-bold text-slate-800">{ex.nome_exercicio}</p>
-                          <p className="mt-0.5 text-[10px] font-medium text-slate-400">
+                          <p className="font-bold text-tinta">{ex.nome_exercicio}</p>
+                          <p className="mt-0.5 text-[10px] font-medium text-aco">
                             ⏱ {Math.floor(ex.duracao_segundos / 60)} min
                           </p>
                         </div>
-                        <span className="text-sm font-bold text-indigo-600">Experimentar →</span>
+                        <span className="text-sm font-bold text-cobalto">
+                          Experimentar →
+                        </span>
                       </button>
                     ))}
                   </div>
