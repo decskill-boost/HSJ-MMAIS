@@ -37,11 +37,11 @@ const UserForm = ({
   roles,
 }: Props) => {
   return (
-    <div className="h-fit rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-xl font-semibold text-slate-900">
+    <div className="h-fit rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-sm">
+      <h2 className="text-xl font-semibold text-tinta">
         {editingUserId ? "Editar utilizador" : "Criar novo utilizador"}
       </h2>
-      <p className="mt-2 text-sm text-slate-500">
+      <p className="mt-2 text-sm text-aco">
         Os utilizadores criados aqui serão gravados no Supabase e no perfil da
         base de dados.
       </p>
@@ -54,18 +54,18 @@ const UserForm = ({
         }}
       >
         <div>
-          <label className="block text-sm font-semibold text-slate-700">
+          <label className="block text-sm font-semibold text-tinta">
             Nome
           </label>
           <input
             value={form.nome}
             onChange={(event) => setForm({ ...form, nome: event.target.value })}
             disabled={loading}
-            className="mt-2 block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+            className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none"
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-slate-700">
+          <label className="block text-sm font-semibold text-tinta">
             Email
           </label>
           <input
@@ -75,12 +75,12 @@ const UserForm = ({
               setForm({ ...form, email: event.target.value })
             }
             disabled={loading}
-            className="mt-2 block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+            className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none"
           />
         </div>
         {!editingUserId && (
           <div>
-            <label className="block text-sm font-semibold text-slate-700">
+            <label className="block text-sm font-semibold text-tinta">
               Password
             </label>
             <input
@@ -90,12 +90,12 @@ const UserForm = ({
                 setForm({ ...form, password: event.target.value })
               }
               disabled={loading}
-              className="mt-2 block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+              className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none"
             />
           </div>
         )}
         <div>
-          <label className="block text-sm font-semibold text-slate-700">
+          <label className="block text-sm font-semibold text-tinta">
             Role
           </label>
           <select
@@ -107,7 +107,7 @@ const UserForm = ({
               })
             }
             disabled={loading}
-            className="mt-2 block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+            className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none"
           >
             {roles.map((role) => (
               <option key={role.value} value={role.value}>
@@ -118,12 +118,12 @@ const UserForm = ({
         </div>
 
         {message && (
-          <div className="rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700">
+          <div className="rounded-xl bg-turbo/10 px-4 py-3 text-sm text-turbo-escuro">
             {message}
           </div>
         )}
         {error && (
-          <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="rounded-xl bg-capa/10 px-4 py-3 text-sm text-capa-escura">
             {error}
           </div>
         )}

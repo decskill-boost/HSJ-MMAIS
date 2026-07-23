@@ -55,7 +55,7 @@ const ExercicioPreview = ({ exercicio, onVoltar, onComecar }: Props) => {
 
       <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
         {/* Vídeo */}
-        <div className="overflow-hidden rounded-2xl bg-black shadow-lg">
+        <div className="overflow-hidden rounded-2xl bg-tinta shadow-lg">
           {exercicio.url_video ? (
             <video
               src={exercicio.url_video}
@@ -66,7 +66,7 @@ const ExercicioPreview = ({ exercicio, onVoltar, onComecar }: Props) => {
               playsInline
             />
           ) : (
-            <div className="flex h-48 items-center justify-center text-sm text-aco">
+            <div className="flex h-48 items-center justify-center text-sm text-papel/80">
               Sem vídeo disponível
             </div>
           )}
@@ -106,15 +106,15 @@ const ExercicioPreview = ({ exercicio, onVoltar, onComecar }: Props) => {
 
           {/* Materiais necessários */}
           {materiais.length > 0 && (
-            <div className="rounded-xl border border-blue-100 bg-blue-50 p-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-blue-600 mb-2">
+            <div className="rounded-xl border border-cobalto/20 bg-cobalto/5 p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-cobalto mb-2">
                 🛠 O que precisas para este exercício
               </p>
               <div className="flex flex-wrap gap-2">
                 {materiais.map((m) => (
                   <span
                     key={m}
-                    className="flex items-center gap-1 rounded-full bg-white border border-blue-200 px-3 py-1 text-xs font-medium text-slate-700"
+                    className="flex items-center gap-1 rounded-full bg-papel-claro border border-cobalto/20 px-3 py-1 text-xs font-medium text-tinta"
                   >
                     <span>{getMaterialEmoji(m)}</span>
                     {m}
@@ -126,11 +126,11 @@ const ExercicioPreview = ({ exercicio, onVoltar, onComecar }: Props) => {
 
           {/* Instruções */}
           {exercicio.descricao && (
-            <div className="rounded-xl bg-slate-50 p-3">
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 mb-1">
+            <div className="rounded-xl bg-papel p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-aco mb-1">
                 Instruções
               </p>
-              <p className="text-sm text-slate-700 whitespace-pre-line">
+              <p className="text-sm text-tinta whitespace-pre-line">
                 {exercicio.descricao}
               </p>
             </div>

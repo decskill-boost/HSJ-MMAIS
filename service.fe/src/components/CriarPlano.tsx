@@ -286,7 +286,7 @@ export const CriarPlano = () => {
                     const ativo = selecionados.includes(ex.id_exercicio);
                     return (
                       <li key={ex.id_exercicio}>
-                        <div className={`flex flex-col gap-3 rounded-xl border p-4 bg-papel-claro transition ${ativo ? "border-cobalto/40 bg-cobalto/10/30" : "border-tinta/15 hover:bg-papel"}`}>
+                        <div className={`flex flex-col gap-3 rounded-xl border p-4 bg-papel-claro transition ${ativo ? "border-cobalto/40 bg-cobalto/10" : "border-tinta/15 hover:bg-papel"}`}>
                           <label className="flex cursor-pointer items-start gap-3">
                             <input
                               type="checkbox"
@@ -414,14 +414,14 @@ export const CriarPlano = () => {
 
               {/* Condição do Paciente */}
               <div>
-                <label className="block text-xs font-semibold text-slate-600">Condição do Paciente</label>
+                <label className="block text-xs font-semibold text-aco">Condição do Paciente</label>
                 <select
                   value={condicaoPaciente}
                   onChange={(e) => {
                     setCondicaoPaciente(e.target.value);
                     setGuardado(false);
                   }}
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs text-slate-900 focus:border-indigo-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2.5 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/20"
                 >
                   <option value="A">Nível A (Baixa Intensidade)</option>
                   <option value="B">Nível B (Média Intensidade)</option>
@@ -495,7 +495,7 @@ export const CriarPlano = () => {
                 type="button"
                 onClick={guardar}
                 disabled={selecionados.length === 0 || aGuardar}
-                className="w-full rounded-xl bg-cobalto px-4 py-3 text-sm font-bold text-papel shadow-sm transition hover:bg-cobalto focus:outline-none focus:ring-2 focus:ring-cobalto/30 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-xl bg-cobalto px-4 py-3 text-sm font-bold text-papel shadow-sm transition hover:bg-cobalto-vivo focus:outline-none focus:ring-2 focus:ring-cobalto/30 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {aGuardar ? "A guardar…" : tipoPlano === "standard" ? "Criar plano standard" : "Criar plano personalizável"}
               </button>

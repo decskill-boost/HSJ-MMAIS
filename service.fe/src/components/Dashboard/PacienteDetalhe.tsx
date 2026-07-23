@@ -36,13 +36,13 @@ const formatarDuracaoSessao = (segundos?: number | null) => {
 
 const renderEsforco = (esforco: number | null | undefined) => {
   if (esforco === null || esforco === undefined) {
-    return <span className="font-medium text-slate-400">-</span>;
+    return <span className="font-medium text-aco">-</span>;
   }
-  let colorClass = "bg-emerald-50 text-emerald-700 border-emerald-100";
+  let colorClass = "bg-turbo/10 text-turbo-escuro border-turbo/30";
   if (esforco >= 8) {
-    colorClass = "bg-rose-50 text-rose-700 border-rose-100";
+    colorClass = "bg-capa/10 text-capa-escura border-capa/30";
   } else if (esforco >= 4) {
-    colorClass = "bg-amber-50 text-amber-700 border-amber-100";
+    colorClass = "bg-raio/20 text-tinta border-raio/50";
   }
 
   return (
@@ -54,38 +54,38 @@ const renderEsforco = (esforco: number | null | undefined) => {
 
 const renderDivertimento = (diversao: number | null | undefined) => {
   if (diversao === null || diversao === undefined) {
-    return <span className="font-medium text-slate-400">-</span>;
+    return <span className="font-medium text-aco">-</span>;
   }
   const emojis = ["😴", "😕", "😊", "😄", "🤩"];
   const emoji = emojis[diversao - 1] ?? "❓";
   return (
-    <span className="inline-flex items-center gap-1 text-sm font-semibold text-slate-700">
+    <span className="inline-flex items-center gap-1 text-sm font-semibold text-tinta">
       <span className="text-base" title={`Nível ${diversao}/5`}>{emoji}</span>
-      <span className="text-xs text-slate-500">({diversao})</span>
+      <span className="text-xs text-aco">({diversao})</span>
     </span>
   );
 };
 
 const formatFC = (fcMedia: number | null | undefined, fcMaxima: number | null | undefined) => {
-  if (!fcMedia && !fcMaxima) return <span className="text-slate-400 font-medium">-</span>;
+  if (!fcMedia && !fcMaxima) return <span className="text-aco font-medium">-</span>;
   const mediaStr = fcMedia ? `${fcMedia}` : "-";
   const maxStr = fcMaxima ? `${fcMaxima}` : "-";
   return (
-    <span className="font-mono text-xs font-medium text-slate-700">
-      {mediaStr}/{maxStr} <span className="text-[10px] text-slate-400">bpm</span>
+    <span className="font-mono text-xs font-medium text-tinta">
+      {mediaStr}/{maxStr} <span className="text-[10px] text-aco">bpm</span>
     </span>
   );
 };
 
 const renderAlertas = (teveProblemas: boolean | null | undefined, hasSession: boolean) => {
-  if (!hasSession) return <span className="text-slate-400 font-medium">-</span>;
+  if (!hasSession) return <span className="text-aco font-medium">-</span>;
   if (teveProblemas) {
     return (
       <span
-        className="inline-flex items-center gap-1 rounded-full border border-rose-150 bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700"
+        className="inline-flex items-center gap-1 rounded-full border border-capa/30 bg-capa/10 px-2.5 py-0.5 text-xs font-semibold text-capa-escura"
         title="Reportou problemas durante o exercício"
       >
-        <svg className="h-3 w-3 text-rose-500 fill-current" viewBox="0 0 16 16">
+        <svg className="h-3 w-3 text-capa fill-current" viewBox="0 0 16 16">
           <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044 8.089V6.262H7.018v3.843h1.964zm0 2.222v-1.111H7.018v1.111h1.964z"/>
         </svg>
         Aviso
@@ -93,8 +93,8 @@ const renderAlertas = (teveProblemas: boolean | null | undefined, hasSession: bo
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-      <svg className="h-3 w-3 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+    <span className="inline-flex items-center gap-1 rounded-full border border-turbo/30 bg-turbo/10 px-2.5 py-0.5 text-xs font-semibold text-turbo-escuro">
+      <svg className="h-3 w-3 text-turbo-escuro" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
       </svg>
       Sem problemas
@@ -223,7 +223,7 @@ const PacienteDetalhe = () => {
   if (erro) {
     return (
       <div className="mx-auto w-full max-w-6xl px-4 py-10">
-        <div className="rounded-2xl bg-red-50 p-4 text-red-700">{erro}</div>
+        <div className="rounded-2xl bg-capa/10 p-4 text-capa-escura">{erro}</div>
       </div>
     );
   }
@@ -231,11 +231,11 @@ const PacienteDetalhe = () => {
   if (!paciente) {
     return (
       <div className="mx-auto w-full max-w-6xl px-4 py-10">
-        <div className="rounded-2xl bg-slate-50 p-6 shadow-sm">
-          <p className="text-slate-700">Paciente não encontrado.</p>
+        <div className="rounded-2xl bg-papel p-6 shadow-sm">
+          <p className="text-tinta">Paciente não encontrado.</p>
           <BtnGlobal
             onClick={() => navigate("/dashboard/medico/pacientes")}
-            className="mt-4 rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+            className="mt-4 rounded-xl bg-tinta px-4 py-2 text-sm font-semibold text-white hover:bg-tinta"
           >
             Voltar para lista
           </BtnGlobal>
@@ -248,10 +248,10 @@ const PacienteDetalhe = () => {
     <div className="mx-auto w-full max-w-6xl px-4 py-10">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-extrabold tracking-tight text-tinta">
             {paciente.nome}
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-aco">
             Detalhe de planos para este paciente.
           </p>
         </div>
@@ -260,13 +260,13 @@ const PacienteDetalhe = () => {
             onClick={() =>
               navigate(`/plano/criar?paciente=${paciente.id_paciente}`)
             }
-            className="rounded-xl bg-indigo-600 px-4 py-3 text-sm text-white hover:bg-indigo-700"
+            className="rounded-xl bg-cobalto px-4 py-3 text-sm text-white hover:bg-cobalto-vivo"
           >
             Atribuir novo plano
           </BtnGlobal>
           <BtnGlobal
             onClick={() => navigate("/dashboard/medico/pacientes")}
-            className="rounded-xl bg-slate-900 px-4 py-3 text-sm text-white hover:bg-slate-800"
+            className="rounded-xl bg-tinta px-4 py-3 text-sm text-white hover:bg-tinta"
           >
             Voltar para lista
           </BtnGlobal>
@@ -274,59 +274,59 @@ const PacienteDetalhe = () => {
       </div>
 
       {sucesso && (
-        <div className="mb-6 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-700">
+        <div className="mb-6 rounded-2xl bg-turbo/10 p-4 text-sm text-turbo-escuro">
           Plano cancelado com sucesso.
         </div>
       )}
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <article className="rounded-3xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
             Planos ativos
           </p>
-          <p className="mt-4 text-3xl font-bold text-slate-900">
+          <p className="mt-4 text-3xl font-bold text-tinta">
             {planosAtivos.length}
           </p>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-aco">
             Planos com status ativo hoje.
           </p>
         </article>
-        <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <article className="rounded-3xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
             Planos totais
           </p>
-          <p className="mt-4 text-3xl font-bold text-slate-900">
+          <p className="mt-4 text-3xl font-bold text-tinta">
             {paciente.planos.length}
           </p>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-aco">
             Inclui ativos e inativos.
           </p>
         </article>
-        <article className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
+        <article className="rounded-3xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
             Último início
           </p>
-          <p className="mt-4 text-3xl font-bold text-slate-900">
+          <p className="mt-4 text-3xl font-bold text-tinta">
             {formatarData(paciente.planos[0]?.data_inicio)}
           </p>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-aco">
             Data do plano mais recente.
           </p>
         </article>
       </div>
 
       {/* Histórico de Treinos / Sessões */}
-      <div className="mt-8 rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-100">
-          <h2 className="text-lg font-bold text-slate-900">Histórico de Treinos / Sessões</h2>
-          <p className="mt-1 text-sm text-slate-500">
+      <div className="mt-8 rounded-3xl border border-tinta/15 bg-papel-claro shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-tinta/10">
+          <h2 className="text-lg font-bold text-tinta">Histórico de Treinos / Sessões</h2>
+          <p className="mt-1 text-sm text-aco">
             Lista de treinos e sessões de exercícios concluídas por esta criança.
           </p>
         </div>
 
         <div className="overflow-x-auto">
           <table className="min-w-full border-collapse text-left text-sm">
-            <thead className="bg-slate-50 text-slate-600">
+            <thead className="bg-papel text-aco">
               <tr>
                 <th className="px-4 py-4 font-semibold">Data e Hora</th>
                 <th className="px-4 py-4 font-semibold">Exercício</th>
@@ -341,7 +341,7 @@ const PacienteDetalhe = () => {
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-4 py-8 text-center text-sm text-slate-500"
+                    className="px-4 py-8 text-center text-sm text-aco"
                   >
                     Nenhum treino registado por esta criança.
                   </td>
@@ -352,15 +352,15 @@ const PacienteDetalhe = () => {
                   return (
                     <tr
                       key={sessao.id_sessao}
-                      className="border-t border-slate-200 last:border-b"
+                      className="border-t border-tinta/15 last:border-b"
                     >
-                      <td className="px-4 py-4 text-slate-700 font-medium">
+                      <td className="px-4 py-4 text-tinta font-medium">
                         {formatarDataHora(sessao.data_hora)}
                       </td>
-                      <td className="px-4 py-4 text-slate-900 font-semibold">
+                      <td className="px-4 py-4 text-tinta font-semibold">
                         {nomeExercicio}
                       </td>
-                      <td className="px-4 py-4 text-slate-700 font-medium">
+                      <td className="px-4 py-4 text-tinta font-medium">
                         {formatarDuracaoSessao(sessao.duracao)}
                       </td>
                       <td className="px-4 py-4 text-center">
@@ -372,7 +372,7 @@ const PacienteDetalhe = () => {
                       <td className="px-4 py-4 text-right">
                         <button
                           onClick={() => setSessaoDetalhada(sessao)}
-                          className="rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100"
+                          className="rounded-xl border border-cobalto/30 bg-cobalto/10 px-3 py-2 text-xs font-semibold text-cobalto transition hover:bg-cobalto/20"
                         >
                           Ver Métricas
                         </button>
@@ -386,26 +386,26 @@ const PacienteDetalhe = () => {
         </div>
 
         {totalPaginasSessoes > 1 && (
-          <div className="flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3 sm:px-6">
+          <div className="flex items-center justify-between border-t border-tinta/15 bg-papel-claro px-4 py-3 sm:px-6">
             <div className="flex flex-1 justify-between sm:hidden">
               <button
                 onClick={() => setPaginaSessoes((prev) => Math.max(prev - 1, 1))}
                 disabled={paginaSessoes === 1}
-                className="relative inline-flex items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="relative inline-flex items-center rounded-xl border border-tinta/20 bg-papel-claro px-4 py-2 text-xs font-semibold text-tinta hover:bg-papel disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Anterior
               </button>
               <button
                 onClick={() => setPaginaSessoes((prev) => Math.min(prev + 1, totalPaginasSessoes))}
                 disabled={paginaSessoes === totalPaginasSessoes}
-                className="relative ml-3 inline-flex items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="relative ml-3 inline-flex items-center rounded-xl border border-tinta/20 bg-papel-claro px-4 py-2 text-xs font-semibold text-tinta hover:bg-papel disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Seguinte
               </button>
             </div>
             <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
               <div>
-                <p className="text-xs text-slate-600">
+                <p className="text-xs text-aco">
                   A mostrar <span className="font-semibold">{((paginaSessoes - 1) * sessoesPorPagina) + 1}</span> a{" "}
                   <span className="font-semibold">
                     {Math.min(paginaSessoes * sessoesPorPagina, sessoes.length)}
@@ -418,7 +418,7 @@ const PacienteDetalhe = () => {
                   <button
                     onClick={() => setPaginaSessoes((prev) => Math.max(prev - 1, 1))}
                     disabled={paginaSessoes === 1}
-                    className="relative inline-flex items-center rounded-l-xl px-2.5 py-2 text-slate-400 ring-1 ring-inset ring-slate-200 hover:bg-slate-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="relative inline-flex items-center rounded-l-xl px-2.5 py-2 text-aco ring-1 ring-inset ring-tinta/15 hover:bg-papel focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <span className="sr-only">Anterior</span>
                     <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -433,8 +433,8 @@ const PacienteDetalhe = () => {
                       aria-current={p === paginaSessoes ? "page" : undefined}
                       className={`relative inline-flex items-center px-3 py-1.5 text-xs font-semibold focus:z-20 ${
                         p === paginaSessoes
-                          ? "z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                          : "text-slate-900 ring-1 ring-inset ring-slate-200 hover:bg-slate-50 focus:outline-offset-0"
+                          ? "z-10 bg-cobalto text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalto"
+                          : "text-tinta ring-1 ring-inset ring-tinta/15 hover:bg-papel focus:outline-offset-0"
                       }`}
                     >
                       {p}
@@ -444,7 +444,7 @@ const PacienteDetalhe = () => {
                   <button
                     onClick={() => setPaginaSessoes((prev) => Math.min(prev + 1, totalPaginasSessoes))}
                     disabled={paginaSessoes === totalPaginasSessoes}
-                    className="relative inline-flex items-center rounded-r-xl px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-200 hover:bg-slate-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="relative inline-flex items-center rounded-r-xl px-2 py-2 text-aco ring-1 ring-inset ring-tinta/15 hover:bg-papel focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <span className="sr-only">Seguinte</span>
                     <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -459,16 +459,16 @@ const PacienteDetalhe = () => {
       </div>
 
       {/* Tabela de Planos Atribuídos */}
-      <div className="mt-8 rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-slate-100">
-          <h2 className="text-lg font-bold text-slate-900">Planos Prescritos</h2>
-          <p className="mt-1 text-sm text-slate-500">
+      <div className="mt-8 rounded-3xl border border-tinta/15 bg-papel-claro shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-tinta/10">
+          <h2 className="text-lg font-bold text-tinta">Planos Prescritos</h2>
+          <p className="mt-1 text-sm text-aco">
             Lista de planos de exercícios prescritos a este paciente.
           </p>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full border-collapse text-left text-sm">
-            <thead className="bg-slate-50 text-slate-600">
+            <thead className="bg-papel text-aco">
               <tr>
                 <th className="px-4 py-4 font-semibold">Plano</th>
                 <th className="px-4 py-4 font-semibold">Início</th>
@@ -483,7 +483,7 @@ const PacienteDetalhe = () => {
                 <tr>
                   <td
                     colSpan={6}
-                    className="px-4 py-8 text-center text-sm text-slate-500"
+                    className="px-4 py-8 text-center text-sm text-aco"
                   >
                     Nenhum plano atribuído a este paciente.
                   </td>
@@ -492,25 +492,25 @@ const PacienteDetalhe = () => {
                 planosPaginados.map((plano) => (
                   <tr
                     key={plano.id_plano}
-                    className="border-t border-slate-200 last:border-b"
+                    className="border-t border-tinta/15 last:border-b"
                   >
-                    <td className="px-4 py-4 font-semibold text-slate-900">
+                    <td className="px-4 py-4 font-semibold text-tinta">
                       {plano.frequencia_semanal}x/semana
                     </td>
-                    <td className="px-4 py-4 text-slate-700 font-medium">
+                    <td className="px-4 py-4 text-tinta font-medium">
                       {formatarData(plano.data_inicio)}
                     </td>
-                    <td className="px-4 py-4 text-slate-700 font-medium">
+                    <td className="px-4 py-4 text-tinta font-medium">
                       {formatarData(plano.data_validade)}
                     </td>
                     <td className="px-4 py-4">
                       <span
-                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${plano.ativo ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
+                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${plano.ativo ? "bg-turbo/15 text-turbo-escuro" : "bg-papel text-aco"}`}
                       >
                         {plano.ativo ? "Ativo" : "Inativo"}
                       </span>
                     </td>
-                    <td className="px-4 py-4 text-slate-500">
+                    <td className="px-4 py-4 text-aco">
                       {plano.notas_medicas ?? "Sem notas médicas."}
                     </td>
                     <td className="px-4 py-4">
@@ -519,14 +519,14 @@ const PacienteDetalhe = () => {
                           type="button"
                           onClick={() => handleCancelarPlano(plano.id_plano)}
                           disabled={cancellingId === plano.id_plano}
-                          className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="rounded-xl border border-capa/30 bg-capa/10 px-3 py-2 text-xs font-semibold text-capa-escura transition hover:bg-capa/20 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {cancellingId === plano.id_plano
                             ? "A cancelar…"
                             : "Cancelar"}
                         </button>
                       ) : (
-                        <span className="text-xs italic text-slate-400">
+                        <span className="text-xs italic text-aco">
                           Sem ações
                         </span>
                       )}
@@ -539,26 +539,26 @@ const PacienteDetalhe = () => {
         </div>
 
         {totalPaginas > 1 && (
-          <div className="flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3 sm:px-6">
+          <div className="flex items-center justify-between border-t border-tinta/15 bg-papel-claro px-4 py-3 sm:px-6">
             <div className="flex flex-1 justify-between sm:hidden">
               <button
                 onClick={() => setPaginaAtual((prev) => Math.max(prev - 1, 1))}
                 disabled={paginaAtual === 1}
-                className="relative inline-flex items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="relative inline-flex items-center rounded-xl border border-tinta/20 bg-papel-claro px-4 py-2 text-xs font-semibold text-tinta hover:bg-papel disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Anterior
               </button>
               <button
                 onClick={() => setPaginaAtual((prev) => Math.min(prev + 1, totalPaginas))}
                 disabled={paginaAtual === totalPaginas}
-                className="relative ml-3 inline-flex items-center rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="relative ml-3 inline-flex items-center rounded-xl border border-tinta/20 bg-papel-claro px-4 py-2 text-xs font-semibold text-tinta hover:bg-papel disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Seguinte
               </button>
             </div>
             <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
               <div>
-                <p className="text-xs text-slate-600">
+                <p className="text-xs text-aco">
                   A mostrar <span className="font-semibold">{((paginaAtual - 1) * itensPorPagina) + 1}</span> a{" "}
                   <span className="font-semibold">
                     {Math.min(paginaAtual * itensPorPagina, paciente.planos.length)}
@@ -571,7 +571,7 @@ const PacienteDetalhe = () => {
                   <button
                     onClick={() => setPaginaAtual((prev) => Math.max(prev - 1, 1))}
                     disabled={paginaAtual === 1}
-                    className="relative inline-flex items-center rounded-l-xl px-2.5 py-2 text-slate-400 ring-1 ring-inset ring-slate-200 hover:bg-slate-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="relative inline-flex items-center rounded-l-xl px-2.5 py-2 text-aco ring-1 ring-inset ring-tinta/15 hover:bg-papel focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <span className="sr-only">Anterior</span>
                     <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -586,8 +586,8 @@ const PacienteDetalhe = () => {
                       aria-current={p === paginaAtual ? "page" : undefined}
                       className={`relative inline-flex items-center px-3 py-1.5 text-xs font-semibold focus:z-20 ${
                         p === paginaAtual
-                          ? "z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                          : "text-slate-900 ring-1 ring-inset ring-slate-200 hover:bg-slate-50 focus:outline-offset-0"
+                          ? "z-10 bg-cobalto text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalto"
+                          : "text-tinta ring-1 ring-inset ring-tinta/15 hover:bg-papel focus:outline-offset-0"
                       }`}
                     >
                       {p}
@@ -597,7 +597,7 @@ const PacienteDetalhe = () => {
                   <button
                     onClick={() => setPaginaAtual((prev) => Math.min(prev + 1, totalPaginas))}
                     disabled={paginaAtual === totalPaginas}
-                    className="relative inline-flex items-center rounded-r-xl px-2 py-2 text-slate-400 ring-1 ring-inset ring-slate-200 hover:bg-slate-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="relative inline-flex items-center rounded-r-xl px-2 py-2 text-aco ring-1 ring-inset ring-tinta/15 hover:bg-papel focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <span className="sr-only">Seguinte</span>
                     <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -613,69 +613,69 @@ const PacienteDetalhe = () => {
 
       {/* Modal de Métricas do Treino */}
       {sessaoDetalhada && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-xl animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-tinta/60 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-lg rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-xl animate-fade-in">
             <button
               onClick={() => setSessaoDetalhada(null)}
-              className="absolute right-4 top-4 rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              className="absolute right-4 top-4 rounded-xl p-1.5 text-aco hover:bg-papel hover:text-aco"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
 
-            <h3 className="text-xl font-bold text-slate-900">Métricas Detalhadas do Treino</h3>
-            <p className="mt-1 text-sm text-slate-500">
+            <h3 className="text-xl font-bold text-tinta">Métricas Detalhadas do Treino</h3>
+            <p className="mt-1 text-sm text-aco">
               Registos clínicos recolhidos nesta sessão de exercício.
             </p>
 
             <div className="mt-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Exercício</p>
-                  <p className="mt-1 text-sm font-bold text-slate-800">
+                <div className="rounded-2xl bg-papel p-4 border border-tinta/10">
+                  <p className="text-xs font-bold uppercase tracking-wider text-aco">Exercício</p>
+                  <p className="mt-1 text-sm font-bold text-tinta">
                     {(sessaoDetalhada.exercicios as any)?.nome_exercicio ?? "Exercício Geral"}
                   </p>
                 </div>
-                <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Duração</p>
-                  <p className="mt-1 text-sm font-semibold text-slate-800">
+                <div className="rounded-2xl bg-papel p-4 border border-tinta/10">
+                  <p className="text-xs font-bold uppercase tracking-wider text-aco">Duração</p>
+                  <p className="mt-1 text-sm font-semibold text-tinta">
                     {formatarDuracaoSessao(sessaoDetalhada.duracao)}
                   </p>
                 </div>
               </div>
 
-              <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Data e Hora de Conclusão</p>
-                <p className="mt-1 text-sm font-semibold text-slate-800">
+              <div className="rounded-2xl bg-papel p-4 border border-tinta/10">
+                <p className="text-xs font-bold uppercase tracking-wider text-aco">Data e Hora de Conclusão</p>
+                <p className="mt-1 text-sm font-semibold text-tinta">
                   {formatarDataHora(sessaoDetalhada.data_hora)}
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 text-center">Esforço (OMNI)</p>
+                <div className="rounded-2xl bg-papel p-4 border border-tinta/10">
+                  <p className="text-xs font-bold uppercase tracking-wider text-aco text-center">Esforço (OMNI)</p>
                   <div className="mt-2 flex justify-center">
                     {renderEsforco(sessaoDetalhada.esforco_1_a_10)}
                   </div>
                 </div>
-                <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 text-center">Divertimento</p>
+                <div className="rounded-2xl bg-papel p-4 border border-tinta/10">
+                  <p className="text-xs font-bold uppercase tracking-wider text-aco text-center">Divertimento</p>
                   <div className="mt-2 flex justify-center">
                     {renderDivertimento(sessaoDetalhada.diversao_1_a_5)}
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Frequência Cardíaca (Média / Máxima)</p>
+              <div className="rounded-2xl bg-papel p-4 border border-tinta/10">
+                <p className="text-xs font-bold uppercase tracking-wider text-aco">Frequência Cardíaca (Média / Máxima)</p>
                 <div className="mt-2 flex items-center justify-center">
                   {formatFC(sessaoDetalhada.fc_media, sessaoDetalhada.fc_maxima)}
                 </div>
               </div>
 
-              <div className="rounded-2xl bg-slate-50 p-4 border border-slate-100">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Intercorrências / Alertas</p>
+              <div className="rounded-2xl bg-papel p-4 border border-tinta/10">
+                <p className="text-xs font-bold uppercase tracking-wider text-aco mb-1">Intercorrências / Alertas</p>
                 <div>
                   {renderAlertas(sessaoDetalhada.teve_problemas, true)}
                 </div>
@@ -685,7 +685,7 @@ const PacienteDetalhe = () => {
             <div className="mt-6 flex justify-end">
               <BtnGlobal
                 onClick={() => setSessaoDetalhada(null)}
-                className="rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
+                className="rounded-xl bg-tinta px-4 py-2.5 text-sm font-semibold text-white hover:bg-tinta"
               >
                 Fechar
               </BtnGlobal>
