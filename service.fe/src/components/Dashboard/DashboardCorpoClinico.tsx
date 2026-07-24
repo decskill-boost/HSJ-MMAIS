@@ -23,7 +23,9 @@ interface PacienteComUltimoTreino {
 const DashboardCorpoClinico = () => {
   const navigate = useNavigate();
   const { user } = useOutletContext<LayoutContext>();
-  const displayName = user?.nome?.split(" ")[0] ?? "Colega";
+  // Nome tal como está registado. Não prefixar "Dr." — o nome já costuma trazer
+  // o título (Dr./Dra./Enf.) e antes saía "Olá, Dr. Dra.".
+  const displayName = user?.nome?.trim() || "Colega";
 
   const [pacientes, setPacientes] = useState<PacienteComUltimoTreino[]>([]);
   const [totalTreinos, setTotalTreinos] = useState(0);
@@ -41,6 +43,17 @@ const DashboardCorpoClinico = () => {
   }, [pacientes, currentPage]);
 
   const totalPaginas = Math.ceil(pacientes.length / itemsPerPage);
+
+  // Quem não treina há mais de 7 dias (ou nunca treinou) — o que o clínico
+  // precisa de ver primeiro. Limitado a 5 para o painel não crescer sem fim.
+  const precisamAtencao = useMemo(() => {
+    const limite = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    return pacientes
+      .filter(
+        (p) => !p.ultimoTreinoDate || p.ultimoTreinoDate.getTime() < limite,
+      )
+      .slice(0, 5);
+  }, [pacientes]);
 
   useEffect(() => {
     const carregar = async () => {
@@ -129,7 +142,7 @@ const DashboardCorpoClinico = () => {
                 Painel do Corpo Clínico
               </p>
               <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
-                Olá, Dr. {displayName}
+                Olá, {displayName}
               </h1>
               <p className="mt-3 max-w-2xl text-sm text-[#EAEFFF] sm:text-base">
                 Acompanhe o progresso das crianças, reveja protocolos e monitorize atividades físicas.
@@ -147,7 +160,7 @@ const DashboardCorpoClinico = () => {
               <BtnGlobal
                 variant="secondary"
                 onClick={() => navigate("/perfil")}
-                className="rounded-xl border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
+                className="rounded-xl border border-tinta/15 px-4 py-2 text-sm font-semibold text-tinta"
               >
                 Informação pessoal
               </BtnGlobal>
@@ -295,32 +308,50 @@ const DashboardCorpoClinico = () => {
             )}
           </article>
 
+          {/* Antes eram "Ações rápidas" que repetiam a sidebar inteira.
+              Passa a mostrar quem precisa mesmo de atenção, com ação direta. */}
           <article className="rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-sm">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-bold text-tinta">Ações rápidas</h2>
-                <p className="mt-1 text-sm text-aco">Atalhos para o dia a dia.</p>
-              </div>
+            <div>
+              <h2 className="text-lg font-bold text-tinta">
+                Precisam de atenção
+              </h2>
+              <p className="mt-1 text-sm text-aco">
+                Sem treinos nos últimos 7 dias.
+              </p>
             </div>
+
             <div className="mt-5 space-y-3">
-              <button
-                onClick={() => navigate("/plano/criar")}
-                className="w-full rounded-(--radius-vinheta) border-[3px] border-tinta bg-cobalto px-4 py-3 text-sm font-bold text-papel shadow-vinheta transition hover:bg-cobalto-vivo active:scale-95 active:shadow-none"
-              >
-                Criar novo plano
-              </button>
-              <button
-                onClick={() => navigate("/dashboard/medico/pacientes")}
-                className="w-full rounded-(--radius-vinheta) border-[3px] border-tinta bg-tinta px-4 py-3 text-sm font-bold text-papel shadow-vinheta transition hover:bg-tinta/90 active:scale-95 active:shadow-none"
-              >
-                Acompanhar Pacientes
-              </button>
-              <button
-                onClick={() => navigate("/exercicios")}
-                className="w-full rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro px-4 py-3 text-sm font-bold text-tinta shadow-vinheta transition hover:bg-papel active:scale-95 active:shadow-none"
-              >
-                Biblioteca de exercícios
-              </button>
+              {loading ? (
+                <p className="text-sm text-aco">A carregar…</p>
+              ) : precisamAtencao.length === 0 ? (
+                <p className="rounded-2xl border border-turbo/30 bg-turbo/10 p-4 text-sm font-medium text-turbo-escuro">
+                  Todos os pacientes treinaram esta semana. 👏
+                </p>
+              ) : (
+                precisamAtencao.map((p) => (
+                  <div
+                    key={p.id_user}
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-tinta/15 bg-papel p-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-tinta">
+                        {p.nome}
+                      </p>
+                      <p className="truncate text-xs text-aco">
+                        {p.ultimoTreino}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() =>
+                        navigate(`/plano/criar?paciente=${p.id_user}`)
+                      }
+                      className="shrink-0 rounded-xl border-2 border-tinta bg-cobalto px-3 py-1.5 text-xs font-bold text-papel transition hover:bg-cobalto-vivo active:scale-95"
+                    >
+                      Atribuir plano
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </article>
         </section>

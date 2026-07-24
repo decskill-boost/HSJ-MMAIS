@@ -78,11 +78,11 @@ const renderEsforco = (esforco: number | null | undefined) => {
   if (esforco === null || esforco === undefined) {
     return <span className="font-medium text-aco">-</span>;
   }
-  let colorClass = "bg-emerald-50 text-emerald-700 border-emerald-100";
+  let colorClass = "bg-turbo/10 text-turbo-escuro border-turbo/30";
   if (esforco >= 8) {
-    colorClass = "bg-rose-50 text-rose-700 border-rose-100";
+    colorClass = "bg-capa/10 text-capa-escura border-capa/30";
   } else if (esforco >= 4) {
-    colorClass = "bg-amber-50 text-amber-700 border-amber-100";
+    colorClass = "bg-raio/20 text-tinta border-raio-fundo/40";
   }
 
   return (
@@ -134,10 +134,10 @@ const renderAlertas = (
   if (teveProblemas) {
     return (
       <span
-        className="inline-flex items-center gap-1 rounded-full border border-rose-150 bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700"
+        className="inline-flex items-center gap-1 rounded-full border border-capa/30 bg-capa/10 px-2.5 py-0.5 text-xs font-semibold text-capa-escura"
         title="Reportou problemas durante o exercício"
       >
-        <svg className="h-3 w-3 text-rose-500 fill-current" viewBox="0 0 16 16">
+        <svg className="h-3 w-3 text-capa fill-current" viewBox="0 0 16 16">
           <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044 8.089V6.262H7.018v3.843h1.964zm0 2.222v-1.111H7.018v1.111h1.964z" />
         </svg>
         Aviso
@@ -145,9 +145,9 @@ const renderAlertas = (
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+    <span className="inline-flex items-center gap-1 rounded-full border border-turbo/30 bg-turbo/10 px-2.5 py-0.5 text-xs font-semibold text-turbo-escuro">
       <svg
-        className="h-3 w-3 text-emerald-500"
+        className="h-3 w-3 text-turbo"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -298,6 +298,13 @@ const PacienteDetalhe = () => {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {/* Prescrever sem ter de voltar à lista — era o passo em falta */}
+          <button
+            onClick={() => navigate(`/plano/criar?paciente=${pacienteId}`)}
+            className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-cobalto px-5 py-2.5 text-sm font-bold text-papel shadow-vinheta transition hover:bg-cobalto-vivo active:scale-95 active:shadow-none"
+          >
+            Atribuir plano
+          </button>
           <button
             onClick={() => navigate("/dashboard/medico/pacientes")}
             className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel px-5 py-2.5 text-sm font-bold text-tinta shadow-vinheta transition hover:bg-papel active:scale-95 active:shadow-none"
@@ -656,7 +663,7 @@ const PacienteDetalhe = () => {
               return (
                 <div
                   key={rec.id}
-                  className={`rounded-2xl border p-4 text-center transition ${desbloqueada ? "border-emerald-250 bg-emerald-500/10" : "border-tinta/10 bg-papel opacity-60"}`}
+                  className={`rounded-2xl border p-4 text-center transition ${desbloqueada ? "border-turbo/40 bg-turbo/10" : "border-tinta/10 bg-papel opacity-60"}`}
                 >
                   <span className="text-3xl block mb-2">{rec.icone}</span>
                   <p className="font-bold text-xs sm:text-sm text-tinta leading-tight">
@@ -664,7 +671,7 @@ const PacienteDetalhe = () => {
                   </p>
                   <p className="text-[10px] text-aco mt-1">{rec.desc}</p>
                   <span
-                    className={`inline-block mt-3 rounded-full px-2 py-0.5 text-[9px] font-bold ${desbloqueada ? "bg-emerald-500/20 text-emerald-700" : "bg-tinta/10 text-aco"}`}
+                    className={`inline-block mt-3 rounded-full px-2 py-0.5 text-[9px] font-bold ${desbloqueada ? "bg-turbo/20 text-turbo-escuro" : "bg-tinta/10 text-aco"}`}
                   >
                     {desbloqueada ? "Desbloqueado ✓" : "Bloqueado 🔒"}
                   </span>
