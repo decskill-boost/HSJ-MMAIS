@@ -36,18 +36,19 @@ const formatDuration = (segundos: number) => {
 };
 
 // Dificuldade em tom encorajador (voz da Academia — nunca desanimar a criança).
-// Fundos SÓLIDOS: o badge assenta por cima do vídeo da capa, onde tons
-// translúcidos ficavam ilegíveis.
+// Fundos SÓLIDOS porque o badge assenta por cima do vídeo da capa. Sem emoji:
+// a esta escala não se percebia (o 🌱 verde sobre o verde-água desaparecia) e
+// a cor + a palavra já comunicam o nível.
 const infoDificuldade = (d?: string) => {
   switch ((d ?? "").toLowerCase()) {
     case "facil":
-      return { label: "Fácil", emoji: "🌱", chip: "bg-turbo text-tinta" };
+      return { label: "Fácil", chip: "bg-turbo text-tinta" };
     case "medio":
-      return { label: "Médio", emoji: "💪", chip: "bg-raio text-tinta" };
+      return { label: "Médio", chip: "bg-raio text-tinta" };
     case "dificil":
-      return { label: "Puxado", emoji: "🔥", chip: "bg-capa-escura text-papel" };
+      return { label: "Puxado", chip: "bg-capa-escura text-papel" };
     default:
-      return { label: d || "Treino", emoji: "⭐", chip: "bg-cobalto text-papel" };
+      return { label: d || "Treino", chip: "bg-cobalto text-papel" };
   }
 };
 
@@ -136,6 +137,7 @@ export const PlanosPaciente = () => {
   const [planos, setPlanos] = useState<PlanoAtivo[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<View>("escolha");
+  const [filtroCondicao, setFiltroCondicao] = useState<string>("Todos");
 
   // Fluxo exercício individual
   const [exercicioSelecionado, setExercicioSelecionado] =
@@ -496,6 +498,14 @@ export const PlanosPaciente = () => {
 
   // ─── plano-list ────────────────────────────────────────────────────────────
   if (view === "plano-list") {
+    const comExercicios = planos.filter((p) => p.exercicios.length > 0);
+    const planosVisiveis =
+      filtroCondicao === "Todos"
+        ? comExercicios
+        : comExercicios.filter(
+            (p) => (p.condicao_paciente ?? "A") === filtroCondicao,
+          );
+
     return (
       <div className="mx-auto w-full max-w-5xl px-4 py-10">
         <button
@@ -507,21 +517,61 @@ export const PlanosPaciente = () => {
         <h1 className="text-2xl font-display tracking-tight text-tinta">Escolhe um plano 📋</h1>
         <p className="mt-1 text-sm text-aco">Toca num plano para o ver e começar!</p>
 
+        {/* Filtro por condição — quadrados grandes, um toque escolhe */}
+        <div className="mt-5">
+          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-aco">
+            Condição
+          </p>
+          <div className="flex flex-wrap gap-3">
+            {["Todos", "A", "B", "C"].map((op) => {
+              const ativo = filtroCondicao === op;
+              return (
+                <button
+                  key={op}
+                  type="button"
+                  aria-pressed={ativo}
+                  onClick={() => setFiltroCondicao(op)}
+                  className={`flex h-16 min-w-16 items-center justify-center rounded-(--radius-vinheta) border-[3px] border-tinta px-5 font-display text-xl tracking-wide shadow-vinheta transition active:scale-95 active:shadow-none ${
+                    ativo
+                      ? "bg-cobalto text-papel"
+                      : "bg-papel-claro text-tinta hover:bg-papel"
+                  }`}
+                >
+                  {op}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
         {loading ? (
           <LoadingSpinner mensagem="A carregar planos de treino..." />
-        ) : planos.filter((p) => p.exercicios.length > 0).length === 0 ? (
+        ) : planosVisiveis.length === 0 ? (
           <div className="mt-8 rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-8 text-center shadow-vinheta">
             <div className="mx-auto mb-3 flex justify-center">
               <CapitaoMais className="h-20 w-auto animate-flutuar" title="" />
             </div>
-            <p className="text-aco">
-              Ainda não há planos para ti — mas o Capitão está a preparar-te um!
-            </p>
+            {filtroCondicao === "Todos" ? (
+              <p className="text-aco">
+                Ainda não há planos para ti — mas o Capitão está a preparar-te um!
+              </p>
+            ) : (
+              <>
+                <p className="text-aco">
+                  Ainda não há planos da condição {filtroCondicao}.
+                </p>
+                <button
+                  onClick={() => setFiltroCondicao("Todos")}
+                  className="mt-4 rounded-(--radius-vinheta) border-[3px] border-tinta bg-cobalto px-5 py-3 font-display text-base tracking-wide text-papel shadow-vinheta transition hover:bg-cobalto-vivo active:scale-95 active:shadow-none"
+                >
+                  Ver todos
+                </button>
+              </>
+            )}
           </div>
         ) : (
           <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {planos
-              .filter((p) => p.exercicios.length > 0)
+            {planosVisiveis
               .map((plano, idx) => {
                 const exs = plano.exercicios;
                 const totalSeg = exs.reduce((a, e) => a + e.duracao_segundos, 0);
@@ -538,7 +588,7 @@ export const PlanosPaciente = () => {
                     <div className="relative">
                       <CapaPlano url={capa} />
                       <span className={`absolute left-2 top-2 rounded-full border-2 border-tinta px-2.5 py-0.5 text-xs font-bold ${dif.chip}`}>
-                        {dif.emoji} {dif.label}
+                        {dif.label}
                       </span>
                       <span className="absolute right-2 top-2 rounded-full border-2 border-tinta bg-cobalto px-2.5 py-0.5 text-xs font-bold text-papel">
                         {exs.length} {exs.length === 1 ? "treino" : "treinos"}
