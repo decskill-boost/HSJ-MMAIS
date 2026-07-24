@@ -306,7 +306,7 @@ const ExerciciosPage = () => {
             >
               <div className="relative w-full h-48 bg-papel flex-shrink-0">
                 {ex.url_video ? (
-                  <video src={ex.url_video} className="w-full h-full object-cover" preload="metadata" muted />
+                  <video src={`${ex.url_video}#t=0.1`} className="w-full h-full object-cover" preload="metadata" muted playsInline />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-aco">
                     <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
