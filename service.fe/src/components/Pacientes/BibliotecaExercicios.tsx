@@ -129,10 +129,11 @@ const BibliotecaExercicios = ({ onVoltar, onSelecionarExercicio }: Props) => {
               <div className="relative h-44 w-full flex-shrink-0 border-b-[3px] border-tinta bg-papel">
                 {ex.url_video ? (
                   <video
-                    src={ex.url_video}
+                    src={`${ex.url_video}#t=0.1`}
                     className="h-full w-full object-cover"
                     preload="metadata"
                     muted
+                    playsInline
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-tinta/30">
