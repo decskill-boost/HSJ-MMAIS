@@ -1,6 +1,7 @@
-import { Controller, Post, Body, Patch, Param } from '@nestjs/common';
+import { Controller, Post, Body, Patch, Param, Put } from '@nestjs/common';
 import { PrescricoesService } from './prescricoes.service';
 import { CreatePrescricaoDto } from './create-prescricao.dto';
+import { UpdatePrescricaoDto } from './update-prescricao.dto';
 
 @Controller('prescricoes')
 export class PrescricoesController {
@@ -10,6 +11,12 @@ export class PrescricoesController {
   @Post()
   create(@Body() dados: CreatePrescricaoDto) {
     return this.prescricoesService.create(dados);
+  }
+
+  // PUT /api/prescricoes/:id — editar um plano ja criado
+  @Put(':id')
+  update(@Param('id') id: string, @Body() dados: UpdatePrescricaoDto) {
+    return this.prescricoesService.update(id, dados);
   }
 
   // PATCH /api/prescricoes/:id/cancel

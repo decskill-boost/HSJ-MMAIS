@@ -30,6 +30,7 @@ const linksMedico: SidebarLink[] = [
   { to: "/dashboard/medico", label: "Início", Icon: IconeInicio, end: true },
   { to: "/dashboard/medico/pacientes", label: "Pacientes", Icon: IconePlanos },
   { to: "/exercicios", label: "Biblioteca de Exercícios", Icon: IconeBiblioteca },
+  { to: "/dashboard/medico/planos", label: "Planos criados", Icon: IconePlanos },
   { to: "/plano/criar", label: "Criar Plano", Icon: IconePlano },
 ];
 
