@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { exerciciosService, type Exercicio } from "../services/exercicios";
 import { useUser } from "../contexts/UserContext";
 import { planosService } from "../services/planosService";
+import { pacientesService, type Paciente } from "../services/pacientes";
 import LoadingSpinner from "./LoadingSpinner";
 
 // Mostrar duração como a biblioteca (minutos)
@@ -19,6 +21,12 @@ const faixaDuracao = (s: number) =>
 
 export const CriarPlano = () => {
   const { user } = useUser();
+
+  // Prescrever a um paciente concreto: /plano/criar?paciente=<id>.
+  // Sem este parâmetro o ecrã cria um template (plano standard), como antes.
+  const [searchParams] = useSearchParams();
+  const idPacienteAlvo = searchParams.get("paciente");
+  const [pacienteAlvo, setPacienteAlvo] = useState<Paciente | null>(null);
 
   const [exercicios, setExercicios] = useState<Exercicio[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,6 +80,17 @@ export const CriarPlano = () => {
     };
     buscar();
   }, []);
+
+  // Nome do paciente a quem se vai prescrever (para o clínico ver a quem está a atribuir)
+  useEffect(() => {
+    if (!idPacienteAlvo) return;
+    pacientesService
+      .getPacientes()
+      .then((lista) =>
+        setPacienteAlvo(lista.find((p) => p.id_user === idPacienteAlvo) ?? null),
+      )
+      .catch(() => setPacienteAlvo(null));
+  }, [idPacienteAlvo]);
 
 
 
@@ -131,14 +150,15 @@ export const CriarPlano = () => {
       });
 
       await planosService.criarPlano({
-        id_paciente: null,
+        // Com ?paciente= prescreve-se a essa criança; sem ele cria-se um template.
+        id_paciente: idPacienteAlvo,
         id_medico: user.idUser,
         frequencia_semanal: frequenciaSemanal,
         data_validade: dataValidade
           ? new Date(dataValidade).toISOString()
           : null,
         notas_medicas: notasMedicas,
-        is_standard: tipoPlano === "standard",
+        is_standard: idPacienteAlvo ? false : tipoPlano === "standard",
         dificuldade: dificuldade,
         condicao_paciente: condicaoPaciente,
         condicao_clinica: tipoPlano === "personalizavel" ? condicaoClinica.trim() : null,
@@ -171,11 +191,18 @@ export const CriarPlano = () => {
     <div className="mx-auto w-full max-w-6xl px-6 py-8">
       <div className="mb-6">
         <h1 className="text-2xl font-extrabold tracking-tight text-tinta">
-          Criar plano de exercícios
+          {idPacienteAlvo ? "Prescrever plano" : "Criar plano de exercícios"}
         </h1>
-        <p className="mt-1 text-sm text-aco">
-          Monte templates de planos de treino gerais ou prescreva planos individuais com durações customizadas.
-        </p>
+        {idPacienteAlvo ? (
+          <p className="mt-2 inline-flex items-center gap-2 rounded-full border-2 border-cobalto/30 bg-cobalto/10 px-3 py-1 text-sm font-semibold text-cobalto">
+            Para: {pacienteAlvo?.nome ?? "a carregar…"}
+          </p>
+        ) : (
+          <p className="mt-1 text-sm text-aco">
+            Monte templates de planos de treino gerais ou prescreva planos
+            individuais com durações customizadas.
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -344,8 +371,9 @@ export const CriarPlano = () => {
             </h2>
 
             <div className="space-y-4">
-              {/* Tipo de Plano */}
-              <div>
+              {/* Tipo de Plano — só quando se está a criar um template.
+                  A prescrever a uma criança, o plano é sempre individual. */}
+              <div className={idPacienteAlvo ? "hidden" : undefined}>
                 <label className="block text-xs font-semibold text-aco">Tipo de Plano</label>
                 <div className="mt-1 flex gap-4">
                   <label className="flex items-center gap-2 cursor-pointer text-xs font-medium text-tinta">
@@ -497,7 +525,13 @@ export const CriarPlano = () => {
                 disabled={selecionados.length === 0 || aGuardar}
                 className="w-full rounded-xl bg-cobalto px-4 py-3 text-sm font-bold text-papel shadow-sm transition hover:bg-cobalto-vivo focus:outline-none focus:ring-2 focus:ring-cobalto/30 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {aGuardar ? "A guardar…" : tipoPlano === "standard" ? "Criar plano standard" : "Criar plano personalizável"}
+                {aGuardar
+                  ? "A guardar…"
+                  : idPacienteAlvo
+                    ? `Prescrever a ${pacienteAlvo?.nome ?? "este paciente"}`
+                    : tipoPlano === "standard"
+                      ? "Criar plano standard"
+                      : "Criar plano personalizável"}
               </button>
             </div>
             {guardado && (

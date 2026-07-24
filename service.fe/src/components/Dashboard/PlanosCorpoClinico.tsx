@@ -17,6 +17,7 @@ const PlanosCorpoClinico = () => {
   const [totalTreinosGerais, setTotalTreinosGerais] = useState(0);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
+  const [pesquisa, setPesquisa] = useState("");
 
   useEffect(() => {
     const carregarDados = async () => {
@@ -71,6 +72,15 @@ const PlanosCorpoClinico = () => {
     void carregarDados();
   }, []);
 
+  const termo = pesquisa.trim().toLowerCase();
+  const pacientesFiltrados = termo
+    ? pacientes.filter(
+        (p) =>
+          p.nome.toLowerCase().includes(termo) ||
+          p.email.toLowerCase().includes(termo),
+      )
+    : pacientes;
+
   return (
     <div className="flex-1 bg-papel px-4 py-6 sm:px-6 lg:px-8">
       {/* Cabeçalho */}
@@ -109,6 +119,21 @@ const PlanosCorpoClinico = () => {
         </div>
       )}
 
+      {/* Pesquisa — com muitos pacientes, percorrer a lista à mão é impraticável */}
+      <div className="mb-4">
+        <label htmlFor="pesquisa-paciente" className="sr-only">
+          Pesquisar paciente
+        </label>
+        <input
+          id="pesquisa-paciente"
+          type="search"
+          value={pesquisa}
+          onChange={(e) => setPesquisa(e.target.value)}
+          placeholder="Pesquisar por nome ou email…"
+          className="w-full max-w-md rounded-xl border border-tinta/15 bg-papel-claro px-4 py-2.5 text-sm text-tinta placeholder:text-aco focus:border-cobalto focus:outline-none focus:ring-2 focus:ring-cobalto/20"
+        />
+      </div>
+
       {/* Listagem */}
       <div className="overflow-x-auto rounded-3xl border border-tinta/15 bg-papel-claro shadow-sm">
         <table className="min-w-full divide-y divide-tinta/15 text-left text-sm">
@@ -130,17 +155,19 @@ const PlanosCorpoClinico = () => {
                   <LoadingSpinner mensagem="A carregar pacientes..." />
                 </td>
               </tr>
-            ) : pacientes.length === 0 ? (
+            ) : pacientesFiltrados.length === 0 ? (
               <tr>
                 <td
                   colSpan={4}
                   className="px-6 py-8 text-center text-sm text-aco"
                 >
-                  Nenhum paciente encontrado.
+                  {pesquisa
+                    ? `Nenhum paciente encontrado para "${pesquisa}".`
+                    : "Nenhum paciente encontrado."}
                 </td>
               </tr>
             ) : (
-              pacientes.map((p) => {
+              pacientesFiltrados.map((p) => {
                 return (
                   <tr key={p.id_user} className="hover:bg-papel">
                     <td className="px-6 py-4 font-semibold text-tinta">
@@ -154,15 +181,25 @@ const PlanosCorpoClinico = () => {
                         {p.totalTreinos} treinos
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() =>
-                          navigate(`/dashboard/medico/pacientes/${p.id_user}`)
-                        }
-                        className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro px-4 py-2 text-xs font-bold text-tinta shadow-vinheta transition hover:bg-papel active:scale-95 active:shadow-none"
-                      >
-                        Ver detalhe
-                      </button>
+                    <td className="px-6 py-4">
+                      <div className="flex justify-center gap-2">
+                        <button
+                          onClick={() =>
+                            navigate(`/plano/criar?paciente=${p.id_user}`)
+                          }
+                          className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-cobalto px-4 py-2 text-xs font-bold text-papel shadow-vinheta transition hover:bg-cobalto-vivo active:scale-95 active:shadow-none"
+                        >
+                          Atribuir plano
+                        </button>
+                        <button
+                          onClick={() =>
+                            navigate(`/dashboard/medico/pacientes/${p.id_user}`)
+                          }
+                          className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro px-4 py-2 text-xs font-bold text-tinta shadow-vinheta transition hover:bg-papel active:scale-95 active:shadow-none"
+                        >
+                          Ver detalhe
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
