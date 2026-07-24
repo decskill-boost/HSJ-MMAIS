@@ -59,7 +59,6 @@ const cascata = (idx: number) => `entrada-pop${["", "-2", "-3", "-4"][idx % 4]}`
  * são pesados (alguns 4K) e não podem bloquear o ecrã num tablet de enfermaria.
  */
 const CapaPlano = ({ url }: { url?: string }) => {
-  const [pronto, setPronto] = useState(false);
   const [visivel, setVisivel] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -91,13 +90,16 @@ const CapaPlano = ({ url }: { url?: string }) => {
         <CapitaoMais className="h-16 w-auto animate-flutuar" title="" />
       </div>
 
+      {/*
+        O vídeo fica SEMPRE visível por cima da capa: quando o browser pinta o
+        frame, tapa o Capitão; enquanto não pinta, o elemento é transparente e
+        vê-se a capa por baixo. Não depende de eventos de media (o `loadeddata`
+        não dispara em Chromium com preload="metadata" e deixava isto invisível).
+      */}
       {url && visivel && (
         <video
           src={`${url}#t=0.1`}
-          onLoadedData={() => setPronto(true)}
-          className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
-            pronto ? "opacity-100" : "opacity-0"
-          }`}
+          className="absolute inset-0 h-full w-full object-cover"
           preload="metadata"
           muted
           playsInline
