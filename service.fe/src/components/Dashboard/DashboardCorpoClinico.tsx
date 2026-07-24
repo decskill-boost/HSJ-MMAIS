@@ -134,43 +134,45 @@ const DashboardCorpoClinico = () => {
   return (
     <div className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        {/* Cabeçalho */}
-        <section className="rounded-3xl border border-tinta/15 bg-gradient-to-br from-cobalto to-tinta p-6 text-papel shadow-sm sm:p-8">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        {/* Cabeçalho — QG clínico é sóbrio (Papel/Cobalto/Aço). O banner escuro
+            anterior era linguagem da Academia e tornava o botão ilegível. */}
+        <section className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-6 shadow-vinheta sm:p-8">
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#EAEFFF]">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-cobalto">
                 Painel do Corpo Clínico
               </p>
-              <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
+              <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-tinta sm:text-4xl">
                 Olá, {displayName}
               </h1>
-              <p className="mt-3 max-w-2xl text-sm text-[#EAEFFF] sm:text-base">
-                Acompanhe o progresso das crianças, reveja protocolos e monitorize atividades físicas.
+              <p className="mt-2 max-w-2xl text-sm text-aco">
+                Acompanhe o progresso das crianças, reveja protocolos e
+                monitorize atividades físicas.
               </p>
             </div>
-            <div className="flex flex-col gap-3 rounded-3xl bg-papel/10 px-4 py-4 text-right backdrop-blur-sm">
-              <div>
-                <p className="text-sm font-medium text-[#EAEFFF]">
-                  Pacientes registados
+
+            <div className="flex shrink-0 items-center gap-3">
+              <div className="rounded-xl border border-tinta/15 bg-papel px-4 py-3 text-center">
+                <p className="text-xs font-bold uppercase tracking-wide text-aco">
+                  Pacientes
                 </p>
-                <p className="mt-1 text-2xl font-bold">
+                <p className="mt-0.5 text-2xl font-bold text-tinta">
                   {loading ? "…" : pacientes.length}
                 </p>
               </div>
-              <BtnGlobal
-                variant="secondary"
+              <button
                 onClick={() => navigate("/perfil")}
-                className="rounded-xl border border-tinta/15 px-4 py-2 text-sm font-semibold text-tinta"
+                className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro px-4 py-2.5 text-sm font-bold text-tinta shadow-vinheta transition hover:bg-papel active:scale-95 active:shadow-none"
               >
                 Informação pessoal
-              </BtnGlobal>
+              </button>
             </div>
           </div>
         </section>
 
         {/* Métricas */}
         <section className="grid gap-4 lg:grid-cols-3">
-          <article className="rounded-2xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
+          <article className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-5 shadow-vinheta">
             <p className="text-sm font-bold uppercase tracking-[0.14em] text-tinta">
               Pacientes Acompanhados
             </p>
@@ -182,7 +184,7 @@ const DashboardCorpoClinico = () => {
             </p>
           </article>
 
-          <article className="rounded-2xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
+          <article className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-5 shadow-vinheta">
             <p className="text-sm font-bold uppercase tracking-[0.14em] text-tinta">
               Total de Treinos
             </p>
@@ -194,7 +196,7 @@ const DashboardCorpoClinico = () => {
             </p>
           </article>
 
-          <article className="rounded-2xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
+          <article className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-5 shadow-vinheta">
             <p className="text-sm font-bold uppercase tracking-[0.14em] text-tinta">
               Treinos esta Semana
             </p>
@@ -209,7 +211,7 @@ const DashboardCorpoClinico = () => {
 
         {/* Tabela de pacientes e ações rápidas */}
         <section className="grid gap-6 xl:grid-cols-[1.6fr_0.9fr]">
-          <article className="rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-sm">
+          <article className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-6 shadow-vinheta">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="text-xl font-bold text-tinta">Pacientes</h2>
@@ -310,7 +312,7 @@ const DashboardCorpoClinico = () => {
 
           {/* Antes eram "Ações rápidas" que repetiam a sidebar inteira.
               Passa a mostrar quem precisa mesmo de atenção, com ação direta. */}
-          <article className="rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-sm">
+          <article className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-6 shadow-vinheta">
             <div>
               <h2 className="text-lg font-bold text-tinta">
                 Precisam de atenção

@@ -218,20 +218,31 @@ const ExerciciosPage = () => {
   if (loading) return <LoadingSpinner mensagem="A carregar biblioteca de exercícios..." />;
 
   return (
-    <div className="p-8">
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-extrabold text-tinta">
-            Biblioteca de Exercícios
-          </h1>
+    <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
+      {/* Cabeçalho sóbrio do QG clínico */}
+      <div className="mb-6 rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-6 shadow-vinheta">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-cobalto">
+              Protocolos
+            </p>
+            <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-tinta">
+              Biblioteca de Exercícios
+            </h1>
+            <p className="mt-1 text-sm text-aco">
+              {exerciciosFiltrados.length}{" "}
+              {exerciciosFiltrados.length === 1 ? "exercício" : "exercícios"}
+              {temFiltrosAtivos ? " (filtrados)" : ""}
+            </p>
+          </div>
           <button
             onClick={() => setModalCriarAberto(true)}
-            className="flex items-center gap-2 rounded-xl bg-cobalto hover:bg-cobalto-vivo px-4 py-2 text-sm font-bold text-white transition shadow"
+            className="flex items-center gap-2 rounded-(--radius-vinheta) border-[3px] border-tinta bg-cobalto px-4 py-2.5 text-sm font-bold text-papel shadow-vinheta transition hover:bg-cobalto-vivo active:scale-95 active:shadow-none"
           >
-            <span className="text-lg leading-none">+</span> Criar
+            <span className="text-lg leading-none">+</span> Criar exercício
           </button>
         </div>
-        <div className="flex flex-wrap gap-4 items-end justify-center">
+        <div className="flex flex-wrap items-end gap-4 border-t border-tinta/15 pt-5">
           <div>
             <label className="block text-xs font-medium text-aco mb-1">Categoria</label>
             <select
@@ -301,10 +312,10 @@ const ExerciciosPage = () => {
           {exerciciosFiltrados.map((ex) => (
             <div
               key={ex.id_exercicio}
-              className="rounded-2xl border border-tinta/15 overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer bg-papel-claro flex flex-col"
+              className="flex cursor-pointer flex-col overflow-hidden rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro shadow-vinheta transition hover:-translate-y-0.5"
               onClick={() => setExercicioAberto(ex)}
             >
-              <div className="relative w-full h-48 bg-papel flex-shrink-0">
+              <div className="relative h-48 w-full flex-shrink-0 border-b-[3px] border-tinta bg-papel">
                 {ex.url_video ? (
                   <video src={`${ex.url_video}#t=0.1`} className="w-full h-full object-cover" preload="metadata" muted playsInline />
                 ) : (
@@ -314,30 +325,39 @@ const ExerciciosPage = () => {
                     </svg>
                   </div>
                 )}
-                <span className="absolute top-2 left-2 bg-cobalto text-white text-xs font-bold px-2 py-1 rounded-lg">
+                <span className="absolute left-2 top-2 rounded-lg border-2 border-tinta bg-cobalto px-2 py-1 text-xs font-bold text-papel">
                   {ex.categoria}
                 </span>
               </div>
               <div className="p-4 flex flex-col flex-grow justify-between">
                 <div>
                   <h3 className="font-bold text-tinta text-base">{ex.nome_exercicio}</h3>
-                  <div className="mt-2 flex flex-col gap-1 text-xs text-aco">
-                    <div className="flex flex-wrap gap-x-3 gap-y-1">
-                      <span>⏱ {Math.floor(ex.duracao_segundos / 60)} min</span>
-                      <span>💪 {getDificuldadeLabel(ex.dificuldade_clinica)}</span>
-                      <span>👤 Condição {ex.condicao_paciente || "A"}</span>
-                      <span>⭐ {ex.recompensa_xp} XP</span>
-                      {/* Repetições no card */}
-                      {ex.repeticoes && ex.repeticoes > 0 && (
-                        <span className="font-medium text-cobalto">🔁 {ex.repeticoes} rep.</span>
-                      )}
-                    </div>
-                    {ex.materiais_necessarios && (
-                      <span className="text-cobalto font-medium line-clamp-1 mt-1">
-                        🛠 {ex.materiais_necessarios}
+                  {/* Metadados em chips — antes era uma fila corrida de emojis
+                      difícil de ler em relance */}
+                  <div className="mt-3 flex flex-wrap gap-1.5 text-xs">
+                    <span className="rounded-full border border-tinta/15 bg-papel px-2 py-1 font-semibold text-aco">
+                      {Math.floor(ex.duracao_segundos / 60)} min
+                    </span>
+                    <span className="rounded-full border border-tinta/15 bg-papel px-2 py-1 font-semibold text-aco">
+                      {getDificuldadeLabel(ex.dificuldade_clinica)}
+                    </span>
+                    <span className="rounded-full border border-cobalto/25 bg-cobalto/10 px-2 py-1 font-semibold text-cobalto">
+                      Cond. {ex.condicao_paciente || "A"}
+                    </span>
+                    <span className="rounded-full border border-tinta/20 bg-raio/20 px-2 py-1 font-semibold text-tinta">
+                      {ex.recompensa_xp} XP
+                    </span>
+                    {ex.repeticoes && ex.repeticoes > 0 && (
+                      <span className="rounded-full border border-tinta/15 bg-papel px-2 py-1 font-semibold text-aco">
+                        {ex.repeticoes} rep.
                       </span>
                     )}
                   </div>
+                  {ex.materiais_necessarios && (
+                    <p className="mt-2 line-clamp-1 text-xs font-medium text-aco">
+                      🛠 {ex.materiais_necessarios}
+                    </p>
+                  )}
                 </div>
                 <div className="flex gap-1 items-start justify-end mt-2">
                   <button
