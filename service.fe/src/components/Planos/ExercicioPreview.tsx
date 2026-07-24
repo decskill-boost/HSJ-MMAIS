@@ -73,7 +73,7 @@ const ExercicioPreview = ({ exercicio, onVoltar, onComecar }: Props) => {
         </div>
 
         <div className="flex flex-col gap-3">
-          <h2 className="text-xl font-extrabold text-tinta">
+          <h2 className="font-display text-2xl tracking-wide text-tinta">
             {exercicio.nome_exercicio}
           </h2>
 
@@ -138,7 +138,7 @@ const ExercicioPreview = ({ exercicio, onVoltar, onComecar }: Props) => {
 
           <button
             onClick={onComecar}
-            className="mt-auto rounded-xl bg-cobalto py-2.5 text-base font-semibold text-papel shadow-sm transition hover:bg-cobalto-vivo"
+            className="mt-auto flex items-center justify-center gap-2 rounded-(--radius-vinheta) border-[3px] border-tinta bg-raio py-4 font-display text-lg tracking-wide text-tinta shadow-vinheta transition hover:brightness-105 active:scale-95 active:shadow-none"
           >
             Começar exercício ▶
           </button>
