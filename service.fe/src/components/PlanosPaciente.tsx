@@ -35,6 +35,23 @@ const formatDuration = (segundos: number) => {
   return `${m}m ${s}s`;
 };
 
+// Dificuldade em tom encorajador (voz da Academia — nunca desanimar a criança)
+const infoDificuldade = (d?: string) => {
+  switch ((d ?? "").toLowerCase()) {
+    case "facil":
+      return { label: "Fácil", emoji: "🌱", chip: "border-turbo/30 bg-turbo/15 text-turbo-escuro" };
+    case "medio":
+      return { label: "Médio", emoji: "💪", chip: "border-tinta/20 bg-raio/25 text-tinta" };
+    case "dificil":
+      return { label: "Puxado", emoji: "🔥", chip: "border-capa/30 bg-capa/10 text-capa-escura" };
+    default:
+      return { label: d || "Treino", emoji: "⭐", chip: "border-tinta/20 bg-cobalto/10 text-cobalto" };
+  }
+};
+
+// Classe de entrada em cascata (evita entrada-pop-1 inexistente)
+const cascata = (idx: number) => `entrada-pop${["", "-2", "-3", "-4"][idx % 4]}`;
+
 export const PlanosPaciente = () => {
   const { user } = useOutletContext<LayoutContext>();
   const [planos, setPlanos] = useState<PlanoAtivo[]>([]);
@@ -400,7 +417,7 @@ export const PlanosPaciente = () => {
           ← Voltar
         </button>
         <h1 className="text-2xl font-display tracking-tight text-tinta">Escolhe um plano 📋</h1>
-        <p className="mt-1 text-sm text-aco">Podes ver a prévia de cada exercício antes de começar!</p>
+        <p className="mt-1 text-sm text-aco">Toca num plano para o ver e começar!</p>
 
         {loading ? (
           <LoadingSpinner mensagem="A carregar planos de treino..." />
@@ -414,42 +431,80 @@ export const PlanosPaciente = () => {
             </p>
           </div>
         ) : (
-          <div className="mt-8 grid gap-6 sm:grid-cols-2">
-            {planos.filter((p) => p.exercicios.length > 0).map((plano) => (
-              <div key={plano.id_plano} className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-5 shadow-vinheta">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold text-cobalto uppercase tracking-wide">
-                    Nível {plano.dificuldade}
-                  </span>
-                  <span className="rounded-full bg-cobalto/15 px-3 py-0.5 text-xs font-semibold text-cobalto">
-                    {plano.exercicios.length} exercícios
-                  </span>
-                </div>
-                {plano.notas_medicas && (
-                  <p className="text-xs text-aco italic mb-3 bg-papel p-2.5 rounded-xl border border-tinta/15">
-                    {plano.notas_medicas}
-                  </p>
-                )}
-                <div className="mb-4 space-y-1.5">
-                  {plano.exercicios.map((ex, i) => (
-                    <div key={ex.id_exercicio} className="flex items-center gap-2 text-xs text-aco">
-                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-tinta/10 font-bold text-aco shrink-0">
-                        {i + 1}
+          <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {planos
+              .filter((p) => p.exercicios.length > 0)
+              .map((plano, idx) => {
+                const exs = plano.exercicios;
+                const totalSeg = exs.reduce((a, e) => a + e.duracao_segundos, 0);
+                const totalXp = exs.reduce((a, e) => a + e.recompensa_xp, 0);
+                const capa = exs.find((e) => e.url_video)?.url_video;
+                const dif = infoDificuldade(plano.dificuldade);
+                return (
+                  <button
+                    key={plano.id_plano}
+                    onClick={() => abrirPreviewPlano(plano)}
+                    className={`${cascata(idx)} group flex flex-col overflow-hidden rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro text-left shadow-vinheta transition hover:-translate-y-1 active:translate-y-0 active:shadow-none`}
+                  >
+                    {/* Capa: thumbnail do 1.º treino + botão de play */}
+                    <div className="relative h-40 w-full flex-shrink-0 border-b-[3px] border-tinta bg-tinta">
+                      {capa ? (
+                        <video
+                          src={`${capa}#t=0.1`}
+                          className="h-full w-full object-cover opacity-95"
+                          preload="metadata"
+                          muted
+                          playsInline
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center">
+                          <CapitaoMais className="h-24 w-auto animate-flutuar" title="" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-tinta/50 to-transparent" aria-hidden="true" />
+                      <span className={`absolute left-2 top-2 rounded-full border-2 border-tinta px-2.5 py-0.5 text-xs font-bold ${dif.chip}`}>
+                        {dif.emoji} {dif.label}
                       </span>
-                      <span className="font-medium flex-1">{ex.nome_exercicio}</span>
-                      <span className="text-aco shrink-0">{formatDuration(ex.duracao_segundos)}</span>
-                      <span className="text-cobalto font-semibold shrink-0">+{ex.recompensa_xp}xp</span>
+                      <span className="absolute right-2 top-2 rounded-full border-2 border-tinta bg-cobalto px-2.5 py-0.5 text-xs font-bold text-papel">
+                        {exs.length} {exs.length === 1 ? "treino" : "treinos"}
+                      </span>
+                      {/* ícone de play grande ao centro */}
+                      <span className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[3px] border-tinta bg-raio text-2xl text-tinta shadow-vinheta transition group-hover:scale-110">
+                        ▶
+                      </span>
                     </div>
-                  ))}
-                </div>
-                <button
-                  onClick={() => abrirPreviewPlano(plano)}
-                  className="w-full rounded-xl bg-cobalto py-3 text-sm font-display text-papel-claro transition hover:bg-cobalto-vivo active:scale-95"
-                >
-                  Ver prévia e começar ▶
-                </button>
-              </div>
-            ))}
+
+                    {/* Corpo */}
+                    <div className="flex flex-grow flex-col p-4">
+                      <h3 className="font-display text-xl tracking-wide text-tinta">
+                        Plano {dif.label}
+                      </h3>
+                      <p className="mt-0.5 line-clamp-1 text-xs text-aco">
+                        {exs.map((e) => e.nome_exercicio).join(" · ")}
+                      </p>
+
+                      {plano.notas_medicas && (
+                        <p className="mt-2 line-clamp-2 rounded-xl border border-tinta/15 bg-papel p-2 text-xs italic text-aco">
+                          {plano.notas_medicas}
+                        </p>
+                      )}
+
+                      <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
+                        <span className="rounded-full border border-tinta/15 bg-papel px-2.5 py-1 text-aco">
+                          ⏱ {formatDuration(totalSeg)}
+                        </span>
+                        <span className="rounded-full border border-tinta/20 bg-raio/20 px-2.5 py-1 text-tinta">
+                          ⭐ +{totalXp} XP
+                        </span>
+                      </div>
+
+                      <span className="mt-4 flex items-center justify-center gap-2 rounded-(--radius-vinheta) border-[3px] border-tinta bg-cobalto py-3 font-display text-base tracking-wide text-papel shadow-vinheta transition group-hover:bg-cobalto-vivo">
+                        Começar ▶
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
           </div>
         )}
       </div>
