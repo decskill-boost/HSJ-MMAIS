@@ -1,21 +1,39 @@
+import { lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import { Layout } from "./Layout";
 import { UserRole } from "../types/permissions";
 
+// Primeira pintura: carregadas de imediato
 import WelcomePage from "../components/WelcomePage";
-import ExperimentarPlanos from "../components/ExperimentarPlanos";
-import PersonalInfo from "../components/PersonalInfo";
 import PageNotFound from "../components/PageNotFound";
 import Login from "../components/Login";
-import DashboardPaciente from "../components/Dashboard/DashboardPaciente";
-import DashboardCorpoClinico from "../components/Dashboard/DashboardCorpoClinico";
-import PlanosCorpoClinico from "../components/Dashboard/PlanosCorpoClinico";
-import PacienteDetalhe from "../components/Dashboard/PacienteDetalhe";
-import DashboardAdmin from "../components/Dashboard/DashboardAdmin/DashboardAdmin";
-import ExerciciosPage from "../components/Exercicios/ExerciciosPage";
-import CriarPlano from "../components/CriarPlano";
-import PlanosPaciente from "../components/PlanosPaciente";
-import HistoricoRecompensas from "../components/Pacientes/HistoricoRecompensas";
+
+// Restantes rotas: code-splitting — cada perfil só descarrega o que usa
+const ExperimentarPlanos = lazy(() => import("../components/ExperimentarPlanos"));
+const PersonalInfo = lazy(() => import("../components/PersonalInfo"));
+const DashboardPaciente = lazy(
+  () => import("../components/Dashboard/DashboardPaciente"),
+);
+const DashboardCorpoClinico = lazy(
+  () => import("../components/Dashboard/DashboardCorpoClinico"),
+);
+const PlanosCorpoClinico = lazy(
+  () => import("../components/Dashboard/PlanosCorpoClinico"),
+);
+const PacienteDetalhe = lazy(
+  () => import("../components/Dashboard/PacienteDetalhe"),
+);
+const DashboardAdmin = lazy(
+  () => import("../components/Dashboard/DashboardAdmin/DashboardAdmin"),
+);
+const ExerciciosPage = lazy(
+  () => import("../components/Exercicios/ExerciciosPage"),
+);
+const CriarPlano = lazy(() => import("../components/CriarPlano"));
+const PlanosPaciente = lazy(() => import("../components/PlanosPaciente"));
+const HistoricoRecompensas = lazy(
+  () => import("../components/Pacientes/HistoricoRecompensas"),
+);
 
 import { ProtectedRoute } from "./ProtectedRoute";
 

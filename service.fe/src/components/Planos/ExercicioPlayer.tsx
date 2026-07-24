@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import type { ExercicioDoPlano } from "../../services/planosService";
 import AvaliacaoExercicio from "./AvaliacaoExercicio";
 import { sessoesService } from "../../services/sessoesService";
+import CapitaoMais from "../CapitaoMais";
 
 interface Props {
   exercicio: ExercicioDoPlano;
@@ -134,27 +135,33 @@ const ExercicioPlayer = ({
     totalExercicios !== undefined &&
     exercicioNumero >= totalExercicios;
 
+  // Reta final: o cronómetro pulsa nos últimos 10 segundos (dramatismo de BD)
+  const quaseNoFim =
+    exercicio.duracao_segundos > 0 &&
+    timeElapsed >= exercicio.duracao_segundos - 10 &&
+    timeElapsed < exercicio.duracao_segundos;
+
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-black">
+    <div className="fixed inset-0 z-50 flex flex-col bg-tinta">
       {/* Barra de cima */}
-      <div className="flex items-center justify-between bg-white px-5 py-4 shadow-sm">
+      <div className="flex items-center justify-between border-b-[3px] border-tinta bg-papel-claro px-5 py-4">
         <button
           onClick={onVoltar}
-          className="text-sm font-medium text-slate-500 transition hover:text-slate-900"
+          className="text-sm font-bold text-aco transition hover:text-tinta"
         >
           ← Voltar
         </button>
         <div className="flex flex-col items-center">
-          <h2 className="max-w-xs truncate text-base font-semibold text-slate-900">
+          <h2 className="max-w-xs truncate text-base font-bold text-tinta">
             {exercicio.nome_exercicio}
           </h2>
           {modoPlano && exercicioNumero && totalExercicios && (
-            <span className="text-xs text-slate-400 font-medium">
-              Exercício {exercicioNumero} de {totalExercicios}
+            <span className="text-xs font-medium text-aco">
+              Treino {exercicioNumero} de {totalExercicios}
             </span>
           )}
           {exercicio.repeticoes != null && exercicio.repeticoes > 0 && (
-            <span className="mt-1 rounded-lg bg-blue-600 px-4 py-1 text-sm font-extrabold text-white tracking-wide">
+            <span className="mt-1 rounded-lg border-2 border-tinta bg-cobalto px-4 py-1 text-sm font-extrabold tracking-wide text-papel">
               {exercicio.repeticoes} repetições
             </span>
           )}
@@ -163,7 +170,7 @@ const ExercicioPlayer = ({
       </div>
 
       {/* Vídeo + overlays */}
-      <div className="relative flex-1 overflow-hidden bg-black">
+      <div className="relative flex-1 overflow-hidden bg-tinta">
         {exercicio.url_video ? (
           <video
             ref={videoRef}
@@ -173,25 +180,26 @@ const ExercicioPlayer = ({
             playsInline
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-sm text-slate-500">
-            Sem vídeo disponível
+          <div className="flex h-full flex-col items-center justify-center gap-4 text-sm text-papel/70">
+            <CapitaoMais className="h-24 w-auto animate-flutuar" title="" />
+            <span>Sem vídeo — segue as instruções do teu treino!</span>
           </div>
         )}
 
         {/* Overlay de início */}
         {!isStarted && !isFinished && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-black/60 backdrop-blur-sm overflow-y-auto py-6 px-4">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 overflow-y-auto bg-tinta/70 px-4 py-6 backdrop-blur-sm">
             <div className="flex flex-col items-center gap-2">
               <span className="text-6xl">💪</span>
-              <h3 className="text-2xl font-extrabold text-white">Pronto para começar?</h3>
-              <p className="text-sm text-slate-300">O tempo começa a contar quando clicares!</p>
+              <h3 className="font-display text-3xl tracking-wide text-papel">Pronto para começar?</h3>
+              <p className="text-sm text-papel/80">O tempo começa a contar quando tocares!</p>
               {modoPlano && exercicioNumero && totalExercicios && (
-                <p className="text-xs text-slate-400 bg-white/10 px-3 py-1 rounded-full">
-                  Exercício {exercicioNumero} de {totalExercicios}
+                <p className="rounded-full bg-papel/10 px-3 py-1 text-xs text-[#EAEFFF]">
+                  Treino {exercicioNumero} de {totalExercicios}
                 </p>
               )}
               {exercicio.repeticoes != null && exercicio.repeticoes > 0 && (
-                <p className="text-sm font-bold text-blue-300 bg-white/10 px-4 py-1.5 rounded-full">
+                <p className="rounded-full bg-papel/10 px-4 py-1.5 text-sm font-bold text-raio">
                   🔁 Faz {exercicio.repeticoes} repetições
                 </p>
               )}
@@ -199,13 +207,13 @@ const ExercicioPlayer = ({
 
             {/* Checklist de materiais — só em exercício individual */}
             {!modoPlano && materiais.length > 0 && (
-              <div className="w-full max-w-xs bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
-                <p className="text-xs font-bold uppercase tracking-widest text-slate-300 mb-3 text-center">
+              <div className="w-full max-w-xs rounded-2xl border-2 border-papel/20 bg-papel/10 p-4 backdrop-blur-sm">
+                <p className="mb-3 text-center text-xs font-bold uppercase tracking-widest text-[#EAEFFF]">
                   ✅ Tens tudo o que precisas?
                 </p>
                 <div className="flex flex-col gap-2">
                   {materiais.map((m) => (
-                    <label key={m} className="flex items-center gap-3 cursor-pointer">
+                    <label key={m} className="flex cursor-pointer items-center gap-3">
                       <input
                         type="checkbox"
                         checked={materiaisChecked.includes(m)}
@@ -216,12 +224,12 @@ const ExercicioPlayer = ({
                               : [...prev, m]
                           )
                         }
-                        className="w-5 h-5 rounded accent-green-400 cursor-pointer"
+                        className="h-5 w-5 cursor-pointer rounded accent-turbo"
                       />
                       <span className={`text-sm transition ${
                         materiaisChecked.includes(m)
-                          ? "line-through text-slate-400"
-                          : "text-white"
+                          ? "text-papel/50 line-through"
+                          : "text-papel"
                       }`}>
                         {m}
                       </span>
@@ -229,7 +237,7 @@ const ExercicioPlayer = ({
                   ))}
                 </div>
                 {!todosMateriaisMarcados && (
-                  <p className="mt-3 text-xs text-amber-400 font-medium text-center">
+                  <p className="mt-3 text-center text-xs font-medium text-raio">
                     ⚠️ Marca todos os materiais antes de começar
                   </p>
                 )}
@@ -239,10 +247,10 @@ const ExercicioPlayer = ({
             <button
               onClick={handleIniciar}
               disabled={!modoPlano && !todosMateriaisMarcados}
-              className={`flex items-center gap-3 rounded-2xl px-10 py-5 text-xl font-extrabold text-white shadow-lg transition active:scale-95 ${
+              className={`flex items-center gap-3 rounded-(--radius-vinheta) border-[3px] border-tinta px-10 py-5 font-display text-xl tracking-wide shadow-vinheta transition active:scale-95 active:shadow-none ${
                 !modoPlano && !todosMateriaisMarcados
-                  ? "bg-slate-500 cursor-not-allowed"
-                  : "bg-green-500 hover:bg-green-400"
+                  ? "cursor-not-allowed bg-aco text-papel/70"
+                  : "bg-turbo text-tinta hover:brightness-105"
               }`}
             >
               <span className="text-2xl">▶️</span> Iniciar!
@@ -252,52 +260,52 @@ const ExercicioPlayer = ({
 
         {/* Overlay de pausa */}
         {isPaused && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/70 backdrop-blur-sm">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-tinta/80 backdrop-blur-sm">
             <div className="flex flex-col items-center gap-2">
               <span className="text-5xl">⏸️</span>
-              <h3 className="text-2xl font-extrabold text-white">Exercício em Pausa</h3>
-              <p className="text-sm text-slate-300">O que queres fazer?</p>
+              <h3 className="font-display text-3xl tracking-wide text-papel">Pausa de herói!</h3>
+              <p className="text-sm text-papel/80">O que queres fazer?</p>
             </div>
-            <div className="rounded-2xl bg-white/10 px-6 py-3 text-center backdrop-blur-sm">
-              <p className="text-xs font-semibold uppercase tracking-widest text-slate-300">
-                Tempo de exercício
+            <div className="rounded-2xl border-2 border-papel/20 bg-papel/10 px-6 py-3 text-center backdrop-blur-sm">
+              <p className="text-xs font-semibold uppercase tracking-widest text-[#EAEFFF]">
+                Tempo de treino
               </p>
-              <p className="text-4xl font-extrabold tabular-nums text-white">
+              <p className="font-display text-4xl tabular-nums tracking-wide text-papel">
                 {formatTime(timeElapsed)}
               </p>
             </div>
             <div className="flex w-64 flex-col items-center gap-3">
               <button
                 onClick={handleRetomar}
-                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-green-500 px-6 py-4 text-lg font-extrabold text-white shadow-lg transition hover:bg-green-400 active:scale-95"
+                className="flex w-full items-center justify-center gap-3 rounded-(--radius-vinheta) border-[3px] border-tinta bg-turbo px-6 py-4 font-display text-lg tracking-wide text-tinta shadow-vinheta transition hover:brightness-105 active:scale-95 active:shadow-none"
               >
                 <span className="text-2xl">▶️</span> Continuar!
               </button>
               <button
                 onClick={handleRecomecar}
-                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-blue-500 px-6 py-4 text-lg font-extrabold text-white shadow-lg transition hover:bg-blue-400 active:scale-95"
+                className="flex w-full items-center justify-center gap-3 rounded-(--radius-vinheta) border-[3px] border-tinta bg-cobalto-vivo px-6 py-4 font-display text-lg tracking-wide text-papel shadow-vinheta transition hover:bg-cobalto active:scale-95 active:shadow-none"
               >
                 <span className="text-2xl">🔄</span> Recomeçar
               </button>
               {modoPlano ? (
                 <button
                   onClick={handleConcluir}
-                  className="flex w-full items-center justify-center gap-3 rounded-2xl bg-emerald-600 px-6 py-4 text-lg font-extrabold text-white shadow-lg transition hover:bg-emerald-500 active:scale-95"
+                  className="flex w-full items-center justify-center gap-3 rounded-(--radius-vinheta) border-[3px] border-tinta bg-raio px-6 py-4 font-display text-lg tracking-wide text-tinta shadow-vinheta transition hover:brightness-105 active:scale-95 active:shadow-none"
                 >
                   <span className="text-2xl">{isUltimoExercicio ? "🏁" : "⏭️"}</span>
-                  {isUltimoExercicio ? "Concluir Plano" : "Próximo exercício"}
+                  {isUltimoExercicio ? "Concluir Plano" : "Próximo treino"}
                 </button>
               ) : (
                 <button
                   onClick={handleConcluir}
-                  className="flex w-full items-center justify-center gap-3 rounded-2xl bg-emerald-600 px-6 py-4 text-lg font-extrabold text-white shadow-lg transition hover:bg-emerald-500 active:scale-95"
+                  className="flex w-full items-center justify-center gap-3 rounded-(--radius-vinheta) border-[3px] border-tinta bg-raio px-6 py-4 font-display text-lg tracking-wide text-tinta shadow-vinheta transition hover:brightness-105 active:scale-95 active:shadow-none"
                 >
                   <span className="text-2xl">🏁</span> Concluir
                 </button>
               )}
               <button
                 onClick={onVoltar}
-                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-slate-600 px-6 py-4 text-lg font-extrabold text-white shadow-lg transition hover:bg-slate-500 active:scale-95"
+                className="flex w-full items-center justify-center gap-3 rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel/10 px-6 py-4 font-display text-lg tracking-wide text-papel shadow-vinheta transition hover:bg-papel/20 active:scale-95 active:shadow-none"
               >
                 <span className="text-2xl">🏠</span>
                 {modoPlano ? "Sair do plano" : "Sair"}
@@ -308,46 +316,46 @@ const ExercicioPlayer = ({
 
         {/* Overlay de fim — convidado */}
         {isFinished && modoConvidado && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/80 backdrop-blur-sm">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-tinta/85 px-4 backdrop-blur-sm">
             <span className="animate-bounce text-7xl">🎉</span>
-            <h3 className="text-3xl font-extrabold text-white">Muito bem!</h3>
-            <p className="max-w-xs text-center text-slate-300">
-              Experimentaste um exercício do +MMAis. Cria uma conta para teres
-              o teu plano personalizado e acompanhares o teu progresso!
+            <h3 className="font-display text-4xl tracking-wide text-papel">Muito bem!</h3>
+            <p className="max-w-xs text-center text-papel/80">
+              Experimentaste um treino MMAIS+. Cria uma conta para teres o teu
+              plano personalizado e acompanhares as tuas conquistas!
             </p>
             <button
               onClick={onConcluir}
-              className="mt-2 flex items-center gap-3 rounded-2xl bg-emerald-500 px-8 py-4 text-xl font-extrabold text-white shadow-lg transition hover:bg-emerald-400 active:scale-95"
+              className="mt-2 flex items-center gap-3 rounded-(--radius-vinheta) border-[3px] border-tinta bg-raio px-8 py-4 font-display text-xl tracking-wide text-tinta shadow-vinheta transition hover:brightness-105 active:scale-95 active:shadow-none"
             >
-              🏆 Ver outro exercício
+              🏆 Ver outro treino
             </button>
           </div>
         )}
 
         {/* Overlay de fim — exercício intermédio do plano: ecrã rápido */}
         {isFinished && modoPlano && !isUltimoExercicio && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-black/80 backdrop-blur-sm">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-tinta/85 backdrop-blur-sm">
             <span className="animate-bounce text-7xl">✅</span>
-            <h3 className="text-3xl font-extrabold text-white text-center px-4">
-              {`Exercício ${exercicioNumero} concluído!`}
+            <h3 className="px-4 text-center font-display text-4xl tracking-wide text-papel">
+              {`Treino ${exercicioNumero} concluído!`}
             </h3>
-            <div className="rounded-2xl bg-white/10 px-8 py-4 text-center backdrop-blur-sm">
-              <p className="text-xs font-semibold uppercase tracking-widest text-slate-300 mb-1">
+            <div className="rounded-2xl border-2 border-papel/20 bg-papel/10 px-8 py-4 text-center backdrop-blur-sm">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-[#EAEFFF]">
                 XP ganho
               </p>
-              <p className="text-4xl font-extrabold text-yellow-400">
+              <p className="font-display text-5xl tracking-wide text-raio [text-shadow:2px_2px_0_#141F3C]">
                 +{exercicio.recompensa_xp} XP
               </p>
             </div>
-            <p className="text-sm text-slate-300 text-center px-4">
-              A seguir: <span className="font-bold text-white">próximo exercício</span>
+            <p className="px-4 text-center text-sm text-papel/80">
+              A seguir: <span className="font-bold text-papel">próximo treino</span>
             </p>
             <button
               onClick={handleProximoExercicio}
               disabled={isSaving}
-              className="mt-2 flex items-center gap-3 rounded-2xl bg-emerald-500 px-10 py-5 text-xl font-extrabold text-white shadow-lg transition hover:bg-emerald-400 active:scale-95 disabled:opacity-50"
+              className="mt-2 flex items-center gap-3 rounded-(--radius-vinheta) border-[3px] border-tinta bg-raio px-10 py-5 font-display text-xl tracking-wide text-tinta shadow-vinheta transition hover:brightness-105 active:scale-95 active:shadow-none disabled:opacity-50"
             >
-              {isSaving ? "A guardar..." : "Próximo exercício →"}
+              {isSaving ? "A guardar..." : "Próximo treino →"}
             </button>
           </div>
         )}
@@ -379,18 +387,22 @@ const ExercicioPlayer = ({
 
       {/* Barra de baixo */}
       {isStarted && !isPaused && !isFinished && (
-        <div className="flex flex-col items-center gap-3 bg-white px-4 pb-5 pt-4 shadow-[0_-2px_10px_rgba(0,0,0,0.08)]">
+        <div className="flex flex-col items-center gap-3 border-t-[3px] border-tinta bg-papel-claro px-4 pb-5 pt-4">
           <div className="flex flex-col items-center gap-1">
-            <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
-              Tempo de exercício
+            <p className="text-xs font-semibold uppercase tracking-widest text-aco">
+              Tempo de treino
             </p>
-            <p className="text-5xl font-extrabold tabular-nums text-slate-900">
+            <p
+              className={`font-display text-6xl tabular-nums tracking-wide text-tinta ${
+                quaseNoFim ? "animate-pulse text-capa" : ""
+              }`}
+            >
               {formatTime(timeElapsed)}
             </p>
             {exercicio.duracao_segundos > 0 && (
-              <div className="w-64 h-2 bg-slate-100 rounded-full overflow-hidden mt-1">
+              <div className="mt-1 h-2.5 w-64 overflow-hidden rounded-full border border-tinta/15 bg-tinta/10">
                 <div
-                  className="h-full bg-blue-500 rounded-full transition-all duration-1000"
+                  className="h-full rounded-full bg-cobalto transition-all duration-1000"
                   style={{ width: `${Math.min((timeElapsed / exercicio.duracao_segundos) * 100, 100)}%` }}
                 />
               </div>
@@ -399,7 +411,7 @@ const ExercicioPlayer = ({
           <div className="flex items-center gap-4">
             <button
               onClick={handlePausar}
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition hover:bg-slate-700"
+              className="flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-tinta bg-tinta text-papel shadow-vinheta transition hover:bg-aco active:scale-95 active:shadow-none"
               aria-label="Pausar"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
@@ -409,7 +421,7 @@ const ExercicioPlayer = ({
             </button>
             <button
               onClick={handleRecomecar}
-              className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-900 text-white shadow-lg transition hover:bg-slate-700"
+              className="flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-tinta bg-tinta text-papel shadow-vinheta transition hover:bg-aco active:scale-95 active:shadow-none"
               aria-label="Recomeçar"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
@@ -420,8 +432,8 @@ const ExercicioPlayer = ({
             {modoPlano && (
               <button
                 onClick={handleConcluir}
-                className="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-600 text-white shadow-lg transition hover:bg-emerald-500"
-                aria-label="Próximo exercício"
+                className="flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-tinta bg-raio text-tinta shadow-vinheta transition hover:brightness-105 active:scale-95 active:shadow-none"
+                aria-label="Próximo treino"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24">
                   <path d="M5 4l15 8-15 8V4z" />

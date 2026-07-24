@@ -3,6 +3,8 @@ import { useOutletContext } from "react-router-dom";
 import { supabase } from "../../services/supabaseClient";
 import { sessoesService } from "../../services/sessoesService";
 import type { UserProfile } from "../../types/user";
+import CapitaoMais from "../CapitaoMais";
+import LoadingSpinner from "../LoadingSpinner";
 
 interface LayoutContext {
   user: UserProfile | null;
@@ -78,27 +80,31 @@ const HistoricoRecompensas = () => {
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10">
       <div className="mb-6">
-        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
+        <h1 className="font-display text-3xl tracking-wide text-tinta">
           O meu progresso
         </h1>
 
         {/* XP total */}
-        <div className="mt-4 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 p-5 text-white shadow-md">
-          <p className="text-sm font-semibold uppercase tracking-widest opacity-80">XP Total</p>
-          <p className="text-4xl font-extrabold">{xpTotal} XP ⭐</p>
+        <div className="mt-4 overflow-hidden rounded-(--radius-vinheta) border-[3px] border-tinta bg-[linear-gradient(135deg,#3D6BFF_0%,#1D42C8_100%)] p-5 text-papel shadow-vinheta">
+          <p className="text-sm font-semibold uppercase tracking-widest text-[#EAEFFF]">
+            XP Total
+          </p>
+          <p className="font-display text-5xl tracking-wide text-raio [text-shadow:2px_2px_0_#141F3C]">
+            {xpTotal} XP ⭐
+          </p>
           {xpParaProxima && (
             <div className="mt-3">
-              <div className="flex justify-between text-xs opacity-80 mb-1">
-                <span>Próxima recompensa: {xpParaProxima.nome}</span>
+              <div className="mb-1 flex justify-between text-xs text-[#EAEFFF]">
+                <span>Próxima conquista: {xpParaProxima.nome}</span>
                 <span>{progressoPercent}%</span>
               </div>
-              <div className="h-2 w-full rounded-full bg-white/20">
+              <div className="h-3 w-full rounded-full border-2 border-tinta bg-tinta/30">
                 <div
-                  className="h-2 rounded-full bg-white transition-all"
+                  className="h-full rounded-full bg-raio transition-all"
                   style={{ width: `${progressoPercent}%` }}
                 />
               </div>
-              <p className="mt-1 text-xs opacity-70">
+              <p className="mt-1 text-xs text-[#EAEFFF]">
                 Faltam {xpParaProxima.xp_necessario - xpTotal} XP
               </p>
             </div>
@@ -107,52 +113,61 @@ const HistoricoRecompensas = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6">
+      <div className="mb-6 flex gap-2">
         <button
           onClick={() => setTab("historico")}
-          className={`rounded-xl px-5 py-2.5 text-sm font-bold transition ${
+          className={`rounded-(--radius-vinheta) border-[3px] border-tinta px-5 py-2.5 text-sm font-bold transition active:scale-95 ${
             tab === "historico"
-              ? "bg-blue-600 text-white shadow"
-              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              ? "bg-cobalto text-papel shadow-vinheta"
+              : "bg-papel-claro text-tinta hover:bg-papel"
           }`}
         >
           📋 Histórico
         </button>
         <button
           onClick={() => setTab("recompensas")}
-          className={`rounded-xl px-5 py-2.5 text-sm font-bold transition ${
+          className={`rounded-(--radius-vinheta) border-[3px] border-tinta px-5 py-2.5 text-sm font-bold transition active:scale-95 ${
             tab === "recompensas"
-              ? "bg-blue-600 text-white shadow"
-              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              ? "bg-cobalto text-papel shadow-vinheta"
+              : "bg-papel-claro text-tinta hover:bg-papel"
           }`}
         >
-          🏆 Recompensas
+          🏆 Conquistas
         </button>
       </div>
 
       {loading ? (
-        <p className="text-sm text-slate-400">A carregar...</p>
+        <LoadingSpinner mensagem="A carregar o teu progresso..." />
       ) : tab === "historico" ? (
         sessoes.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
-            <p className="text-4xl mb-3">🏃</p>
-            <p className="font-semibold text-slate-700">Ainda não fizeste nenhum exercício!</p>
-            <p className="text-sm text-slate-400 mt-1">Começa um plano e aparece aqui o teu histórico.</p>
+          <div className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-8 text-center shadow-vinheta">
+            <div className="mx-auto mb-3 flex justify-center">
+              <CapitaoMais className="h-20 w-auto animate-flutuar" title="" />
+            </div>
+            <p className="font-bold text-tinta">Ainda não fizeste nenhum treino!</p>
+            <p className="mt-1 text-sm text-aco">
+              Começa um plano e as tuas conquistas aparecem aqui.
+            </p>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
-            {sessoes.map((s) => (
-              <div key={s.id_sessao} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm flex items-center justify-between gap-4">
+            {sessoes.map((s, idx) => (
+              <div
+                key={s.id_sessao}
+                className={`entrada-pop${idx > 0 ? `-${Math.min(idx + 1, 4)}` : ""} flex items-center justify-between gap-4 rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-4 shadow-vinheta`}
+              >
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">🏅</span>
                   <div>
-                    <p className="font-bold text-slate-800 text-sm">
+                    <p className="text-sm font-bold text-tinta">
                       {s.exercicios?.nome_exercicio ?? "Exercício"}
                     </p>
-                    <p className="text-xs text-slate-400">{formatData(s.data_hora)} · {formatDuracao(s.duracao)}</p>
+                    <p className="text-xs text-aco">
+                      {formatData(s.data_hora)} · {formatDuracao(s.duracao)}
+                    </p>
                   </div>
                 </div>
-                <span className="shrink-0 rounded-full bg-blue-100 px-3 py-1 text-sm font-bold text-blue-700">
+                <span className="shrink-0 rounded-full border-2 border-tinta bg-raio px-3 py-1 text-sm font-bold text-tinta">
                   +{s.exercicios?.recompensa_xp ?? 0} XP
                 </span>
               </div>
@@ -166,24 +181,26 @@ const HistoricoRecompensas = () => {
             return (
               <div
                 key={r.id_recompensa}
-                className={`rounded-2xl border p-4 shadow-sm flex items-center justify-between gap-4 transition ${
+                className={`flex items-center justify-between gap-4 rounded-(--radius-vinheta) border-[3px] p-4 transition ${
                   desbloqueada
-                    ? "border-yellow-300 bg-yellow-50"
-                    : "border-slate-200 bg-white opacity-60"
+                    ? "border-tinta bg-[linear-gradient(135deg,#FFCE29_0%,#FFB800_100%)] shadow-vinheta"
+                    : "border-tinta/25 bg-papel-claro opacity-70"
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <span className="text-3xl">{desbloqueada ? r.icone : "🔒"}</span>
                   <div>
-                    <p className="font-bold text-slate-800 text-sm">{r.nome}</p>
-                    <p className="text-xs text-slate-500">{r.descricao}</p>
+                    <p className="text-sm font-bold text-tinta">{r.nome}</p>
+                    <p className={`text-xs ${desbloqueada ? "text-tinta/80" : "text-aco"}`}>
+                      {r.descricao}
+                    </p>
                   </div>
                 </div>
-                <span className={`shrink-0 rounded-full px-3 py-1 text-sm font-bold ${
-                  desbloqueada
-                    ? "bg-yellow-200 text-yellow-800"
-                    : "bg-slate-100 text-slate-500"
-                }`}>
+                <span
+                  className={`shrink-0 rounded-full border-2 border-tinta px-3 py-1 text-sm font-bold ${
+                    desbloqueada ? "bg-papel-claro text-tinta" : "bg-papel text-aco"
+                  }`}
+                >
                   {r.xp_necessario} XP
                 </span>
               </div>

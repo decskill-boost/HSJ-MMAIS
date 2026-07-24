@@ -1,30 +1,21 @@
-import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
-import App from '../src/App'
-import { UserProvider } from '../src/contexts/UserContext'
+import { render, screen } from '@testing-library/react';
+import CapitaoMais from '../src/components/CapitaoMais';
+import BtnGlobal from '../src/components/BtnGlobal';
 
-describe('App', () => {
-  it('renderiza o título de boas-vindas do +MMAis e navega para o Login', async () => {
-    const user = userEvent.setup()
-    render(
-      <UserProvider>
-        <App />
-      </UserProvider>
-    )
-
-    // Verifica se a página de boas-vindas é exibida
+// Smoke tests da identidade MMAIS (substituem os testes obsoletos do template Vite)
+describe('Identidade MMAIS', () => {
+  it('renderiza a mascote Capitão Mais', () => {
+    render(<CapitaoMais />);
     expect(
-      await screen.findByRole('heading', { name: /Bem-vindo ao \+MMAis!/i })
-    ).toBeInTheDocument()
+      screen.getByRole('img', { name: /capitão mais/i }),
+    ).toBeInTheDocument();
+  });
 
-    // Encontra o botão "Começar!" e clica nele
-    const button = screen.getByRole('button', { name: /Começar!/i })
-    await user.click(button)
-
-    // Verifica se navegou para a página de Login
+  it('renderiza o botão global com o texto correto', () => {
+    render(<BtnGlobal variant="raio">Começar!</BtnGlobal>);
     expect(
-      await screen.findByText(/Email Institucional/i)
-    ).toBeInTheDocument()
-  })
-})
+      screen.getByRole('button', { name: /começar/i }),
+    ).toBeInTheDocument();
+  });
+});
 

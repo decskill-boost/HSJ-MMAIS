@@ -21,9 +21,9 @@ const FILTROS: { valor: FiltroAdesao; label: string }[] = [
 ];
 
 const BADGE_STYLES: Record<Exclude<FiltroAdesao, "todos">, string> = {
-  critico: "bg-red-100 text-red-700",
-  moderado: "bg-amber-100 text-amber-700",
-  ideal: "bg-emerald-100 text-emerald-700",
+  critico: "bg-capa/20 text-capa-escura",
+  moderado: "bg-raio/25 text-raio-fundo",
+  ideal: "bg-turbo/20 text-turbo-escuro",
 };
 
 const PacientesList = () => {
@@ -82,18 +82,18 @@ const PacientesList = () => {
 
   return (
     <div className="mx-auto w-full max-w-5xl px-4 py-10">
-      <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Pacientes</h1>
-      <p className="mt-1 text-sm text-slate-500">
+      <h1 className="text-2xl font-extrabold tracking-tight text-tinta">Pacientes</h1>
+      <p className="mt-1 text-sm text-aco">
         Clica num paciente para ver o seu histórico de assiduidade.
       </p>
 
-      <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="mt-6 rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-sm">
         {loading ? (
           <LoadingSpinner mensagem="A carregar pacientes..." />
         ) : erro ? (
-          <p className="text-sm text-red-600">{erro}</p>
+          <p className="text-sm text-capa-escura">{erro}</p>
         ) : pacientes.length === 0 ? (
-          <p className="text-sm text-slate-500">Ainda não há pacientes registados.</p>
+          <p className="text-sm text-aco">Ainda não há pacientes registados.</p>
         ) : (
           <>
             <div className="mb-4 flex flex-wrap gap-2">
@@ -104,8 +104,8 @@ const PacientesList = () => {
                   onClick={() => setFiltro(f.valor)}
                   className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
                     filtro === f.valor
-                      ? "bg-slate-900 text-white"
-                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                      ? "bg-tinta text-papel"
+                      : "bg-tinta/10 text-aco hover:bg-tinta/15"
                   }`}
                 >
                   {f.label}
@@ -114,13 +114,13 @@ const PacientesList = () => {
             </div>
 
             {pacientesOrdenados.length === 0 ? (
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-aco">
                 Nenhum paciente encontrado com estes critérios
               </p>
             ) : (
-              <div className="overflow-x-auto rounded-3xl border border-slate-200">
-                <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-                  <thead className="bg-slate-50 text-slate-500">
+              <div className="overflow-x-auto rounded-3xl border border-tinta/15">
+                <table className="min-w-full divide-y divide-tinta/15 text-left text-sm">
+                  <thead className="bg-papel text-aco">
                     <tr>
                       <th
                         className="cursor-pointer select-none px-4 py-3 font-medium"
@@ -142,14 +142,14 @@ const PacientesList = () => {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 bg-white">
+                  <tbody className="divide-y divide-tinta/10 bg-papel-claro">
                     {pacientesOrdenados.map((paciente) => (
                       <tr
                         key={paciente.idUser}
                         onClick={() => navigate(`/dashboard/medico/adesao/${paciente.idUser}`)}
-                        className="cursor-pointer hover:bg-slate-50"
+                        className="cursor-pointer hover:bg-papel"
                       >
-                        <td className="px-4 py-4 font-semibold text-slate-900">
+                        <td className="px-4 py-4 font-semibold text-tinta">
                           <Link
                             to={`/dashboard/medico/adesao/${paciente.idUser}`}
                             className="hover:underline"
@@ -158,10 +158,10 @@ const PacientesList = () => {
                             {paciente.nome}
                           </Link>
                         </td>
-                        <td className="px-4 py-4 text-slate-600">{paciente.email}</td>
+                        <td className="px-4 py-4 text-aco">{paciente.email}</td>
                         <td className="px-4 py-4">
                           {paciente.adesaoPercentual === null ? (
-                            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-500">
+                            <span className="rounded-full bg-tinta/10 px-3 py-1 text-xs font-semibold text-aco">
                               Sem dados
                             </span>
                           ) : (
