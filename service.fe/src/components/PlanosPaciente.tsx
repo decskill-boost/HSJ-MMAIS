@@ -52,6 +52,67 @@ const infoDificuldade = (d?: string) => {
 // Classe de entrada em cascata (evita entrada-pop-1 inexistente)
 const cascata = (idx: number) => `entrada-pop${["", "-2", "-3", "-4"][idx % 4]}`;
 
+/**
+ * Capa do cartão de plano. A criança vê SEMPRE uma capa bonita (Capitão sobre
+ * cobalto); o frame do vídeo entra por cima com fade só quando estiver pronto.
+ * O vídeo só começa a carregar quando o cartão se aproxima do ecrã — os vídeos
+ * são pesados (alguns 4K) e não podem bloquear o ecrã num tablet de enfermaria.
+ */
+const CapaPlano = ({ url }: { url?: string }) => {
+  const [visivel, setVisivel] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !url) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) {
+          setVisivel(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "300px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [url]);
+
+  return (
+    <div
+      ref={ref}
+      className="relative h-40 w-full flex-shrink-0 overflow-hidden border-b-[3px] border-tinta bg-[linear-gradient(135deg,#3D6BFF_0%,#1D42C8_100%)]"
+    >
+      {/* capa base — sempre visível, nunca deixa o cartão vazio */}
+      <div className="fundo-reticula absolute inset-0 opacity-40" aria-hidden="true" />
+      {/* Capitão encostado ao canto para não ficar por baixo do botão de play */}
+      <div className="absolute bottom-1 left-3">
+        <CapitaoMais className="h-16 w-auto animate-flutuar" title="" />
+      </div>
+
+      {/*
+        O vídeo fica SEMPRE visível por cima da capa: quando o browser pinta o
+        frame, tapa o Capitão; enquanto não pinta, o elemento é transparente e
+        vê-se a capa por baixo. Não depende de eventos de media (o `loadeddata`
+        não dispara em Chromium com preload="metadata" e deixava isto invisível).
+      */}
+      {url && visivel && (
+        <video
+          src={`${url}#t=0.1`}
+          className="absolute inset-0 h-full w-full object-cover"
+          preload="metadata"
+          muted
+          playsInline
+        />
+      )}
+      <div
+        className="absolute inset-0 bg-gradient-to-t from-tinta/50 to-transparent"
+        aria-hidden="true"
+      />
+    </div>
+  );
+};
+
 export const PlanosPaciente = () => {
   const { user } = useOutletContext<LayoutContext>();
   const [planos, setPlanos] = useState<PlanoAtivo[]>([]);
@@ -446,22 +507,9 @@ export const PlanosPaciente = () => {
                     onClick={() => abrirPreviewPlano(plano)}
                     className={`${cascata(idx)} group flex flex-col overflow-hidden rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro text-left shadow-vinheta transition hover:-translate-y-1 active:translate-y-0 active:shadow-none`}
                   >
-                    {/* Capa: thumbnail do 1.º treino + botão de play */}
-                    <div className="relative h-40 w-full flex-shrink-0 border-b-[3px] border-tinta bg-tinta">
-                      {capa ? (
-                        <video
-                          src={`${capa}#t=0.1`}
-                          className="h-full w-full object-cover opacity-95"
-                          preload="metadata"
-                          muted
-                          playsInline
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center">
-                          <CapitaoMais className="h-24 w-auto animate-flutuar" title="" />
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-tinta/50 to-transparent" aria-hidden="true" />
+                    {/* Capa: Capitão sempre visível; frame do vídeo entra com fade */}
+                    <div className="relative">
+                      <CapaPlano url={capa} />
                       <span className={`absolute left-2 top-2 rounded-full border-2 border-tinta px-2.5 py-0.5 text-xs font-bold ${dif.chip}`}>
                         {dif.emoji} {dif.label}
                       </span>
