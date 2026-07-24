@@ -92,24 +92,26 @@ const WelcomePage = () => {
             Missões, conquistas e superpoderes — mais um passo, todos os dias.
           </p>
 
-          <BtnGlobal
-            onClick={handleAction}
-            variant="raio"
-            className="mt-8 mx-auto px-10 py-3"
-          >
-            {buttonText}
-          </BtnGlobal>
+          {/* As duas entradas lado a lado: entrar na conta ou experimentar já */}
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <BtnGlobal onClick={handleAction} variant="raio" className="px-10 py-3">
+              {buttonText}
+            </BtnGlobal>
+
+            {!isAuthenticated && (
+              <button
+                onClick={() => navigate("/experimentar")}
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro px-8 py-3 font-display text-lg tracking-wide text-tinta shadow-vinheta transition hover:bg-papel active:scale-95 active:shadow-none"
+              >
+                Experimentar grátis
+              </button>
+            )}
+          </div>
 
           {!isAuthenticated && (
-            <button
-              onClick={() => navigate("/experimentar")}
-              className="group mx-auto mt-5 block text-sm font-bold text-[#EAEFFF] transition hover:text-raio"
-            >
-              Ainda não tens conta? Experimenta um treino grátis{" "}
-              <span className="inline-block text-lg transition-transform group-hover:translate-x-1">
-                →
-              </span>
-            </button>
+            <p className="mt-3 text-sm font-bold text-[#EAEFFF]">
+              Ainda não tens conta? Testa um treino sem te registares.
+            </p>
           )}
 
           <p className="mt-4 text-sm font-bold text-[#EAEFFF]/80">
