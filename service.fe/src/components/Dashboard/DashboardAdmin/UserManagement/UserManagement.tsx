@@ -118,16 +118,20 @@ const UserManagement = () => {
       resetForm();
     } catch (err: unknown) {
       console.error(err);
-      const anyErr = err as any;
-      const serverMessage =
-        anyErr?.response?.data?.message ||
-        anyErr?.response?.data ||
-        anyErr?.message;
-      setError(
-        typeof serverMessage === "string"
-          ? serverMessage
-          : JSON.stringify(serverMessage),
-      );
+      let serverMessage = "Erro desconhecido";
+      if (err instanceof Error) {
+        serverMessage = err.message;
+      }
+      const apiErr = err as { response?: { data?: { message?: string } | string } };
+      if (apiErr?.response?.data) {
+        const data = apiErr.response.data;
+        if (typeof data === "string") {
+          serverMessage = data;
+        } else if (data && typeof data === "object" && "message" in data && typeof data.message === "string") {
+          serverMessage = data.message;
+        }
+      }
+      setError(serverMessage);
     } finally {
       setLoading(false);
     }

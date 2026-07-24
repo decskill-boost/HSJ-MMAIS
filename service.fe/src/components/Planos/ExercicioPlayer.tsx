@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { ExercicioDoPlano } from "../../services/planosService";
 import AvaliacaoExercicio from "./AvaliacaoExercicio";
+import { sessoesService } from "../../services/sessoesService";
 
 interface Props {
   exercicio: ExercicioDoPlano;
@@ -36,6 +37,25 @@ const ExercicioPlayer = ({
   const [isPaused, setIsPaused] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [materiaisChecked, setMateriaisChecked] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleProximoExercicio = async () => {
+    setIsSaving(true);
+    try {
+      await sessoesService.registarSessao({
+        id_exercicio: exercicio.id_exercicio,
+        id_prescricao: idPrescricao,
+        duracao: timeElapsed,
+        diversao_1_a_5: 3,
+        esforco_1_a_10: 5,
+      });
+    } catch (err) {
+      console.error("Erro ao guardar progresso do exercício intermédio:", err);
+    } finally {
+      setIsSaving(false);
+      onConcluir();
+    }
+  };
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -323,10 +343,11 @@ const ExercicioPlayer = ({
               A seguir: <span className="font-bold text-white">próximo exercício</span>
             </p>
             <button
-              onClick={onConcluir}
-              className="mt-2 flex items-center gap-3 rounded-2xl bg-emerald-500 px-10 py-5 text-xl font-extrabold text-white shadow-lg transition hover:bg-emerald-400 active:scale-95"
+              onClick={handleProximoExercicio}
+              disabled={isSaving}
+              className="mt-2 flex items-center gap-3 rounded-2xl bg-emerald-500 px-10 py-5 text-xl font-extrabold text-white shadow-lg transition hover:bg-emerald-400 active:scale-95 disabled:opacity-50"
             >
-              Próximo exercício →
+              {isSaving ? "A guardar..." : "Próximo exercício →"}
             </button>
           </div>
         )}

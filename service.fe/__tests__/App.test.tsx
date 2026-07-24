@@ -1,24 +1,30 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from '../src/App'
+import { UserProvider } from '../src/contexts/UserContext'
 
 describe('App', () => {
-  it('renderiza o título "Get started"', () => {
-    render(<App />)
-    expect(
-      screen.getByRole('heading', { name: /get started/i }),
-    ).toBeInTheDocument()
-  })
-
-  it('incrementa o contador ao clicar no botão', async () => {
+  it('renderiza o título de boas-vindas do +MMAis e navega para o Login', async () => {
     const user = userEvent.setup()
-    render(<App />)
+    render(
+      <UserProvider>
+        <App />
+      </UserProvider>
+    )
 
-    const button = screen.getByRole('button', { name: /count is 0/i })
+    // Verifica se a página de boas-vindas é exibida
+    expect(
+      await screen.findByRole('heading', { name: /Bem-vindo ao \+MMAis!/i })
+    ).toBeInTheDocument()
+
+    // Encontra o botão "Começar!" e clica nele
+    const button = screen.getByRole('button', { name: /Começar!/i })
     await user.click(button)
 
+    // Verifica se navegou para a página de Login
     expect(
-      screen.getByRole('button', { name: /count is 1/i }),
+      await screen.findByText(/Email Institucional/i)
     ).toBeInTheDocument()
   })
 })
+

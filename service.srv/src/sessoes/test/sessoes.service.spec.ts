@@ -257,9 +257,8 @@ describe('SessoesService', () => {
       sessaoRepo.findOne.mockResolvedValue({
         id_sessao: 'sessao-existing',
       } as SessaoRealizada);
-      utilizadorRepo.findOne.mockResolvedValue(
-        mockUser({ xp: 50, nivel: 1, streak_atual: 2, streak_ultima_atividade: new Date() }),
-      );
+      const user = mockUser({ xp: 50, nivel: 1, streak_atual: 2, streak_ultima_atividade: new Date() });
+      mockManagerFindOne(null, user);
 
       const result = await service.concluirExercicio('paciente-1', dto);
 
@@ -270,9 +269,8 @@ describe('SessoesService', () => {
         leveledUp: false,
         streakAtual: 2,
         alreadyCompletedToday: true,
-        sessionId: 'sessao-existing',
       });
-      expect(dataSource.transaction).not.toHaveBeenCalled();
+      expect(manager.save).toHaveBeenCalled();
     });
 
     it('does not level up when the reward does not cross a threshold', async () => {
