@@ -189,7 +189,7 @@ const WelcomePage = () => {
           <figure className="entrada-pop mx-auto max-w-sm">
             <img
               src={quadroHeroi}
-              alt="Quadro exposto no hospital: uma criança de t-shirt de super-herói a voar num céu estrelado, com um desenho feito pela própria criança a brilhar como uma lua."
+              alt="Quadro exposto no hospital: um menino de t-shirt de super-herói, descalço, a chutar com força uma bola de futebol onde está um desenho feito por ele próprio."
               width={825}
               height={1100}
               loading="lazy"
@@ -206,9 +206,9 @@ const WelcomePage = () => {
             </h2>
             <p className="mt-4 text-lg leading-relaxed text-aco">
               Este quadro está no hospital e é dele que vem a nossa ideia: uma
-              criança em tratamento é, todos os dias, um herói. Repara na lua —
-              é um desenho feito pela própria criança, guardado para sempre na
-              pintura.
+              criança em tratamento é, todos os dias, um herói. A bola é um
+              desenho do próprio menino — é o problema dele, que ele chuta com
+              toda a força para bem longe.
             </p>
             <p className="mt-4 text-base leading-relaxed text-tinta/80">
               O Capitão Mais nasceu daqui. Quando um miúdo abre a aplicação e vê
