@@ -279,13 +279,17 @@ export const PlanosPaciente = () => {
             ← Voltar
           </button>
           <div className="flex flex-col items-center">
-            <h2 className="text-base font-display text-tinta">Prévia do Plano</h2>
-            <span className="text-xs text-aco">{previewIndex + 1} / {total}</span>
+            <h2 className="font-display text-xl tracking-wide text-tinta">
+              Espreita o teu plano
+            </h2>
+            <span className="text-xs font-bold text-aco">
+              Treino {previewIndex + 1} de {total}
+            </span>
           </div>
           <div className="w-16" />
         </div>
 
-        <div className="relative flex-1 bg-black overflow-hidden">
+        <div className="relative flex-1 overflow-hidden bg-tinta">
           {ex.url_video ? (
             <video
               ref={previewVideoRef}
@@ -304,27 +308,35 @@ export const PlanosPaciente = () => {
           )}
 
           {/* Setas do carrossel — só visíveis quando checklist está completa */}
+          {/* Setas grandes da marca — antes eram caracteres finos sobre preto e
+              praticamente não se viam no letterbox do vídeo */}
           {todosMarcados && previewIndex > 0 && (
             <button
               onClick={() => setPreviewIndex((i) => i - 1)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-black/50 text-white text-2xl font-bold backdrop-blur-sm transition hover:bg-black/70 active:scale-95"
+              aria-label="Treino anterior"
+              className="absolute left-4 top-1/2 flex h-16 w-16 -translate-y-1/2 items-center justify-center rounded-full border-[3px] border-tinta bg-papel-claro text-tinta shadow-vinheta transition hover:bg-papel active:scale-95 active:shadow-none"
             >
-              ‹
+              <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
             </button>
           )}
           {todosMarcados && previewIndex < total - 1 && (
             <button
               onClick={() => setPreviewIndex((i) => i + 1)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full bg-black/50 text-white text-2xl font-bold backdrop-blur-sm transition hover:bg-black/70 active:scale-95"
+              aria-label="Treino seguinte"
+              className="absolute right-4 top-1/2 flex h-16 w-16 -translate-y-1/2 items-center justify-center rounded-full border-[3px] border-tinta bg-raio text-tinta shadow-vinheta transition hover:brightness-105 active:scale-95 active:shadow-none"
             >
-              ›
+              <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 18l6-6-6-6" />
+              </svg>
             </button>
           )}
 
           {todosMarcados && (
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur-sm rounded-full px-4 py-1.5">
-              <p className="text-xs font-semibold text-white">
-                Exercício {previewIndex + 1} de {total}
+            <div className="absolute left-1/2 top-4 -translate-x-1/2 rounded-full border-2 border-tinta bg-papel-claro px-4 py-1.5 shadow-vinheta">
+              <p className="text-xs font-bold text-tinta">
+                Treino {previewIndex + 1} de {total}
               </p>
             </div>
           )}
