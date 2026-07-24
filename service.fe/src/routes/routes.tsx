@@ -30,6 +30,9 @@ const ExerciciosPage = lazy(
   () => import("../components/Exercicios/ExerciciosPage"),
 );
 const CriarPlano = lazy(() => import("../components/CriarPlano"));
+const GestaoPlanos = lazy(
+  () => import("../components/Dashboard/GestaoPlanos"),
+);
 const PlanosPaciente = lazy(() => import("../components/PlanosPaciente"));
 const HistoricoRecompensas = lazy(
   () => import("../components/Pacientes/HistoricoRecompensas"),
@@ -61,6 +64,7 @@ export const router = createBrowserRouter([
           { path: "dashboard/medico/pacientes/:pacienteId", element: <PacienteDetalhe /> },
           { path: "exercicios", element: <ExerciciosPage /> },
           { path: "plano/criar", element: <CriarPlano /> },
+          { path: "dashboard/medico/planos", element: <GestaoPlanos /> },
         ],
       },
 

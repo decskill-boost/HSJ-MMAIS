@@ -26,6 +26,7 @@ export const CriarPlano = () => {
   // Sem este parâmetro o ecrã cria um template (plano standard), como antes.
   const [searchParams] = useSearchParams();
   const idPacienteAlvo = searchParams.get("paciente");
+  const idPlanoEditar = searchParams.get("editar");
   const [pacienteAlvo, setPacienteAlvo] = useState<Paciente | null>(null);
 
   const [exercicios, setExercicios] = useState<Exercicio[]>([]);
@@ -92,6 +93,36 @@ export const CriarPlano = () => {
       .catch(() => setPacienteAlvo(null));
   }, [idPacienteAlvo]);
 
+  // Modo edição: carrega o plano existente e pré-preenche tudo
+  useEffect(() => {
+    if (!idPlanoEditar) return;
+    planosService
+      .getPlanoParaEdicao(idPlanoEditar)
+      .then((p) => {
+        setFrequenciaSemanal(p.frequencia_semanal ?? 3);
+        setNotasMedicas(p.notas_medicas ?? "");
+        setDataValidade(
+          p.data_validade ? String(p.data_validade).slice(0, 10) : "",
+        );
+        setDificuldade(p.dificuldade ?? "facil");
+        setCondicaoPaciente(p.condicao_paciente ?? "A");
+        setCondicaoClinica(p.condicao_clinica ?? "");
+        setTipoPlano(p.is_standard ? "standard" : "personalizavel");
+        setSelecionados(p.exercicios.map((e) => e.id_exercicio));
+        const duracoes: { [id: string]: number } = {};
+        p.exercicios.forEach((e) => {
+          if (e.duracao_segundos != null)
+            duracoes[e.id_exercicio] = e.duracao_segundos;
+        });
+        setDuracoesCustomizadas(duracoes);
+      })
+      .catch((e) =>
+        setErroGuardar(
+          e instanceof Error ? e.message : "Não foi possível carregar o plano.",
+        ),
+      );
+  }, [idPlanoEditar]);
+
 
 
   const categorias = useMemo(() => {
@@ -149,35 +180,55 @@ export const CriarPlano = () => {
         };
       });
 
-      await planosService.criarPlano({
-        // Com ?paciente= prescreve-se a essa criança; sem ele cria-se um template.
-        id_paciente: idPacienteAlvo,
-        id_medico: user.idUser,
-        frequencia_semanal: frequenciaSemanal,
-        data_validade: dataValidade
-          ? new Date(dataValidade).toISOString()
-          : null,
-        notas_medicas: notasMedicas,
-        is_standard: idPacienteAlvo ? false : tipoPlano === "standard",
-        dificuldade: dificuldade,
-        condicao_paciente: condicaoPaciente,
-        condicao_clinica: tipoPlano === "personalizavel" ? condicaoClinica.trim() : null,
-        exercicios: exerciciosComDuracao,
-      });
+      if (idPlanoEditar) {
+        // Editar um plano já criado (não muda o paciente nem o tipo)
+        await planosService.atualizarPlano(idPlanoEditar, {
+          frequencia_semanal: frequenciaSemanal,
+          data_validade: dataValidade
+            ? new Date(dataValidade).toISOString()
+            : null,
+          notas_medicas: notasMedicas,
+          dificuldade: dificuldade,
+          condicao_paciente: condicaoPaciente,
+          condicao_clinica:
+            tipoPlano === "personalizavel" ? condicaoClinica.trim() : null,
+          exercicios: exerciciosComDuracao,
+        });
+      } else {
+        await planosService.criarPlano({
+          // Com ?paciente= prescreve-se a essa criança; sem ele cria-se um template.
+          id_paciente: idPacienteAlvo,
+          id_medico: user.idUser,
+          frequencia_semanal: frequenciaSemanal,
+          data_validade: dataValidade
+            ? new Date(dataValidade).toISOString()
+            : null,
+          notas_medicas: notasMedicas,
+          is_standard: idPacienteAlvo ? false : tipoPlano === "standard",
+          dificuldade: dificuldade,
+          condicao_paciente: condicaoPaciente,
+          condicao_clinica:
+            tipoPlano === "personalizavel" ? condicaoClinica.trim() : null,
+          exercicios: exerciciosComDuracao,
+        });
+      }
       setGuardado(true);
-      // limpar depois de guardar
-      setSelecionados([]);
-      setNotasMedicas("");
-      setDuracoesCustomizadas({});
-      setFrequenciaSemanal(3);
-      setDataValidade("");
-      setDificuldade("facil");
-      setCondicaoPaciente("A");
-      setTipoPlano("standard");
-      setCondicaoClinica("");
-      setFiltroCategoria("todas");
-      setFiltroDificuldade("todas");
-      setFiltroDuracao("todas");
+      // Só limpar ao CRIAR. A editar, o formulário deve continuar a espelhar o
+      // plano que acabou de ser guardado.
+      if (!idPlanoEditar) {
+        setSelecionados([]);
+        setNotasMedicas("");
+        setDuracoesCustomizadas({});
+        setFrequenciaSemanal(3);
+        setDataValidade("");
+        setDificuldade("facil");
+        setCondicaoPaciente("A");
+        setTipoPlano("standard");
+        setCondicaoClinica("");
+        setFiltroCategoria("todas");
+        setFiltroDificuldade("todas");
+        setFiltroDuracao("todas");
+      }
     } catch (e) {
       setErroGuardar(
         e instanceof Error ? e.message : "Não foi possível guardar o plano.",
@@ -191,7 +242,11 @@ export const CriarPlano = () => {
     <div className="mx-auto w-full max-w-6xl px-6 py-8">
       <div className="mb-6">
         <h1 className="text-2xl font-extrabold tracking-tight text-tinta">
-          {idPacienteAlvo ? "Prescrever plano" : "Criar plano de exercícios"}
+          {idPlanoEditar
+            ? "Editar plano"
+            : idPacienteAlvo
+              ? "Prescrever plano"
+              : "Criar plano de exercícios"}
         </h1>
         {idPacienteAlvo ? (
           <p className="mt-2 inline-flex items-center gap-2 rounded-full border-2 border-cobalto/30 bg-cobalto/10 px-3 py-1 text-sm font-semibold text-cobalto">
@@ -527,7 +582,9 @@ export const CriarPlano = () => {
               >
                 {aGuardar
                   ? "A guardar…"
-                  : idPacienteAlvo
+                  : idPlanoEditar
+                    ? "Guardar alterações"
+                    : idPacienteAlvo
                     ? `Prescrever a ${pacienteAlvo?.nome ?? "este paciente"}`
                     : tipoPlano === "standard"
                       ? "Criar plano standard"
