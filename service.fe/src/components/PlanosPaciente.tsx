@@ -86,8 +86,9 @@ const CapaPlano = ({ url }: { url?: string }) => {
     >
       {/* capa base — sempre visível, nunca deixa o cartão vazio */}
       <div className="fundo-reticula absolute inset-0 opacity-40" aria-hidden="true" />
-      <div className="absolute inset-0 flex items-center justify-center">
-        <CapitaoMais className="h-20 w-auto animate-flutuar" title="" />
+      {/* Capitão encostado ao canto para não ficar por baixo do botão de play */}
+      <div className="absolute bottom-1 left-3">
+        <CapitaoMais className="h-16 w-auto animate-flutuar" title="" />
       </div>
 
       {url && visivel && (
