@@ -78,11 +78,11 @@ const renderEsforco = (esforco: number | null | undefined) => {
   if (esforco === null || esforco === undefined) {
     return <span className="font-medium text-aco">-</span>;
   }
-  let colorClass = "bg-turbo/10 text-turbo-escuro border-turbo/30";
+  let colorClass = "bg-emerald-50 text-emerald-700 border-emerald-100";
   if (esforco >= 8) {
-    colorClass = "bg-capa/10 text-capa-escura border-capa/30";
+    colorClass = "bg-rose-50 text-rose-700 border-rose-100";
   } else if (esforco >= 4) {
-    colorClass = "bg-raio/20 text-tinta border-raio/50";
+    colorClass = "bg-amber-50 text-amber-700 border-amber-100";
   }
 
   return (
@@ -98,8 +98,8 @@ const renderDivertimento = (diversao: number | null | undefined) => {
   if (diversao === null || diversao === undefined) {
     return <span className="font-medium text-aco">-</span>;
   }
-  const emojis = ["😴", "😕", "😊", "😄", "🤩"];
-  const emoji = emojis[diversao - 1] ?? "❓";
+  const emojis = ["😴", "🙁", "🙂", "😀", "🤩"];
+  const emoji = emojis[diversao - 1] ?? "✓";
   return (
     <span className="inline-flex items-center gap-1 text-sm font-semibold text-tinta">
       <span className="text-base" title={`Nível ${diversao}/5`}>
@@ -120,7 +120,8 @@ const formatFC = (
   const maxStr = fcMaxima ? `${fcMaxima}` : "-";
   return (
     <span className="font-mono text-xs font-medium text-tinta">
-      {mediaStr}/{maxStr} <span className="text-[10px] text-aco">bpm</span>
+      {mediaStr}/{maxStr}{" "}
+      <span className="text-[10px] text-aco">bpm</span>
     </span>
   );
 };
@@ -133,10 +134,10 @@ const renderAlertas = (
   if (teveProblemas) {
     return (
       <span
-        className="inline-flex items-center gap-1 rounded-full border border-capa/30 bg-capa/10 px-2.5 py-0.5 text-xs font-semibold text-capa-escura"
+        className="inline-flex items-center gap-1 rounded-full border border-rose-150 bg-rose-50 px-2.5 py-0.5 text-xs font-semibold text-rose-700"
         title="Reportou problemas durante o exercício"
       >
-        <svg className="h-3 w-3 text-capa fill-current" viewBox="0 0 16 16">
+        <svg className="h-3 w-3 text-rose-500 fill-current" viewBox="0 0 16 16">
           <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044 8.089V6.262H7.018v3.843h1.964zm0 2.222v-1.111H7.018v1.111h1.964z" />
         </svg>
         Aviso
@@ -144,9 +145,9 @@ const renderAlertas = (
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border border-turbo/30 bg-turbo/10 px-2.5 py-0.5 text-xs font-semibold text-turbo-escuro">
+    <span className="inline-flex items-center gap-1 rounded-full border border-emerald-100 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
       <svg
-        className="h-3 w-3 text-turbo-escuro"
+        className="h-3 w-3 text-emerald-500"
         fill="none"
         viewBox="0 0 24 24"
         stroke="currentColor"
@@ -168,8 +169,7 @@ const PacienteDetalhe = () => {
   const [erro, setErro] = useState<string | null>(null);
   const [sessoes, setSessoes] = useState<SessaoRealizadaInfo[]>([]);
   const [paginaSessoes, setPaginaSessoes] = useState(1);
-  const [sessaoDetalhada, setSessaoDetalhada] =
-    useState<SessaoRealizadaInfo | null>(null);
+  const [sessaoDetalhada, setSessaoDetalhada] = useState<SessaoRealizadaInfo | null>(null);
 
   const sessoesPorPagina = 5;
 
@@ -188,7 +188,6 @@ const PacienteDetalhe = () => {
       setPaciente(dados);
       setPacienteInfo(info);
 
-      // Obter todas as sessões concluídas por este paciente, incluindo o nome do exercício
       const { data: sessoesDados, error: errSessao } = await supabase
         .from("sessoes_realizadas")
         .select(
@@ -248,15 +247,12 @@ const PacienteDetalhe = () => {
     return Math.round(soma / comFc.length) + " bpm";
   }, [sessoes]);
 
-  const totalPaginasSessoes = useMemo(
-    () => Math.ceil(sessoes.length / sessoesPorPagina),
-    [sessoes, sessoesPorPagina],
-  );
-
   const sessoesPaginadas = useMemo(() => {
     const inicio = (paginaSessoes - 1) * sessoesPorPagina;
     return sessoes.slice(inicio, inicio + sessoesPorPagina);
   }, [sessoes, paginaSessoes, sessoesPorPagina]);
+
+  const totalPaginasSessoes = Math.ceil(sessoes.length / sessoesPorPagina);
 
   if (loading) {
     return (
@@ -269,9 +265,7 @@ const PacienteDetalhe = () => {
   if (erro) {
     return (
       <div className="mx-auto w-full max-w-6xl px-4 py-10">
-        <div className="rounded-2xl bg-capa/10 p-4 text-capa-escura">
-          {erro}
-        </div>
+        <div className="rounded-2xl bg-capa/10 p-4 text-capa-escura">{erro}</div>
       </div>
     );
   }
@@ -281,12 +275,12 @@ const PacienteDetalhe = () => {
       <div className="mx-auto w-full max-w-6xl px-4 py-10">
         <div className="rounded-2xl bg-papel p-6 shadow-sm">
           <p className="text-tinta">Paciente não encontrado.</p>
-          <button
+          <BtnGlobal
             onClick={() => navigate("/dashboard/medico/pacientes")}
-            className="mt-4 rounded-(--radius-vinheta) border-[3px] border-tinta bg-tinta px-4 py-2 text-sm font-semibold text-papel shadow-vinheta transition hover:bg-tinta/90 active:scale-95 active:shadow-none"
+            className="mt-4 rounded-xl bg-tinta px-4 py-2 text-sm font-semibold text-papel"
           >
             Voltar para lista
-          </button>
+          </BtnGlobal>
         </div>
       </div>
     );
@@ -300,60 +294,52 @@ const PacienteDetalhe = () => {
             {paciente.nome}
           </h1>
           <p className="mt-1 text-sm text-aco">
-            Detalhe de planos para este paciente.
+            Acompanhamento e histórico de treinos deste paciente.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <BtnGlobal
-            onClick={() =>
-              navigate(`/plano/criar?paciente=${paciente.id_paciente}`)
-            }
-            className="rounded-(--radius-vinheta) px-4 py-3 text-sm font-semibold"
-          >
-            Atribuir novo plano
-          </BtnGlobal>
           <button
             onClick={() => navigate("/dashboard/medico/pacientes")}
-            className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-tinta px-4 py-3 text-sm font-semibold text-papel shadow-vinheta transition hover:bg-tinta/90 active:scale-95 active:shadow-none"
+            className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel px-5 py-2.5 text-sm font-bold text-tinta shadow-vinheta transition hover:bg-papel active:scale-95 active:shadow-none"
           >
             Voltar para lista
           </button>
         </div>
       </div>
 
-      {sucesso && (
-        <div className="mb-6 rounded-2xl bg-turbo/10 p-4 text-sm text-turbo-escuro">
-          Plano cancelado com sucesso.
-        </div>
-      )}
-
       <div className="grid gap-6 lg:grid-cols-3">
         <article className="rounded-3xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
-            Planos ativos
+            Treinos Concluídos
           </p>
           <p className="mt-4 text-3xl font-bold text-tinta">
-            {planosAtivos.length}
+            {totalTreinos}
           </p>
-          <p className="mt-2 text-sm text-aco">Planos com status ativo hoje.</p>
+          <p className="mt-2 text-sm text-aco">
+            Total de sessões realizadas por esta criança.
+          </p>
         </article>
         <article className="rounded-3xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
-            Planos totais
+            Esforço Médio
           </p>
           <p className="mt-4 text-3xl font-bold text-tinta">
-            {paciente.planos.length}
+            {esforcoMedio}
           </p>
-          <p className="mt-2 text-sm text-aco">Inclui ativos e inativos.</p>
+          <p className="mt-2 text-sm text-aco">
+            Perceção de esforço média relatada.
+          </p>
         </article>
         <article className="rounded-3xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
-            Último início
+            Frequência Cardíaca Média
           </p>
           <p className="mt-4 text-3xl font-bold text-tinta">
-            {formatarData(paciente.planos[0]?.data_inicio)}
+            {fcMediaGlobal}
           </p>
-          <p className="mt-2 text-sm text-aco">Data do plano mais recente.</p>
+          <p className="mt-2 text-sm text-aco">
+            Frequência cardíaca média global.
+          </p>
         </article>
       </div>
 
@@ -364,8 +350,7 @@ const PacienteDetalhe = () => {
             Histórico de Treinos / Sessões
           </h2>
           <p className="mt-1 text-sm text-aco">
-            Lista de treinos e sessões de exercícios concluídas por esta
-            criança.
+            Lista de treinos e sessões de exercícios concluídas por esta criança.
           </p>
         </div>
 
@@ -394,11 +379,12 @@ const PacienteDetalhe = () => {
               ) : (
                 sessoesPaginadas.map((sessao: SessaoRealizadaInfo) => {
                   const nomeExercicio =
-                    sessao.exercicios?.nome_exercicio ?? "Exercício Geral";
+                    sessao.exercicios?.nome_exercicio ??
+                    "Exercício Geral";
                   return (
                     <tr
                       key={sessao.id_sessao}
-                      className="border-t border-tinta/15 last:border-b"
+                      className="border-t border-tinta/10 last:border-b hover:bg-papel/40"
                     >
                       <td className="px-4 py-4 text-tinta font-medium">
                         {formatarDataHora(sessao.data_hora)}
@@ -418,7 +404,7 @@ const PacienteDetalhe = () => {
                       <td className="px-4 py-4 text-right">
                         <button
                           onClick={() => setSessaoDetalhada(sessao)}
-                          className="rounded-xl border border-cobalto/30 bg-cobalto/10 px-3 py-2 text-xs font-semibold text-cobalto transition hover:bg-cobalto/20"
+                          className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-cobalto px-3 py-2 text-xs font-bold text-papel shadow-vinheta transition hover:bg-cobalto-vivo active:scale-95 active:shadow-none"
                         >
                           Ver Métricas
                         </button>
@@ -432,14 +418,14 @@ const PacienteDetalhe = () => {
         </div>
 
         {totalPaginasSessoes > 1 && (
-          <div className="flex items-center justify-between border-t border-tinta/15 bg-papel-claro px-4 py-3 sm:px-6">
+          <div className="flex items-center justify-between border-t border-tinta/10 bg-papel-claro px-4 py-3 sm:px-6">
             <div className="flex flex-1 justify-between sm:hidden">
               <button
                 onClick={() =>
                   setPaginaSessoes((prev) => Math.max(prev - 1, 1))
                 }
                 disabled={paginaSessoes === 1}
-                className="relative inline-flex items-center rounded-xl border border-tinta/20 bg-papel-claro px-4 py-2 text-xs font-semibold text-tinta hover:bg-papel disabled:opacity-50 disabled:cursor-not-allowed"
+                className="relative inline-flex items-center rounded-xl border border-tinta/15 bg-papel-claro px-4 py-2 text-xs font-semibold text-tinta hover:bg-papel disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Anterior
               </button>
@@ -450,7 +436,7 @@ const PacienteDetalhe = () => {
                   )
                 }
                 disabled={paginaSessoes === totalPaginasSessoes}
-                className="relative ml-3 inline-flex items-center rounded-xl border border-tinta/20 bg-papel-claro px-4 py-2 text-xs font-semibold text-tinta hover:bg-papel disabled:opacity-50 disabled:cursor-not-allowed"
+                className="relative ml-3 inline-flex items-center rounded-xl border border-tinta/15 bg-papel-claro px-4 py-2 text-xs font-semibold text-tinta hover:bg-papel disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Seguinte
               </button>
@@ -507,7 +493,7 @@ const PacienteDetalhe = () => {
                       aria-current={p === paginaSessoes ? "page" : undefined}
                       className={`relative inline-flex items-center px-3 py-1.5 text-xs font-semibold focus:z-20 ${
                         p === paginaSessoes
-                          ? "z-10 bg-cobalto text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalto"
+                          ? "z-10 bg-cobalto text-papel focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalto"
                           : "text-tinta ring-1 ring-inset ring-tinta/15 hover:bg-papel focus:outline-offset-0"
                       }`}
                     >
@@ -522,199 +508,6 @@ const PacienteDetalhe = () => {
                       )
                     }
                     disabled={paginaSessoes === totalPaginasSessoes}
-                    className="relative inline-flex items-center rounded-r-xl px-2 py-2 text-aco ring-1 ring-inset ring-tinta/15 hover:bg-papel focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <span className="sr-only">Seguinte</span>
-                    <svg
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10 8.22 6.28a.75.75 0 0 1 0-1.06Z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
-                </nav>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Tabela de Planos Atribuídos */}
-      <div className="mt-8 rounded-3xl border border-tinta/15 bg-papel-claro shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-tinta/10">
-          <h2 className="text-lg font-bold text-tinta">Planos Prescritos</h2>
-          <p className="mt-1 text-sm text-aco">
-            Lista de planos de exercícios prescritos a este paciente.
-          </p>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse text-left text-sm">
-            <thead className="bg-papel text-aco">
-              <tr>
-                <th className="px-4 py-4 font-semibold">Plano</th>
-                <th className="px-4 py-4 font-semibold">Início</th>
-                <th className="px-4 py-4 font-semibold">Validade</th>
-                <th className="px-4 py-4 font-semibold">Status</th>
-                <th className="px-4 py-4 font-semibold">Notas</th>
-                <th className="px-4 py-4 font-semibold">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {paciente.planos.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-8 text-center text-sm text-aco"
-                  >
-                    Nenhum plano atribuído a este paciente.
-                  </td>
-                </tr>
-              ) : (
-                planosPaginados.map((plano) => (
-                  <tr
-                    key={plano.id_plano}
-                    className="border-t border-tinta/15 last:border-b"
-                  >
-                    <td className="px-4 py-4 font-semibold text-tinta">
-                      {plano.frequencia_semanal}x/semana
-                    </td>
-                    <td className="px-4 py-4 text-tinta font-medium">
-                      {formatarData(plano.data_inicio)}
-                    </td>
-                    <td className="px-4 py-4 text-tinta font-medium">
-                      {formatarData(plano.data_validade)}
-                    </td>
-                    <td className="px-4 py-4">
-                      <span
-                        className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${plano.ativo ? "bg-turbo/15 text-turbo-escuro" : "bg-papel text-aco"}`}
-                      >
-                        {plano.ativo ? "Ativo" : "Inativo"}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 text-aco">
-                      {plano.notas_medicas ?? "Sem notas médicas."}
-                    </td>
-                    <td className="px-4 py-4">
-                      {plano.ativo ? (
-                        <button
-                          type="button"
-                          onClick={() => handleCancelarPlano(plano.id_plano)}
-                          disabled={cancellingId === plano.id_plano}
-                          className="rounded-xl border border-capa/30 bg-capa/10 px-3 py-2 text-xs font-semibold text-capa-escura transition hover:bg-capa/20 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          {cancellingId === plano.id_plano
-                            ? "A cancelar…"
-                            : "Cancelar"}
-                        </button>
-                      ) : (
-                        <span className="text-xs italic text-aco">
-                          Sem ações
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {totalPaginas > 1 && (
-          <div className="flex items-center justify-between border-t border-tinta/15 bg-papel-claro px-4 py-3 sm:px-6">
-            <div className="flex flex-1 justify-between sm:hidden">
-              <button
-                onClick={() => setPaginaAtual((prev) => Math.max(prev - 1, 1))}
-                disabled={paginaAtual === 1}
-                className="relative inline-flex items-center rounded-xl border border-tinta/20 bg-papel-claro px-4 py-2 text-xs font-semibold text-tinta hover:bg-papel disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Anterior
-              </button>
-              <button
-                onClick={() =>
-                  setPaginaAtual((prev) => Math.min(prev + 1, totalPaginas))
-                }
-                disabled={paginaAtual === totalPaginas}
-                className="relative ml-3 inline-flex items-center rounded-xl border border-tinta/20 bg-papel-claro px-4 py-2 text-xs font-semibold text-tinta hover:bg-papel disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Seguinte
-              </button>
-            </div>
-            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-              <div>
-                <p className="text-xs text-aco">
-                  A mostrar{" "}
-                  <span className="font-semibold">
-                    {(paginaAtual - 1) * itensPorPagina + 1}
-                  </span>{" "}
-                  a{" "}
-                  <span className="font-semibold">
-                    {Math.min(
-                      paginaAtual * itensPorPagina,
-                      paciente.planos.length,
-                    )}
-                  </span>{" "}
-                  de{" "}
-                  <span className="font-semibold">
-                    {paciente.planos.length}
-                  </span>{" "}
-                  planos
-                </p>
-              </div>
-              <div>
-                <nav
-                  className="isolate inline-flex -space-x-px rounded-xl shadow-sm"
-                  aria-label="Pagination"
-                >
-                  <button
-                    onClick={() =>
-                      setPaginaAtual((prev) => Math.max(prev - 1, 1))
-                    }
-                    disabled={paginaAtual === 1}
-                    className="relative inline-flex items-center rounded-l-xl px-2.5 py-2 text-aco ring-1 ring-inset ring-tinta/15 hover:bg-papel focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <span className="sr-only">Anterior</span>
-                    <svg
-                      className="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                      aria-hidden="true"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </button>
-
-                  {Array.from({ length: totalPaginas }, (_, i) => i + 1).map(
-                    (p) => (
-                      <button
-                        key={p}
-                        onClick={() => setPaginaAtual(p)}
-                        aria-current={p === paginaAtual ? "page" : undefined}
-                        className={`relative inline-flex items-center px-3 py-1.5 text-xs font-semibold focus:z-20 ${
-                          p === paginaAtual
-                            ? "z-10 bg-cobalto text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cobalto"
-                            : "text-tinta ring-1 ring-inset ring-tinta/15 hover:bg-papel focus:outline-offset-0"
-                        }`}
-                      >
-                        {p}
-                      </button>
-                    ),
-                  )}
-
-                  <button
-                    onClick={() =>
-                      setPaginaAtual((prev) => Math.min(prev + 1, totalPaginas))
-                    }
-                    disabled={paginaAtual === totalPaginas}
                     className="relative inline-flex items-center rounded-r-xl px-2 py-2 text-aco ring-1 ring-inset ring-tinta/15 hover:bg-papel focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <span className="sr-only">Seguinte</span>
@@ -775,7 +568,7 @@ const PacienteDetalhe = () => {
                     Exercício
                   </p>
                   <p className="mt-1 text-sm font-bold text-tinta">
-                    {(sessaoDetalhada.exercicios as any)?.nome_exercicio ??
+                    {sessaoDetalhada.exercicios?.nome_exercicio ??
                       "Exercício Geral"}
                   </p>
                 </div>
@@ -840,7 +633,7 @@ const PacienteDetalhe = () => {
             <div className="mt-6 flex justify-end">
               <button
                 onClick={() => setSessaoDetalhada(null)}
-                className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-tinta px-4 py-2.5 text-sm font-semibold text-papel shadow-vinheta transition hover:bg-tinta/90 active:scale-95 active:shadow-none"
+                className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-tinta px-4 py-2.5 text-sm font-bold text-papel shadow-vinheta transition hover:bg-tinta/90 active:scale-95 active:shadow-none"
               >
                 Fechar
               </button>
@@ -849,11 +642,11 @@ const PacienteDetalhe = () => {
         </div>
       )}
       {pacienteInfo && (
-        <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-bold text-slate-900">
+        <section className="mt-8 rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-sm">
+          <h2 className="text-lg font-bold text-tinta">
             Recompensas e Conquistas
           </h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-aco">
             Progresso de prémios da criança com base no XP acumulado (
             {pacienteInfo.xp} XP total - Nível {pacienteInfo.nivel}).
           </p>
@@ -863,15 +656,15 @@ const PacienteDetalhe = () => {
               return (
                 <div
                   key={rec.id}
-                  className={`rounded-2xl border p-4 text-center transition ${desbloqueada ? "border-emerald-200 bg-emerald-50/50" : "border-slate-100 bg-slate-50/50 opacity-60"}`}
+                  className={`rounded-2xl border p-4 text-center transition ${desbloqueada ? "border-emerald-250 bg-emerald-500/10" : "border-tinta/10 bg-papel opacity-60"}`}
                 >
                   <span className="text-3xl block mb-2">{rec.icone}</span>
-                  <p className="font-bold text-xs sm:text-sm text-slate-900 leading-tight">
+                  <p className="font-bold text-xs sm:text-sm text-tinta leading-tight">
                     {rec.nome}
                   </p>
-                  <p className="text-[10px] text-slate-500 mt-1">{rec.desc}</p>
+                  <p className="text-[10px] text-aco mt-1">{rec.desc}</p>
                   <span
-                    className={`inline-block mt-3 rounded-full px-2 py-0.5 text-[9px] font-bold ${desbloqueada ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-500"}`}
+                    className={`inline-block mt-3 rounded-full px-2 py-0.5 text-[9px] font-bold ${desbloqueada ? "bg-emerald-500/20 text-emerald-700" : "bg-tinta/10 text-aco"}`}
                   >
                     {desbloqueada ? "Desbloqueado ✓" : "Bloqueado 🔒"}
                   </span>
