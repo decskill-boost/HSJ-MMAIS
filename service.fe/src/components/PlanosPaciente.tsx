@@ -35,22 +35,40 @@ const formatDuration = (segundos: number) => {
   return `${m}m ${s}s`;
 };
 
-// Dificuldade em tom encorajador (voz da Academia — nunca desanimar a criança)
+// Dificuldade em tom encorajador (voz da Academia — nunca desanimar a criança).
+// Fundos SÓLIDOS: o badge assenta por cima do vídeo da capa, onde tons
+// translúcidos ficavam ilegíveis.
 const infoDificuldade = (d?: string) => {
   switch ((d ?? "").toLowerCase()) {
     case "facil":
-      return { label: "Fácil", emoji: "🌱", chip: "border-turbo/30 bg-turbo/15 text-turbo-escuro" };
+      return { label: "Fácil", emoji: "🌱", chip: "bg-turbo text-tinta" };
     case "medio":
-      return { label: "Médio", emoji: "💪", chip: "border-tinta/20 bg-raio/25 text-tinta" };
+      return { label: "Médio", emoji: "💪", chip: "bg-raio text-tinta" };
     case "dificil":
-      return { label: "Puxado", emoji: "🔥", chip: "border-capa/30 bg-capa/10 text-capa-escura" };
+      return { label: "Puxado", emoji: "🔥", chip: "bg-capa-escura text-papel" };
     default:
-      return { label: d || "Treino", emoji: "⭐", chip: "border-tinta/20 bg-cobalto/10 text-cobalto" };
+      return { label: d || "Treino", emoji: "⭐", chip: "bg-cobalto text-papel" };
   }
 };
 
 // Classe de entrada em cascata (evita entrada-pop-1 inexistente)
 const cascata = (idx: number) => `entrada-pop${["", "-2", "-3", "-4"][idx % 4]}`;
+
+// Emoji do material, para a criança reconhecer pelo desenho e não só pelo texto
+const emojiMaterial = (material: string): string => {
+  const l = material.toLowerCase();
+  if (l.includes("tapete")) return "🧘";
+  if (l.includes("bola")) return "⚽";
+  if (l.includes("elástico")) return "🪢";
+  if (l.includes("haltere")) return "🏋️";
+  if (l.includes("bicicleta")) return "🚴";
+  if (l.includes("trx")) return "🤸";
+  if (l.includes("anel")) return "⭕";
+  if (l.includes("handgrip")) return "✊";
+  if (l.includes("ténis")) return "🎾";
+  if (l.includes("reação")) return "🎯";
+  return "🛠️";
+};
 
 /**
  * Capa do cartão de plano. A criança vê SEMPRE uma capa bonita (Capitão sobre
@@ -311,49 +329,58 @@ export const PlanosPaciente = () => {
 
           {/* Overlay de checklist — estilo igual ao ExercicioPlayer */}
           {todosMateriaisPlano.length > 0 && !todosMarcados && (
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 bg-black/70 backdrop-blur-sm overflow-y-auto py-6 px-4">
-              <div className="flex flex-col items-center gap-2">
-                <span className="text-5xl">📋</span>
-                <h3 className="text-2xl font-display text-white text-center">
-                  Pronto para o plano?
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 overflow-y-auto bg-[linear-gradient(160deg,#1D42C8_0%,#141F3C_100%)] px-4 py-6">
+              <div className="fundo-reticula absolute inset-0 opacity-30" aria-hidden="true" />
+
+              <div className="entrada-pop relative flex flex-col items-center gap-2">
+                <CapitaoMais className="h-20 w-auto animate-flutuar" title="" />
+                <h3 className="text-center font-display text-3xl tracking-wide text-papel">
+                  Preparado, herói?
                 </h3>
-                <p className="text-sm text-papel/90 text-center">
-                  Verifica se tens todos os materiais antes de começar
+                <p className="text-center text-sm text-[#EAEFFF]">
+                  Toca no que já tens à mão
                 </p>
               </div>
-              <div className="w-full max-w-xs bg-white/10 rounded-2xl p-4 backdrop-blur-sm">
-                <p className="text-xs font-bold uppercase tracking-widest text-papel/80 mb-3 text-center">
-                  ✅ Tens tudo o que precisas?
-                </p>
-                <div className="flex flex-col gap-2">
-                  {todosMateriaisPlano.map((m) => (
-                    <label key={m} className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={materiaisPlanoChecked.includes(m)}
-                        onChange={() =>
-                          setMateriaisPlanoChecked((prev) =>
-                            prev.includes(m)
-                              ? prev.filter((x) => x !== m)
-                              : [...prev, m]
-                          )
-                        }
-                        className="w-5 h-5 rounded accent-turbo cursor-pointer"
-                      />
-                      <span className={`text-sm transition ${
-                        materiaisPlanoChecked.includes(m)
-                          ? "line-through text-papel/50"
-                          : "text-white"
-                      }`}>
-                        {m}
+
+              {/* Alvos grandes de toque (≥64px) em vez de checkboxes minúsculos */}
+              <div className="entrada-pop-2 relative flex w-full max-w-sm flex-col gap-3">
+                {todosMateriaisPlano.map((m) => {
+                  const temMaterial = materiaisPlanoChecked.includes(m);
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      aria-pressed={temMaterial}
+                      onClick={() =>
+                        setMateriaisPlanoChecked((prev) =>
+                          prev.includes(m)
+                            ? prev.filter((x) => x !== m)
+                            : [...prev, m],
+                        )
+                      }
+                      className={`flex min-h-16 w-full items-center gap-3 rounded-(--radius-vinheta) border-[3px] border-tinta px-4 py-3 text-left font-bold shadow-vinheta transition active:scale-95 active:shadow-none ${
+                        temMaterial
+                          ? "bg-turbo text-tinta"
+                          : "bg-papel-claro text-tinta hover:bg-papel"
+                      }`}
+                    >
+                      <span className="text-2xl">{emojiMaterial(m)}</span>
+                      <span className="flex-1">{m}</span>
+                      <span
+                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-tinta text-sm font-bold ${
+                          temMaterial ? "bg-tinta text-raio" : "bg-papel"
+                        }`}
+                      >
+                        {temMaterial ? "✓" : ""}
                       </span>
-                    </label>
-                  ))}
-                </div>
-                <p className="mt-3 text-xs text-raio font-medium text-center">
-                  ⚠️ Marca todos os materiais antes de começar
-                </p>
+                    </button>
+                  );
+                })}
               </div>
+
+              <p className="relative text-sm font-bold text-[#EAEFFF]">
+                {materiaisPlanoChecked.length} de {todosMateriaisPlano.length} prontos
+              </p>
             </div>
           )}
         </div>
