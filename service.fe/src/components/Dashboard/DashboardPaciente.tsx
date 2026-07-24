@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import BtnGlobal from "../BtnGlobal";
 import type { UserProfile } from "../../types/user";
-import { planosService, type PlanoAtivo } from "../../services/planosService";
+import { supabase } from "../../services/supabaseClient";
 
 interface LayoutContext {
   user: UserProfile | null;
@@ -10,28 +10,76 @@ interface LayoutContext {
   handleLogout: () => void;
 }
 
-const formatTime = (seconds: number) => {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  if (m === 0) return `${s}s`;
-  return s === 0 ? `${m} min` : `${m} min ${s}s`;
+const formatarDataSessao = (dataString?: string | null) => {
+  if (!dataString) return "";
+  return new Date(dataString).toLocaleString("pt-PT", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
+
+interface UltimaSessao {
+  id_sessao: string;
+  data_hora: string;
+  duracao: number;
+  esforco_1_a_10: number | null;
+  status: string;
+  exercicios: {
+    nome_exercicio: string;
+    recompensa_xp: number;
+  } | null;
+}
 
 const DashboardPaciente = () => {
   const navigate = useNavigate();
   const { user } = useOutletContext<LayoutContext>();
   const displayName = user?.nome?.split(" ")[0] ?? "Paciente";
 
-  const [plano, setPlano] = useState<PlanoAtivo | null>(null);
-  const [loadingPlano, setLoadingPlano] = useState(true);
+  const [ultimaSessao, setUltimaSessao] = useState<UltimaSessao | null>(null);
+  const [loadingUltimaSessao, setLoadingUltimaSessao] = useState(true);
 
   useEffect(() => {
-    if (!user?.idUser) return;
-    planosService
-      .getTodosPlanosPorPaciente(user.idUser)
-      .then(({ ativo }) => setPlano(ativo))
-      .catch(console.error)
-      .finally(() => setLoadingPlano(false));
+    const idUser = user?.idUser;
+    if (!idUser) return;
+
+    // Obter última sessão concluída
+    async function carregarUltimaSessao() {
+      try {
+        const { data, error } = await supabase
+          .from("sessoes_realizadas")
+          .select(
+            `
+            id_sessao,
+            data_hora,
+            duracao,
+            esforco_1_a_10,
+            status,
+            exercicios (
+              nome_exercicio,
+              recompensa_xp
+            )
+          `,
+          )
+          .eq("id_paciente", idUser)
+          .eq("status", "concluido")
+          .order("data_hora", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (!error && data) {
+          setUltimaSessao(data as unknown as UltimaSessao);
+        }
+      } catch (err) {
+        console.error("Erro ao obter última sessão:", err);
+      } finally {
+        setLoadingUltimaSessao(false);
+      }
+    }
+
+    void carregarUltimaSessao();
   }, [user?.idUser]);
 
   const highlights = [
@@ -65,9 +113,9 @@ const DashboardPaciente = () => {
               <h1 className="mt-2 font-display text-3xl tracking-wide sm:text-4xl">
                 Olá, {displayName}
               </h1>
-              <p className="mt-3 max-w-2xl text-sm text-[#EAEFFF] sm:text-base">
-                Aqui tens uma visão rápida do teu progresso e do teu plano de
-                exercícios.
+              <p className="mt-3 max-w-2xl text-sm text-blue-100 sm:text-base">
+                Aqui tens uma visão rápida do teu progresso e das tuas
+                atividades.
               </p>
             </div>
             <div className="rounded-2xl bg-papel-claro/15 px-4 py-3 backdrop-blur-sm">
@@ -98,16 +146,16 @@ const DashboardPaciente = () => {
 
         {/* GRELHA PRINCIPAL (PLANO ATIVO + PROGRESSO) */}
         <section className="grid items-start gap-6 lg:grid-cols-[1.3fr_0.7fr]">
-          {/* COLUNA ESQUERDA: PLANO ATIVO */}
-          <article className="flex flex-col gap-6 rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-sm sm:p-8">
+          {/* COLUNA ESQUERDA: ATIVIDADE RECENTE */}
+          <article className="flex flex-col gap-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
             {/* Cabeçalho */}
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <h2 className="text-xl font-bold text-tinta">
-                  Plano ativo
+                <h2 className="text-xl font-bold text-slate-900">
+                  Atividade recente
                 </h2>
-                <p className="mt-1 text-sm text-aco">
-                  Os teus exercícios de hoje.
+                <p className="mt-1 text-sm text-slate-500">
+                  O teu último treino concluído.
                 </p>
               </div>
               <span className="rounded-full bg-cobalto/10 px-3 py-1 text-sm font-semibold text-cobalto-vivo">
@@ -117,46 +165,38 @@ const DashboardPaciente = () => {
 
             {/* Conteúdo */}
             <div>
-              {loadingPlano ? (
-                <p className="text-sm text-aco">A carregar plano...</p>
-              ) : !plano ? (
-                <div className="rounded-2xl border border-tinta/10 bg-papel p-6 text-center text-sm text-aco">
-                  Ainda não tens um plano atribuído pelo teu médico.
+              {loadingUltimaSessao ? (
+                <p className="text-sm text-slate-400">
+                  A carregar última atividade...
+                </p>
+              ) : ultimaSessao ? (
+                <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-5">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="font-bold text-slate-900">
+                        {ultimaSessao.exercicios?.nome_exercicio ??
+                          "Exercício Geral"}
+                      </p>
+                      <p className="mt-1 text-xs text-slate-500">
+                        {formatarDataSessao(ultimaSessao.data_hora)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                        +{ultimaSessao.exercicios?.recompensa_xp ?? 10} XP
+                      </span>
+                      {ultimaSessao.esforco_1_a_10 !== null && (
+                        <p className="mt-1 text-xs text-slate-500">
+                          Esforço: {ultimaSessao.esforco_1_a_10}/10
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ) : (
-                <div className="flex flex-col gap-3">
-                  {plano.notas_medicas && (
-                    <div className="mb-2 rounded-xl border border-cobalto/15 bg-cobalto/10/50 p-4 text-sm text-cobalto">
-                      <span className="font-semibold">Nota: </span>
-                      {plano.notas_medicas}
-                    </div>
-                  )}
-
-                  {plano.exercicios.slice(0, 3).map((ex) => (
-                    <div
-                      key={ex.id_exercicio}
-                      className="flex items-center justify-between rounded-2xl border border-tinta/10 bg-papel p-4 transition hover:bg-tinta/5"
-                    >
-                      <div>
-                        <p className="font-semibold text-tinta">
-                          {ex.nome_exercicio}
-                        </p>
-                        <div className="mt-1 flex items-center gap-2 text-xs text-aco">
-                          <span>{formatTime(ex.duracao_segundos)}</span>
-                          <span className="text-tinta/20">·</span>
-                          <span className="font-medium text-cobalto">
-                            +{ex.recompensa_xp} XP
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-
-                  {plano.exercicios.length > 3 && (
-                    <p className="mt-2 text-center text-sm font-medium text-aco">
-                      + {plano.exercicios.length - 3} exercícios
-                    </p>
-                  )}
+                <div className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-400">
+                  Ainda não realizaste nenhum exercício de treino. Clica em "Ver
+                  planos" para começar! 💪
                 </div>
               )}
             </div>
@@ -167,14 +207,14 @@ const DashboardPaciente = () => {
                 className="flex w-full flex-1 justify-center rounded-xl bg-cobalto px-5 py-3 text-sm font-semibold text-papel shadow-sm hover:bg-cobalto-vivo sm:w-auto"
                 onClick={() => navigate("/paciente/planos")}
               >
-                Ver plano completo
+                Ver planos
               </BtnGlobal>
               <BtnGlobal
                 variant="secondary"
-                onClick={() => navigate("/perfil")}
-                className="flex w-full justify-center rounded-xl border-tinta/15 px-5 py-3 text-sm font-semibold text-tinta hover:bg-papel sm:w-auto"
+                onClick={() => navigate("/paciente/historico")}
+                className="flex w-full flex-1 justify-center rounded-xl border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 sm:w-auto"
               >
-                Informação pessoal
+                Ver histórico
               </BtnGlobal>
             </div>
           </article>
@@ -185,13 +225,12 @@ const DashboardPaciente = () => {
               <h2 className="text-lg font-bold text-tinta">
                 Progresso semanal
               </h2>
-              <p className="mt-2 text-sm text-aco">
-                {plano
-                  ? `Frequência recomendada: ${plano.frequencia_semanal}x por semana.`
-                  : "O teu progresso aparece aqui quando tiveres um plano."}
+              <p className="mt-2 text-sm text-slate-500">
+                Continua a fazer os teus exercícios para manter o teu corpo
+                ativo!
               </p>
-              <div className="mt-4 h-2 rounded-full bg-tinta/10">
-                <div className="h-2 w-1/4 rounded-full bg-cobalto" />
+              <div className="mt-4 h-2 rounded-full bg-slate-100">
+                <div className="h-2 w-1/2 rounded-full bg-blue-600" />
               </div>
               <p className="mt-2 text-sm font-semibold text-tinta">
                 Mantém a regularidade!

@@ -40,6 +40,21 @@ export interface PlanoPorPaciente {
 const isPlanoAtivo = (prescricao: { ativo?: boolean | null }): boolean =>
   prescricao.ativo === true;
 
+interface PrescricaoDb {
+  id_prescricao: string;
+  frequencia_semanal: number;
+  notas_medicas: string | null;
+  data_inicio: string | null;
+  data_validade: string | null;
+  data_fim: string | null;
+  ativo: boolean | null;
+  id_paciente: string;
+  dificuldade: string | null;
+  condicao_paciente: string | null;
+  condicao_clinica: string | null;
+  is_standard: boolean | null;
+}
+
 const fetchPlanosPorPacientes = async (): Promise<PlanoPorPaciente[]> => {
   const pacientes = await pacientesService.getPacientes();
   const pacienteIds = pacientes.map((paciente) => paciente.id_user);
@@ -55,8 +70,8 @@ const fetchPlanosPorPacientes = async (): Promise<PlanoPorPaciente[]> => {
 
   if (error) throw new Error(error.message);
 
-  const planosPorPaciente = new Map<string, any[]>();
-  (prescricoes ?? []).forEach((prescricao) => {
+  const planosPorPaciente = new Map<string, PrescricaoDb[]>();
+  (prescricoes as unknown as PrescricaoDb[] ?? []).forEach((prescricao) => {
     const pacienteId = prescricao.id_paciente;
     const lista = planosPorPaciente.get(pacienteId) ?? [];
     lista.push(prescricao);
@@ -151,7 +166,19 @@ export const planosService = {
 
     if (errE) throw new Error(errE.message);
 
-    const mapPlano = (p: any): PlanoAtivo => ({
+    interface PrescricaoInfo {
+      id_prescricao: string;
+      frequencia_semanal: number;
+      notas_medicas: string | null;
+      data_inicio?: string | null;
+      data_validade?: string | null;
+      data_fim?: string | null;
+      ativo?: boolean | null;
+      dificuldade?: string | null;
+      condicao_paciente?: string | null;
+    }
+
+    const mapPlano = (p: PrescricaoInfo): PlanoAtivo => ({
       id_plano: p.id_prescricao,
       frequencia_semanal: p.frequencia_semanal,
       notas_medicas: p.notas_medicas,
@@ -331,6 +358,14 @@ export const planosService = {
 
   cancelPlano: async (idPrescricao: string): Promise<void> => {
     await apiClient.patch(`/prescricoes/${idPrescricao}/cancel`);
+  },
+
+  eliminarPlano: async (idPrescricao: string): Promise<void> => {
+    const { error } = await supabase
+      .from("prescricoes")
+      .delete()
+      .eq("id_prescricao", idPrescricao);
+    if (error) throw new Error(error.message);
   },
 
   criarPlano: async (dados: {

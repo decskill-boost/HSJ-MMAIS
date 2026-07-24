@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import type { ExercicioDoPlano } from "../../services/planosService";
 import AvaliacaoExercicio from "./AvaliacaoExercicio";
+import { sessoesService } from "../../services/sessoesService";
 import CapitaoMais from "../CapitaoMais";
 
 interface Props {
@@ -37,6 +38,25 @@ const ExercicioPlayer = ({
   const [isPaused, setIsPaused] = useState(false);
   const [isFinished, setIsFinished] = useState(false);
   const [materiaisChecked, setMateriaisChecked] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleProximoExercicio = async () => {
+    setIsSaving(true);
+    try {
+      await sessoesService.registarSessao({
+        id_exercicio: exercicio.id_exercicio,
+        id_prescricao: idPrescricao,
+        duracao: timeElapsed,
+        diversao_1_a_5: 3,
+        esforco_1_a_10: 5,
+      });
+    } catch (err) {
+      console.error("Erro ao guardar progresso do exercício intermédio:", err);
+    } finally {
+      setIsSaving(false);
+      onConcluir();
+    }
+  };
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -331,10 +351,11 @@ const ExercicioPlayer = ({
               A seguir: <span className="font-bold text-papel">próximo treino</span>
             </p>
             <button
-              onClick={onConcluir}
-              className="mt-2 flex items-center gap-3 rounded-(--radius-vinheta) border-[3px] border-tinta bg-raio px-10 py-5 font-display text-xl tracking-wide text-tinta shadow-vinheta transition hover:brightness-105 active:scale-95 active:shadow-none"
+              onClick={handleProximoExercicio}
+              disabled={isSaving}
+              className="mt-2 flex items-center gap-3 rounded-(--radius-vinheta) border-[3px] border-tinta bg-raio px-10 py-5 font-display text-xl tracking-wide text-tinta shadow-vinheta transition hover:brightness-105 active:scale-95 active:shadow-none disabled:opacity-50"
             >
-              Próximo treino →
+              {isSaving ? "A guardar..." : "Próximo treino →"}
             </button>
           </div>
         )}

@@ -1,89 +1,104 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  planosService,
-  type PlanoPorPaciente,
-} from "../../services/planosService";
-import BtnGlobal from "../BtnGlobal";
+import LoadingSpinner from "../LoadingSpinner";
+import { pacientesService } from "../../services/pacientes";
+import { supabase } from "../../services/supabaseClient";
 
-const formatarData = (data?: string | null) => {
-  if (!data) return "-";
-  return new Date(data).toLocaleDateString("pt-PT", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-};
+interface PacienteAcompanhado {
+  id_user: string;
+  nome: string;
+  email: string;
+  totalTreinos: number;
+}
 
 const PlanosCorpoClinico = () => {
-  const [planos, setPlanos] = useState<PlanoPorPaciente[]>([]);
+  const navigate = useNavigate();
+  const [pacientes, setPacientes] = useState<PacienteAcompanhado[]>([]);
+  const [totalTreinosGerais, setTotalTreinosGerais] = useState(0);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
-  const navigate = useNavigate();
-
-  const buscarPlanos = async () => {
-    try {
-      setLoading(true);
-      setErro(null);
-      const lista = await planosService.getPlanosPorPacientes();
-      setPlanos(lista);
-    } catch (e) {
-      setErro(
-        e instanceof Error ? e.message : "Não foi possível carregar os planos.",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
-    void buscarPlanos();
+    const carregarDados = async () => {
+      try {
+        setLoading(true);
+        setErro(null);
+
+        // Obter todos os pacientes
+        const listaPacientes = await pacientesService.getPacientes();
+
+        // Obter todas as sessões realizadas com status 'concluido'
+        const { data: sessoes, error: errSessoes } = await supabase
+          .from("sessoes_realizadas")
+          .select("id_paciente")
+          .eq("status", "concluido");
+
+        if (errSessoes) throw new Error(errSessoes.message);
+
+        // Mapear contagem de treinos concluídos por paciente
+        const sessoesContador = new Map<string, number>();
+        let totalTreinos = 0;
+
+        if (sessoes) {
+          sessoes.forEach((s) => {
+            if (s.id_paciente) {
+              const atual = sessoesContador.get(s.id_paciente) ?? 0;
+              sessoesContador.set(s.id_paciente, atual + 1);
+              totalTreinos++;
+            }
+          });
+        }
+
+        const pacientesMapeados = listaPacientes.map((p) => ({
+          ...p,
+          totalTreinos: sessoesContador.get(p.id_user) ?? 0,
+        }));
+
+        setPacientes(pacientesMapeados);
+        setTotalTreinosGerais(totalTreinos);
+      } catch (err) {
+        console.error("Erro ao carregar dados:", err);
+        setErro(
+          err instanceof Error
+            ? err.message
+            : "Ocorreu um erro ao carregar os dados de acompanhamento.",
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void carregarDados();
   }, []);
 
-  const totalPlanosAtivos = useMemo(
-    () =>
-      planos.reduce(
-        (total, paciente) =>
-          total + paciente.planos.filter((plano) => plano.ativo).length,
-        0,
-      ),
-    [planos],
-  );
-
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-10">
-      {/* Cabeçalho: empilhado em mobile, em linha a partir de sm */}
+    <div className="flex-1 bg-papel px-4 py-6 sm:px-6 lg:px-8">
+      {/* Cabeçalho */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight text-tinta">
-            Gestão de planos clínicos
+            Acompanhamento de Pacientes
           </h1>
           <p className="mt-1 text-sm text-aco">
-            Veja todos os pacientes, o plano atual e assinale novos planos
-            quando necessário.
+            Veja a lista de pacientes inscritos e acompanhe as suas atividades físicas.
           </p>
         </div>
-        <BtnGlobal
-          onClick={() => navigate("/plano/criar")}
-          className="w-full rounded-xl bg-cobalto px-4 py-3 text-sm text-papel hover:bg-cobalto sm:w-auto"
-        >
-          Criar plano novo
-        </BtnGlobal>
       </div>
 
+      {/* Estatísticas Gerais */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
         <div>
           <p className="text-sm font-semibold text-aco">
-            Pacientes listados
+            Pacientes Acompanhados
           </p>
           <p className="mt-1 text-2xl font-bold text-tinta">
-            {planos.length}
+            {loading ? "…" : pacientes.length}
           </p>
         </div>
         <div>
-          <p className="text-sm font-semibold text-aco">Planos ativos</p>
+          <p className="text-sm font-semibold text-aco">Total de Treinos</p>
           <p className="mt-1 text-2xl font-bold text-tinta">
-            {totalPlanosAtivos}
+            {loading ? "…" : totalTreinosGerais}
           </p>
         </div>
       </div>
@@ -94,104 +109,60 @@ const PlanosCorpoClinico = () => {
         </div>
       )}
 
+      {/* Listagem */}
       <div className="overflow-x-auto rounded-3xl border border-tinta/15 bg-papel-claro shadow-sm">
         <table className="min-w-full divide-y divide-tinta/15 text-left text-sm">
           <thead className="bg-papel text-aco">
             <tr>
               <th className="px-6 py-4 font-semibold">Criança</th>
-              <th className="px-4 py-4 font-semibold">Planos Ativos</th>
-              <th className="px-4 py-4 font-semibold">Planos Totais</th>
-              <th className="px-4 py-4 font-semibold">Início Paciente</th>
-              <th className="px-6 py-4 font-semibold">Ações</th>
+              <th className="px-6 py-4 font-semibold">Email</th>
+              <th className="px-6 py-4 font-semibold text-center">Treinos Concluídos</th>
+              <th className="px-6 py-4 font-semibold text-center">Ações</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-tinta/10">
             {loading ? (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={4}
                   className="px-6 py-8 text-center text-sm text-aco"
                 >
-                  A carregar pacientes e planos…
+                  <LoadingSpinner mensagem="A carregar pacientes..." />
                 </td>
               </tr>
-            ) : planos.length === 0 ? (
+            ) : pacientes.length === 0 ? (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={4}
                   className="px-6 py-8 text-center text-sm text-aco"
                 >
                   Nenhum paciente encontrado.
                 </td>
               </tr>
             ) : (
-              planos.map((paciente) => {
-                const planosAtivos = paciente.planos.filter((p) => p.ativo);
-                const planosTotais = paciente.planos.length;
-                const planoMaisRecente =
-                  planosAtivos[0] ?? paciente.planos[0] ?? null;
-                const temPlanoAtivo = planosAtivos.length > 0;
-
+              pacientes.map((p) => {
                 return (
-                  <tr key={paciente.id_paciente} className="hover:bg-papel">
+                  <tr key={p.id_user} className="hover:bg-papel">
                     <td className="px-6 py-4 font-semibold text-tinta">
-                      {paciente.nome}
+                      {p.nome}
                     </td>
-
-                    {/* Planos Ativos */}
-                    <td className="px-4 py-4">
-                      <span
-                        className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${
-                          temPlanoAtivo
-                            ? "bg-turbo/10 text-turbo-escuro ring-turbo-escuro/10"
-                            : "bg-papel text-aco ring-aco/10"
-                        }`}
+                    <td className="px-6 py-4 text-aco">
+                      {p.email}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span className="inline-flex items-center rounded-full bg-cobalto/10 px-3 py-1 text-xs font-semibold text-cobalto">
+                        {p.totalTreinos} treinos
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <button
+                        onClick={() =>
+                          navigate(`/dashboard/medico/pacientes/${p.id_user}`)
+                        }
+                        className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro px-4 py-2 text-xs font-bold text-tinta shadow-vinheta transition hover:bg-papel active:scale-95 active:shadow-none"
                       >
-                        {planosAtivos.length}{" "}
-                        {planosAtivos.length === 1 ? "ativo" : "ativos"}
-                      </span>
-                    </td>
-
-                    {/* Planos Totais */}
-                    <td className="px-4 py-4">
-                      <span className="inline-flex items-center rounded-md bg-papel px-2 py-1 text-xs font-medium text-aco ring-1 ring-inset ring-aco/10">
-                        {planosTotais} {planosTotais === 1 ? "total" : "totais"}
-                      </span>
-                    </td>
-
-                    <td className="px-4 py-4 text-tinta">
-                      {formatarData(
-                        (paciente as any).data_criacao ??
-                          planoMaisRecente?.data_inicio,
-                      )}
-                    </td>
-
-                    {/* Ações — alinhadas à esquerda, empilham em ecrãs muito pequenos */}
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:whitespace-nowrap">
-                        <BtnGlobal
-                          onClick={() =>
-                            navigate(
-                              `/plano/criar?paciente=${paciente.id_paciente}`,
-                            )
-                          }
-                          className="rounded-xl bg-tinta px-3 py-2 text-xs text-papel hover:bg-tinta"
-                        >
-                          Atribuir novo plano
-                        </BtnGlobal>
-
-                        <BtnGlobal
-                          variant="secondary"
-                          onClick={() =>
-                            navigate(
-                              `/dashboard/medico/pacientes/${paciente.id_paciente}`,
-                            )
-                          }
-                          className="rounded-xl border border-tinta/15 bg-papel-claro px-3 py-2 text-xs font-semibold text-tinta hover:bg-papel"
-                        >
-                          Ir para detalhados
-                        </BtnGlobal>
-                      </div>
+                        Ver detalhe
+                      </button>
                     </td>
                   </tr>
                 );

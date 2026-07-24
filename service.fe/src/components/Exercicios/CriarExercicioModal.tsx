@@ -11,7 +11,15 @@ const DIFICULDADE_OPCOES = [
   { label: "Difícil", value: "dificil" },
 ];
 
-export const CriarExercicioModal = ({ isOpen, onClose, onSucesso, categorias, materiais }: any) => {
+interface CriarExercicioModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSucesso: () => void;
+  categorias: string[];
+  materiais: string[];
+}
+
+export const CriarExercicioModal = ({ isOpen, onClose, onSucesso, categorias, materiais }: CriarExercicioModalProps) => {
   const [passo, setPasso] = useState(1);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);

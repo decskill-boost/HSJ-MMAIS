@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, In, MoreThanOrEqual, Repository } from 'typeorm';
+import { Between, FindOptionsWhere, In, MoreThanOrEqual, Repository } from 'typeorm';
 import { Prescricao } from '../entities/prescricao.entity';
 import { SessaoRealizada } from '../entities/sessao-realizada.entity';
 import { Utilizador } from '../entities/utilizador.entity';
@@ -131,7 +131,7 @@ export class PacientesService {
       console.log(`[getPacientesComAdesao] Sem medicoId (Unit Tests?)`);
     }
 
-    const whereCondition: any = { tipo_utilizador: UserRole.PACIENTE };
+    const whereCondition: FindOptionsWhere<Utilizador> = { tipo_utilizador: UserRole.PACIENTE };
 
     console.log('[getPacientesComAdesao] Condição da Query:', whereCondition);
 

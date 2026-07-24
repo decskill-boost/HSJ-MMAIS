@@ -51,9 +51,9 @@ export class SessaoRealizada {
   })
   status: SessaoStatus;
 
-  @ManyToOne(() => Prescricao)
+  @ManyToOne(() => Prescricao, { nullable: true })
   @JoinColumn({ name: 'id_prescricao' })
-  id_prescricao: Prescricao;
+  id_prescricao: Prescricao | null;
 
   @Column({ type: 'boolean', default: false })
   teve_problemas: boolean;

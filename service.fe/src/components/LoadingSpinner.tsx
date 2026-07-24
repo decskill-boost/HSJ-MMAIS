@@ -6,25 +6,18 @@ interface LoadingSpinnerProps {
 }
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
-  mensagem = "A carregar dados...",
+  mensagem = "A carregar...",
   fullscreen = false,
 }) => {
   const containerClass = fullscreen
-    ? "fixed inset-0 z-50 flex flex-col items-center justify-center bg-tinta/30 backdrop-blur-sm"
-    : "flex flex-col items-center justify-center p-12 w-full min-h-[300px]";
+    ? "fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/20 backdrop-blur-sm"
+    : "flex flex-col items-center justify-center p-8 w-full min-h-[200px]";
 
   return (
     <div className={containerClass}>
-      <div className="relative flex items-center justify-center">
-        {/* Anel do spinner — Cobalto da marca */}
-        <div className="h-14 w-14 rounded-full border-4 border-tinta/15 border-t-cobalto animate-spin" />
-        {/* Ponto interior a pulsar */}
-        <div className="absolute h-6 w-6 rounded-full bg-cobalto/10 animate-pulse" />
-      </div>
+      <div className="h-10 w-10 rounded-full border-4 border-slate-200 border-t-indigo-600 animate-spin" />
       {mensagem && (
-        <p className="mt-4 text-xs font-bold uppercase tracking-wider text-aco animate-pulse">
-          {mensagem}
-        </p>
+        <p className="mt-3 text-sm font-medium text-slate-500">{mensagem}</p>
       )}
     </div>
   );

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { Between, DataSource, LessThan, Repository } from 'typeorm';
 import { Exercicio } from '../entities/exercicio.entity';
@@ -9,6 +9,7 @@ import { ConcluirExercicioDto } from './dto/concluir-exercicio.dto';
 import { IniciarExercicioDto } from './dto/iniciar-exercicio.dto';
 import { calculateLevelProgress } from './level.util';
 import { computeStreakUpdate, endOfLisbonDay, startOfLisbonDay } from './streak.util';
+import { cleanUuid } from '../utils/uuid.util';
 
 export interface ConclusaoResultado {
   xpGained: number;
@@ -48,8 +49,16 @@ export class SessoesService {
     idPaciente: string,
     dto: IniciarExercicioDto,
   ): Promise<InicioResultado> {
+    const cleanPacienteId = cleanUuid(idPaciente);
+    const cleanExercicioId = cleanUuid(dto.id_exercicio);
+    const cleanPrescricaoId = cleanUuid(dto.id_prescricao);
+
+    if (!cleanPacienteId || !cleanExercicioId) {
+      throw new BadRequestException('Paciente ou Exercício inválido');
+    }
+
     const exercicio = await this.exercicioRepo.findOne({
-      where: { id_exercicio: dto.id_exercicio, ativo: true },
+      where: { id_exercicio: cleanExercicioId, ativo: true },
     });
     if (!exercicio) {
       throw new NotFoundException('Exercício não encontrado');
@@ -59,8 +68,8 @@ export class SessoesService {
 
     const concluidoHoje = await this.sessaoRepo.findOne({
       where: {
-        id_paciente: { id_user: idPaciente },
-        id_exercicio: dto.id_exercicio as unknown as Exercicio,
+        id_paciente: { id_user: cleanPacienteId },
+        id_exercicio: cleanExercicioId as unknown as Exercicio,
         status: SessaoStatus.CONCLUIDO,
         data_hora: Between(startOfDay, endOfDay),
       },
@@ -71,8 +80,8 @@ export class SessoesService {
 
     const iniciadoHoje = await this.sessaoRepo.findOne({
       where: {
-        id_paciente: { id_user: idPaciente },
-        id_exercicio: dto.id_exercicio as unknown as Exercicio,
+        id_paciente: { id_user: cleanPacienteId },
+        id_exercicio: cleanExercicioId as unknown as Exercicio,
         status: SessaoStatus.INICIADO,
         data_hora: Between(startOfDay, endOfDay),
       },
@@ -82,9 +91,9 @@ export class SessoesService {
     }
 
     const novaSessao = this.sessaoRepo.create({
-      id_paciente: { id_user: idPaciente } as Utilizador,
-      id_exercicio: { id_exercicio: dto.id_exercicio } as Exercicio,
-      id_prescricao: { id_prescricao: dto.id_prescricao } as Prescricao,
+      id_paciente: { id_user: cleanPacienteId } as Utilizador,
+      id_exercicio: { id_exercicio: cleanExercicioId } as Exercicio,
+      id_prescricao: cleanPrescricaoId ? ({ id_prescricao: cleanPrescricaoId } as Prescricao) : null,
       data_hora: new Date(),
       status: SessaoStatus.INICIADO,
       concluido: false,
@@ -98,8 +107,17 @@ export class SessoesService {
     idPaciente: string,
     dto: ConcluirExercicioDto,
   ): Promise<ConclusaoResultado> {
+    const cleanPacienteId = cleanUuid(idPaciente);
+    const cleanExercicioId = cleanUuid(dto.id_exercicio);
+    const cleanPrescricaoId = cleanUuid(dto.id_prescricao);
+    const cleanSessaoId = cleanUuid(dto.id_sessao);
+
+    if (!cleanPacienteId || !cleanExercicioId) {
+      throw new BadRequestException('Paciente ou Exercício inválido');
+    }
+
     const exercicio = await this.exercicioRepo.findOne({
-      where: { id_exercicio: dto.id_exercicio, ativo: true },
+      where: { id_exercicio: cleanExercicioId, ativo: true },
     });
     if (!exercicio) {
       throw new NotFoundException('Exercício não encontrado');
@@ -108,43 +126,24 @@ export class SessoesService {
     const now = new Date();
     const { startOfDay, endOfDay } = this.getDayBounds(now);
 
-    const existing = await this.sessaoRepo.findOne({
+    const alreadyCompleted = await this.sessaoRepo.findOne({
       where: {
-        id_paciente: { id_user: idPaciente },
-        id_exercicio: dto.id_exercicio as unknown as Exercicio,
+        id_paciente: { id_user: cleanPacienteId },
+        id_exercicio: cleanExercicioId as unknown as Exercicio,
         status: SessaoStatus.CONCLUIDO,
         data_hora: Between(startOfDay, endOfDay),
       },
     });
 
-    if (existing) {
-      const user = await this.utilizadorRepo.findOne({
-        where: { id_user: idPaciente },
-      });
-      if (!user) {
-        throw new NotFoundException('Utilizador não encontrado');
-      }
-
-      const levelInfo = calculateLevelProgress(user.xp);
-      return {
-        xpGained: 0,
-        totalXp: user.xp,
-        level: user.nivel,
-        leveledUp: false,
-        xpForNextLevel: levelInfo.xpForNextLevel,
-        progressToNextLevel: levelInfo.progressToNextLevel,
-        streakAtual: user.streak_atual,
-        sessionId: existing.id_sessao,
-        alreadyCompletedToday: true,
-      };
-    }
+    const xpGained = alreadyCompleted ? 0 : exercicio.recompensa_xp;
 
     return this.dataSource.transaction(async (manager) => {
+
       const sessaoIniciada = await manager.findOne(SessaoRealizada, {
         where: {
-          ...(dto.id_sessao ? { id_sessao: dto.id_sessao } : {}),
-          id_paciente: { id_user: idPaciente },
-          id_exercicio: dto.id_exercicio as unknown as Exercicio,
+          ...(cleanSessaoId ? { id_sessao: cleanSessaoId } : {}),
+          id_paciente: { id_user: cleanPacienteId },
+          id_exercicio: cleanExercicioId as unknown as Exercicio,
           status: SessaoStatus.INICIADO,
           data_hora: Between(startOfDay, endOfDay),
         },
@@ -161,13 +160,14 @@ export class SessoesService {
         sessaoIniciada.participacao_familiares = dto.participacao_familiares ?? false;
         sessaoIniciada.fc_maxima = dto.fc_maxima ?? null;
         sessaoIniciada.fc_media = dto.fc_media ?? null;
+        sessaoIniciada.id_prescricao = cleanPrescricaoId ? ({ id_prescricao: cleanPrescricaoId } as Prescricao) : null;
         sessao = await manager.save(sessaoIniciada);
       } else {
         // Fallback for clients that never called /sessoes/iniciar (e.g. older builds).
         const novaSessao = manager.create(SessaoRealizada, {
-          id_paciente: { id_user: idPaciente } as Utilizador,
-          id_exercicio: { id_exercicio: dto.id_exercicio } as Exercicio,
-          id_prescricao: { id_prescricao: dto.id_prescricao } as Prescricao,
+          id_paciente: { id_user: cleanPacienteId } as Utilizador,
+          id_exercicio: { id_exercicio: cleanExercicioId } as Exercicio,
+          id_prescricao: cleanPrescricaoId ? ({ id_prescricao: cleanPrescricaoId } as Prescricao) : null,
           data_hora: now,
           esforco_1_a_10: dto.esforco_1_a_10,
           diversao_1_a_5: dto.diversao_1_a_5,
@@ -187,7 +187,7 @@ export class SessoesService {
       await manager.update(
         SessaoRealizada,
         {
-          id_paciente: { id_user: idPaciente },
+          id_paciente: { id_user: cleanPacienteId },
           status: SessaoStatus.INICIADO,
           data_hora: LessThan(startOfDay),
         },
@@ -195,14 +195,14 @@ export class SessoesService {
       );
 
       const user = await manager.findOne(Utilizador, {
-        where: { id_user: idPaciente },
+        where: { id_user: cleanPacienteId },
       });
       if (!user) {
         throw new NotFoundException('Utilizador não encontrado');
       }
 
       const oldLevel = user.nivel;
-      const totalXp = user.xp + exercicio.recompensa_xp;
+      const totalXp = user.xp + xpGained;
       const levelInfo = calculateLevelProgress(totalXp);
 
       user.xp = totalXp;
@@ -218,7 +218,7 @@ export class SessoesService {
       await manager.save(user);
 
       return {
-        xpGained: exercicio.recompensa_xp,
+        xpGained,
         totalXp,
         level: levelInfo.level,
         leveledUp: levelInfo.level > oldLevel,
@@ -226,7 +226,7 @@ export class SessoesService {
         progressToNextLevel: levelInfo.progressToNextLevel,
         streakAtual: user.streak_atual,
         sessionId: sessao.id_sessao,
-        alreadyCompletedToday: false,
+        alreadyCompletedToday: !!alreadyCompleted,
       };
     });
   }
