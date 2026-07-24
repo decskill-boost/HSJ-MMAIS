@@ -4,6 +4,7 @@ import BtnGlobal from "./BtnGlobal";
 import CapitaoMais25D from "./CapitaoMais25D";
 import CapitaoMais from "./CapitaoMais";
 import { useUser } from "../contexts/UserContext";
+import quadroHeroi from "../assets/quadro-heroi.jpg";
 
 // Promessas do Capitão — voz da Academia: encorajamento, nunca cobrança.
 const FRASES_CAPITAO = [
@@ -61,6 +62,19 @@ const WelcomePage = () => {
   const buttonText = isAuthenticated ? "Ir para o Dashboard" : "Começar!";
 
   const handleAction = () => navigate(destination);
+
+  // Chegar de outra página com /#missao deve levar direto à secção
+  useEffect(() => {
+    if (window.location.hash !== "#missao") return;
+    const t = setTimeout(
+      () =>
+        document
+          .getElementById("missao")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      120,
+    );
+    return () => clearTimeout(t);
+  }, []);
 
   // Carrossel das promessas do Capitão
   const [fraseAtual, setFraseAtual] = useState(0);
@@ -121,7 +135,10 @@ const WelcomePage = () => {
       </div>
 
       {/* MISSÃO E PROPÓSITO */}
-      <section className="w-full border-y-[3px] border-tinta bg-papel px-4 py-16 text-center sm:py-24">
+      <section
+        id="missao"
+        className="w-full scroll-mt-20 border-y-[3px] border-tinta bg-papel px-4 py-16 text-center sm:py-24"
+      >
         <div className="mx-auto max-w-3xl">
           <span className="inline-flex items-center gap-2 rounded-full border-2 border-tinta bg-papel-claro px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-cobalto shadow-vinheta">
             MMAIS<span className="texto-raio-contorno">+</span>
@@ -161,6 +178,45 @@ const WelcomePage = () => {
                 />
               ))}
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* O QUADRO — a peça que está no hospital e inspira miúdos e equipa */}
+      <section className="w-full bg-papel-claro px-4 py-16 sm:py-24">
+        <div className="mx-auto grid max-w-5xl items-center gap-10 md:grid-cols-[auto_1fr]">
+          {/* Moldura: o quadro é o herói do bloco, sem adornos a competir */}
+          <figure className="entrada-pop mx-auto max-w-sm">
+            <img
+              src={quadroHeroi}
+              alt="Quadro exposto no hospital: uma criança de t-shirt de super-herói a voar num céu estrelado, com um desenho feito pela própria criança a brilhar como uma lua."
+              width={825}
+              height={1100}
+              loading="lazy"
+              className="w-full rounded-(--radius-vinheta) border-[3px] border-tinta shadow-vinheta"
+            />
+          </figure>
+
+          <div className="text-center md:text-left">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-cobalto">
+              No hospital
+            </p>
+            <h2 className="mt-2 font-display text-3xl tracking-wide text-tinta sm:text-4xl">
+              O herói já existia antes de nós
+            </h2>
+            <p className="mt-4 text-lg leading-relaxed text-aco">
+              Este quadro está no hospital e é dele que vem a nossa ideia: uma
+              criança em tratamento é, todos os dias, um herói. Repara na lua —
+              é um desenho feito pela própria criança, guardado para sempre na
+              pintura.
+            </p>
+            <p className="mt-4 text-base leading-relaxed text-tinta/80">
+              O Capitão Mais nasceu daqui. Quando um miúdo abre a aplicação e vê
+              o Capitão, está a ver-se a si próprio.
+            </p>
+            <figcaption className="mt-6 text-sm font-bold text-aco">
+              «Santiago» · pintura de MrTheo — exposta na ULS São João
+            </figcaption>
           </div>
         </div>
       </section>

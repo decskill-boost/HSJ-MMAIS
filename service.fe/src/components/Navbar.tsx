@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import BtnGlobal from "./BtnGlobal";
 import CapitaoMais from "./CapitaoMais";
 import UserMenu from "./UserMenu";
@@ -51,6 +51,21 @@ export const Navbar = ({
   isMenuOpen,
   onMenuToggle,
 }: NavbarProps) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // A Missão é uma secção da página inicial (deixou de ser página própria),
+  // por isso o menu leva lá com scroll em vez de mudar de rota.
+  const irParaMissao = () => {
+    if (location.pathname === "/") {
+      document
+        .getElementById("missao")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      navigate("/#missao");
+    }
+  };
+
   return (
     <header className="h-[68px] sticky top-0 z-50 border-b-[3px] border-tinta bg-papel-claro/95 backdrop-blur-sm px-4 py-0 sm:px-6 lg:px-8">
       {/* ZERO px aqui dentro! Só mx-auto e max-w-6xl */}
@@ -83,6 +98,13 @@ export const Navbar = ({
               MMAIS<span className="texto-raio-contorno">+</span>
             </span>
           </Link>
+
+          <button
+            onClick={irParaMissao}
+            className="hidden text-sm font-bold text-aco transition hover:text-cobalto sm:block"
+          >
+            Missão e Propósito
+          </button>
         </div>
 
         {/* Canto direito: avatar + dropdown com sessão; senão, "Entrar" */}
