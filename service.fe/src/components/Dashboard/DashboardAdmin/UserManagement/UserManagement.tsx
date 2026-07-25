@@ -74,11 +74,16 @@ const UserManagement = () => {
     }
   }, [selectedUser]);
 
-  const resetForm = () => {
+  // `manterMensagem` limpa o formulário sem apagar a confirmação de sucesso
+  // acabada de escrever: sem isto, o reset a seguir a gravar deitava a mensagem
+  // fora e a ação não deixava rasto nenhum no ecrã.
+  const resetForm = (manterMensagem = false) => {
     setEditingUserId(null);
     setForm(initialForm);
     setError(null);
-    setMessage(null);
+    if (!manterMensagem) {
+      setMessage(null);
+    }
   };
 
   const handleSubmit = async (payload: {
@@ -117,20 +122,34 @@ const UserManagement = () => {
         setMessage("Utilizador criado com sucesso.");
       }
       await loadUsers();
-      resetForm();
+      resetForm(true);
+      // Volta à lista, onde a confirmação é mostrada ao lado do registo já
+      // atualizado. O formulário de criação não tem botão de saída, pelo que
+      // ficar nele deixava o administrador sem caminho de regresso.
+      setView("list");
     } catch (err: unknown) {
       console.error(err);
       let serverMessage = "Erro desconhecido";
       if (err instanceof Error) {
         serverMessage = err.message;
       }
-      const apiErr = err as { response?: { data?: { message?: string } | string } };
+      const apiErr = err as {
+        response?: { data?: { message?: string | string[] } | string };
+      };
       if (apiErr?.response?.data) {
         const data = apiErr.response.data;
         if (typeof data === "string") {
           serverMessage = data;
-        } else if (data && typeof data === "object" && "message" in data && typeof data.message === "string") {
-          serverMessage = data.message;
+        } else if (data && typeof data === "object" && "message" in data) {
+          // O ValidationPipe do NestJS devolve `message` como lista (uma
+          // entrada por regra falhada). Sem tratar a lista, o administrador
+          // via o "Request failed with status code 400" do axios em vez de
+          // "A palavra-passe tem de ter pelo menos 8 caracteres."
+          if (Array.isArray(data.message) && data.message.length > 0) {
+            serverMessage = data.message.join(" ");
+          } else if (typeof data.message === "string") {
+            serverMessage = data.message;
+          }
         }
       }
       setError(serverMessage);
@@ -157,12 +176,14 @@ const UserManagement = () => {
     setError(null);
     try {
       await disableUser(id);
-      setMessage("Utilizador desativado com sucesso.");
+      // O servidor apaga mesmo o registo (DELETE), não o desativa: dizer
+      // "desativado" levava o administrador a julgar que a conta é reponível.
+      setMessage("Utilizador apagado definitivamente.");
       await loadUsers();
-      resetForm();
+      resetForm(true);
     } catch (err) {
       console.error(err);
-      setError("Erro ao desativar o utilizador.");
+      setError("Erro ao apagar o utilizador.");
     } finally {
       setLoading(false);
     }

@@ -1,3 +1,4 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
@@ -8,6 +9,21 @@ async function bootstrap() {
 
   const apiPrefix = config.get<string>('API_PREFIX', 'api');
   app.setGlobalPrefix(apiPrefix);
+
+  /**
+   * Validação de tudo o que entra. Sem isto, valores clínicos chegavam crus à
+   * base de dados — um esforço de 500 ou uma frequência cardíaca negativa
+   * ficavam gravados e apareciam ao corpo clínico como leitura verdadeira.
+   *
+   * `whitelist` descarta campos que nenhum DTO declara, para não se escrever
+   * na base de dados o que o cliente entender mandar.
+   */
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    }),
+  );
 
   // PERMITIR A LIGAÇÃO DO FRONTEND
   const allowedOrigins = config

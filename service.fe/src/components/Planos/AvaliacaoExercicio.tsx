@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { sessoesService } from "../../services/sessoesService";
 import CapitaoMais from "../CapitaoMais";
 
@@ -56,12 +56,28 @@ const AvaliacaoExercicio = ({
   const [erroBpmMedio, setErroBpmMedio] = useState("");
   const [erroBpmMaximo, setErroBpmMaximo] = useState("");
   const [problemas, setProblemas] = useState<boolean | null>(null);
+  // ATENÇÃO: este texto ainda NÃO é enviado nem guardado — falta a coluna
+  // `descricao_problema` na tabela `sessoes_realizadas` (ver
+  // service.srv/database/2026-07-25-descricao-problema.sql). Até essa coluna
+  // existir, o que a criança escreve aqui perde-se: não prometer o contrário
+  // no ecrã.
   const [descricaoProblema, setDescricaoProblema] = useState("");
   const [companhia, setCompanhia] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
   const [erroEnvio, setErroEnvio] = useState("");
   const [concluido, setConcluido] = useState(false);
   const [xpGanho, setXpGanho] = useState(recompensaXp);
+
+  const refConteudoPasso = useRef<HTMLDivElement>(null);
+  const passoComFoco = useRef(step);
+
+  // O passo muda sozinho (avanço automático). Sem mover o foco, quem usa leitor
+  // de ecrã fica no botão que já desapareceu e não percebe a nova pergunta.
+  useEffect(() => {
+    if (passoComFoco.current === step) return; // não roubar o foco na primeira renderização
+    passoComFoco.current = step;
+    refConteudoPasso.current?.focus();
+  }, [step]);
 
   const validarBpm = (raw: string, setter: (v: string) => void, setErro: (e: string) => void) => {
     if (raw === "") { setter(""); setErro(""); return; }
@@ -85,9 +101,16 @@ const AvaliacaoExercicio = ({
     return true;
   };
 
-  // Interação simples: um toque escolhe E avança (com pausa para ver a escolha)
+  // Interação simples: um toque escolhe E avança (com pausa para ver a escolha).
+  // O avanço só acontece se ainda estivermos no passo em que a criança tocou:
+  // dois toques seguidos (ou um toque seguido de «Próximo»/«←») agendavam dois
+  // avanços e saltavam uma pergunta, ficando registado o valor por omissão
+  // dessa pergunta como se a criança o tivesse dado.
   const avancoAutomatico = () => {
-    setTimeout(() => setStep((s) => Math.min(s + 1, TOTAL_STEPS)), 450);
+    const passoDoToque = step;
+    setTimeout(() => {
+      setStep((s) => (s === passoDoToque ? Math.min(s + 1, TOTAL_STEPS) : s));
+    }, 450);
   };
 
   const handleSubmit = async () => {
@@ -172,7 +195,12 @@ const AvaliacaoExercicio = ({
       {/* Header com progresso */}
       <div className="relative flex flex-col gap-2 px-8 pt-6">
         <div className="flex items-center justify-between">
-          <p className="text-xs font-bold uppercase tracking-widest text-[#EAEFFF]">
+          {/* O passo pode mudar sozinho: anunciar a mudança a quem não a vê */}
+          <p
+            role="status"
+            aria-live="polite"
+            className="text-xs font-bold uppercase tracking-widest text-[#EAEFFF]"
+          >
             Passo {step} de {TOTAL_STEPS}
           </p>
           <p className="text-xs font-bold text-[#EAEFFF]">
@@ -194,8 +222,13 @@ const AvaliacaoExercicio = ({
         </div>
       </div>
 
-      {/* Conteúdo do passo */}
-      <div className="relative flex flex-1 flex-col items-center justify-center px-8">
+      {/* Conteúdo do passo — scroll interno (min-h-0) para que em ecrãs baixos
+          o conteúdo não empurre os botões de navegação para fora do ecrã */}
+      <div
+        ref={refConteudoPasso}
+        tabIndex={-1}
+        className="relative flex min-h-0 flex-1 flex-col items-center justify-center-safe overflow-y-auto px-8 py-4 outline-none"
+      >
 
         {/* Passo 1 — Diversão */}
         {step === 1 && (

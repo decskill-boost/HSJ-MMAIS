@@ -188,6 +188,9 @@ const PacienteDetalhe = () => {
     try {
       setLoading(true);
       setErro(null);
+      // Ao mudar de paciente, largar o histórico do anterior: nunca mostrar
+      // treinos de uma criança no ecrã de outra.
+      setSessoes([]);
 
       const [dados, info] = await Promise.all([
         planosService.getPlanosPorPaciente(pacienteId),
@@ -215,10 +218,16 @@ const PacienteDetalhe = () => {
         `,
         )
         .eq("id_paciente", pacienteId)
+        // Só sessões concluídas, como no resto da aplicação: as sessões
+        // 'iniciado' e 'falhado' não são treinos feitos e inflacionavam a
+        // contagem e as médias que o corpo clínico lê para decidir.
+        .eq("status", "concluido")
         .order("data_hora", { ascending: false });
 
       if (errSessao) {
-        console.error("Erro ao obter histórico de sessões:", errSessao);
+        // Mostrar a falha em vez de uma tabela vazia: um histórico que não
+        // carregou não pode passar por "esta criança ainda não treinou".
+        setErro(errSessao.message);
       } else {
         setSessoes((sessoesDados as unknown as SessaoRealizadaInfo[]) ?? []);
       }

@@ -3,6 +3,52 @@ import { clearStoredAuth, persistAuthState } from "./authPersistence";
 import type { LoginCredentials } from "../types/auth.types";
 import type { UserProfile } from "../types/permissions";
 
+// O Supabase devolve os erros de autenticação em inglês técnico e essa mensagem
+// chegava tal e qual ao ecrã de login. Traduzimos os casos conhecidos e dizemos
+// o passo seguinte; tudo o resto cai na mensagem genérica.
+const MENSAGENS_ERRO_LOGIN: Record<string, string> = {
+  invalid_credentials:
+    "Email ou palavra-passe incorretos. Confirme os dados e tente novamente.",
+  email_not_confirmed:
+    "Esta conta ainda não foi confirmada. Abra o email de confirmação que lhe enviámos e siga a ligação.",
+  user_not_found:
+    "Não existe nenhuma conta com este email. Confirme o endereço ou peça ajuda a um administrador.",
+  email_address_invalid:
+    "O email indicado não é válido. Reveja o endereço e tente novamente.",
+  user_banned:
+    "Esta conta está suspensa. Contacte um administrador para a reativar.",
+  over_request_rate_limit:
+    "Demasiadas tentativas seguidas. Aguarde um minuto e tente novamente.",
+  validation_failed: "Preencha o email e a palavra-passe para poder entrar.",
+};
+
+const MENSAGEM_ERRO_LOGIN_GENERICA =
+  "Não foi possível iniciar sessão. Confirme os dados e tente novamente ou contacte um administrador.";
+
+// Nem todos os erros do Supabase trazem `code`, por isso quando ele falta (ou
+// não é um dos que conhecemos) identificamos o erro pela mensagem original.
+const CODIGOS_POR_MENSAGEM: Record<string, string> = {
+  "invalid login credentials": "invalid_credentials",
+  "email not confirmed": "email_not_confirmed",
+  "user not found": "user_not_found",
+  "email rate limit exceeded": "over_request_rate_limit",
+};
+
+const traduzErroLogin = (erro: {
+  code?: string | undefined;
+  message: string;
+}): string => {
+  const codigo =
+    erro.code && MENSAGENS_ERRO_LOGIN[erro.code]
+      ? erro.code
+      : CODIGOS_POR_MENSAGEM[erro.message.trim().toLowerCase()];
+
+  return (
+    (codigo ? MENSAGENS_ERRO_LOGIN[codigo] : undefined) ??
+    MENSAGEM_ERRO_LOGIN_GENERICA
+  );
+};
+
 export const authService = {
   async login({ email, password }: LoginCredentials) {
     console.log("[Auth] a tentar login no Supabase", { email });
@@ -14,7 +60,10 @@ export const authService = {
         password,
       });
 
-    if (authError) throw new Error(authError.message);
+    // Guardamos o erro original em `cause` para continuar a ser diagnosticável,
+    // mas quem está no ecrã vê a versão traduzida.
+    if (authError)
+      throw new Error(traduzErroLogin(authError), { cause: authError });
 
     // 2. Tentar contactar o backend NestJS (Health Check / Fetch Profil)
     try {

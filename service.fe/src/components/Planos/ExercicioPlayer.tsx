@@ -177,6 +177,9 @@ const ExercicioPlayer = ({
 
       {/* Vídeo + overlays */}
       <div className="relative flex-1 overflow-hidden bg-tinta">
+        {/* Falta aqui um <track kind="captions">: a ficha do exercício ainda não
+            guarda um URL de legendas. Até existir, a alternativa em texto para
+            quem não ouve o vídeo são as instruções do ecrã de início. */}
         {exercicio.url_video ? (
           <video
             ref={videoRef}
@@ -184,6 +187,7 @@ const ExercicioPlayer = ({
             className="h-full w-full object-contain"
             loop
             playsInline
+            aria-label={`Vídeo de demonstração do exercício ${exercicio.nome_exercicio}`}
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-4 text-sm text-papel/70">
@@ -210,6 +214,33 @@ const ExercicioPlayer = ({
                 </p>
               )}
             </div>
+
+            {/* Instruções escritas: no modo plano o leitor abre sem passar pela
+                pré-visualização, por isso este é o único sítio onde quem não
+                ouve o vídeo consegue ler o que tem de fazer. */}
+            {(exercicio.descricao || exercicio.url_video) && (
+              <div className="w-full max-w-xs rounded-2xl border-2 border-papel/20 bg-papel/10 p-4 backdrop-blur-sm">
+                {exercicio.descricao && (
+                  <>
+                    <p className="mb-2 text-center text-xs font-bold uppercase tracking-widest text-[#EAEFFF]">
+                      📋 Instruções
+                    </p>
+                    <p className="whitespace-pre-line text-sm text-papel">
+                      {exercicio.descricao}
+                    </p>
+                  </>
+                )}
+                {exercicio.url_video && (
+                  <p
+                    className={`text-center text-xs text-papel/70 ${
+                      exercicio.descricao ? "mt-3" : ""
+                    }`}
+                  >
+                    Este vídeo ainda não tem legendas.
+                  </p>
+                )}
+              </div>
+            )}
 
             {/* Checklist de materiais — só em exercício individual */}
             {!modoPlano && materiais.length > 0 && (

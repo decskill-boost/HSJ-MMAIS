@@ -1,14 +1,25 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { Between, DataSource, LessThan, Repository } from 'typeorm';
 import { Exercicio } from '../entities/exercicio.entity';
 import { Prescricao } from '../entities/prescricao.entity';
-import { SessaoRealizada, SessaoStatus } from '../entities/sessao-realizada.entity';
+import {
+  SessaoRealizada,
+  SessaoStatus,
+} from '../entities/sessao-realizada.entity';
 import { Utilizador } from '../entities/utilizador.entity';
 import { ConcluirExercicioDto } from './dto/concluir-exercicio.dto';
 import { IniciarExercicioDto } from './dto/iniciar-exercicio.dto';
 import { calculateLevelProgress } from './level.util';
-import { computeStreakUpdate, endOfLisbonDay, startOfLisbonDay } from './streak.util';
+import {
+  computeStreakUpdate,
+  endOfLisbonDay,
+  startOfLisbonDay,
+} from './streak.util';
 import { cleanUuid } from '../utils/uuid.util';
 
 export interface ConclusaoResultado {
@@ -75,7 +86,10 @@ export class SessoesService {
       },
     });
     if (concluidoHoje) {
-      return { sessionId: concluidoHoje.id_sessao, alreadyCompletedToday: true };
+      return {
+        sessionId: concluidoHoje.id_sessao,
+        alreadyCompletedToday: true,
+      };
     }
 
     const iniciadoHoje = await this.sessaoRepo.findOne({
@@ -87,13 +101,18 @@ export class SessoesService {
       },
     });
     if (iniciadoHoje) {
-      return { sessionId: iniciadoHoje.id_sessao, alreadyCompletedToday: false };
+      return {
+        sessionId: iniciadoHoje.id_sessao,
+        alreadyCompletedToday: false,
+      };
     }
 
     const novaSessao = this.sessaoRepo.create({
       id_paciente: { id_user: cleanPacienteId } as Utilizador,
       id_exercicio: { id_exercicio: cleanExercicioId } as Exercicio,
-      id_prescricao: cleanPrescricaoId ? ({ id_prescricao: cleanPrescricaoId } as Prescricao) : null,
+      id_prescricao: cleanPrescricaoId
+        ? { id_prescricao: cleanPrescricaoId }
+        : null,
       data_hora: new Date(),
       status: SessaoStatus.INICIADO,
       concluido: false,
@@ -138,7 +157,6 @@ export class SessoesService {
     const xpGained = alreadyCompleted ? 0 : exercicio.recompensa_xp;
 
     return this.dataSource.transaction(async (manager) => {
-
       const sessaoIniciada = await manager.findOne(SessaoRealizada, {
         where: {
           ...(cleanSessaoId ? { id_sessao: cleanSessaoId } : {}),
@@ -157,17 +175,22 @@ export class SessoesService {
         sessaoIniciada.diversao_1_a_5 = dto.diversao_1_a_5 as number;
         sessaoIniciada.duracao = dto.duracao as number;
         sessaoIniciada.teve_problemas = dto.teve_problemas ?? false;
-        sessaoIniciada.participacao_familiares = dto.participacao_familiares ?? false;
+        sessaoIniciada.participacao_familiares =
+          dto.participacao_familiares ?? false;
         sessaoIniciada.fc_maxima = dto.fc_maxima ?? null;
         sessaoIniciada.fc_media = dto.fc_media ?? null;
-        sessaoIniciada.id_prescricao = cleanPrescricaoId ? ({ id_prescricao: cleanPrescricaoId } as Prescricao) : null;
+        sessaoIniciada.id_prescricao = cleanPrescricaoId
+          ? ({ id_prescricao: cleanPrescricaoId } as Prescricao)
+          : null;
         sessao = await manager.save(sessaoIniciada);
       } else {
-        // Fallback for clients that never called /sessoes/iniciar (e.g. older builds).
+        // Recurso para clientes que nunca chamaram /sessoes/iniciar (versões antigas).
         const novaSessao = manager.create(SessaoRealizada, {
           id_paciente: { id_user: cleanPacienteId } as Utilizador,
           id_exercicio: { id_exercicio: cleanExercicioId } as Exercicio,
-          id_prescricao: cleanPrescricaoId ? ({ id_prescricao: cleanPrescricaoId } as Prescricao) : null,
+          id_prescricao: cleanPrescricaoId
+            ? ({ id_prescricao: cleanPrescricaoId } as Prescricao)
+            : null,
           data_hora: now,
           esforco_1_a_10: dto.esforco_1_a_10,
           diversao_1_a_5: dto.diversao_1_a_5,
@@ -209,7 +232,10 @@ export class SessoesService {
       user.nivel = levelInfo.level;
 
       const streakResult = computeStreakUpdate(
-        { streakAtual: user.streak_atual, ultimaAtividade: user.streak_ultima_atividade },
+        {
+          streakAtual: user.streak_atual,
+          ultimaAtividade: user.streak_ultima_atividade,
+        },
         now,
       );
       user.streak_atual = streakResult.streakAtual;

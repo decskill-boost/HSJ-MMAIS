@@ -13,7 +13,8 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { SupabaseAuthGuard } from '../auth/supabase-auth.guard';
 import { UserRole } from '../users/user-role.enum';
 import { ExerciciosService } from './exercicios.service';
-import { Exercicio } from '../entities/exercicio.entity';
+import { CreateExercicioDto } from './dto/create-exercicio.dto';
+import { UpdateExercicioDto } from './dto/update-exercicio.dto';
 
 /**
  * A biblioteca lê-se com sessão iniciada (as crianças precisam dela); criar,
@@ -41,7 +42,8 @@ export class ExerciciosController {
   @Post()
   @UseGuards(RolesGuard)
   @Roles(UserRole.CORPO_CLINICO)
-  create(@Body() body: Exercicio) {
+  // O tipo tem de ser o DTO, não a entidade: ver CreateExercicioDto.
+  create(@Body() body: CreateExercicioDto) {
     return this.exerciciosService.create(body);
   }
 
@@ -49,7 +51,9 @@ export class ExerciciosController {
   @Put(':id')
   @UseGuards(RolesGuard)
   @Roles(UserRole.CORPO_CLINICO)
-  update(@Param('id') id: string, @Body() dados: Partial<Exercicio>) {
+  // Tal como no create, o tipo tem de ser o DTO: `Partial<Exercicio>` chega
+  // ao ValidationPipe como `Object` e o pipe ignora-o.
+  update(@Param('id') id: string, @Body() dados: UpdateExercicioDto) {
     return this.exerciciosService.update(id, dados);
   }
 

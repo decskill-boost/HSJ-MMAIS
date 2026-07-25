@@ -71,6 +71,28 @@ interface PrescricaoDb {
   is_standard: boolean | null;
 }
 
+const COLUNAS_PRESCRICAO =
+  "id_prescricao, frequencia_semanal, notas_medicas, data_inicio, data_validade, data_fim, ativo, id_paciente, dificuldade, condicao_paciente, condicao_clinica, is_standard";
+
+const mapPrescricaoParaPlano = (prescricao: PrescricaoDb): PlanoAtivo => ({
+  id_plano: prescricao.id_prescricao,
+  frequencia_semanal: prescricao.frequencia_semanal,
+  notas_medicas: prescricao.notas_medicas ?? null,
+  data_inicio: prescricao.data_inicio ?? null,
+  data_validade: prescricao.data_validade ?? null,
+  data_fim: prescricao.data_fim ?? null,
+  ativo: isPlanoAtivo(prescricao),
+  dificuldade: prescricao.dificuldade ?? "facil",
+  condicao_paciente: prescricao.condicao_paciente ?? "A",
+  condicao_clinica: prescricao.condicao_clinica ?? null,
+  is_standard: prescricao.is_standard ?? false,
+  exercicios: [],
+});
+
+const doMaisRecenteParaOMaisAntigo = (a: PlanoAtivo, b: PlanoAtivo) =>
+  new Date(b.data_inicio ?? 0).getTime() -
+  new Date(a.data_inicio ?? 0).getTime();
+
 const fetchPlanosPorPacientes = async (): Promise<PlanoPorPaciente[]> => {
   const pacientes = await pacientesService.getPacientes();
   const pacienteIds = pacientes.map((paciente) => paciente.id_user);
@@ -78,9 +100,7 @@ const fetchPlanosPorPacientes = async (): Promise<PlanoPorPaciente[]> => {
 
   const { data: prescricoes, error } = await supabase
     .from("prescricoes")
-    .select(
-      "id_prescricao, frequencia_semanal, notas_medicas, data_inicio, data_validade, data_fim, ativo, id_paciente, dificuldade, condicao_paciente, condicao_clinica, is_standard",
-    )
+    .select(COLUNAS_PRESCRICAO)
     .in("id_paciente", pacienteIds)
     .order("data_inicio", { ascending: false });
 
@@ -97,25 +117,8 @@ const fetchPlanosPorPacientes = async (): Promise<PlanoPorPaciente[]> => {
   return pacientes.map((paciente) => {
     const prescricoesDoPaciente = planosPorPaciente.get(paciente.id_user) ?? [];
     const planos = prescricoesDoPaciente
-      .map((prescricao) => ({
-        id_plano: prescricao.id_prescricao,
-        frequencia_semanal: prescricao.frequencia_semanal,
-        notas_medicas: prescricao.notas_medicas ?? null,
-        data_inicio: prescricao.data_inicio ?? null,
-        data_validade: prescricao.data_validade ?? null,
-        data_fim: prescricao.data_fim ?? null,
-        ativo: isPlanoAtivo(prescricao),
-        dificuldade: prescricao.dificuldade ?? "facil",
-        condicao_paciente: prescricao.condicao_paciente ?? "A",
-        condicao_clinica: prescricao.condicao_clinica ?? null,
-        is_standard: prescricao.is_standard ?? false,
-        exercicios: [],
-      }))
-      .sort(
-        (a, b) =>
-          new Date(b.data_inicio ?? 0).getTime() -
-          new Date(a.data_inicio ?? 0).getTime(),
-      );
+      .map(mapPrescricaoParaPlano)
+      .sort(doMaisRecenteParaOMaisAntigo);
 
     return {
       id_paciente: paciente.id_user,
@@ -123,6 +126,39 @@ const fetchPlanosPorPacientes = async (): Promise<PlanoPorPaciente[]> => {
       planos,
     };
   });
+};
+
+/**
+ * Planos de um único paciente. A filtragem por `id_paciente` é feita no
+ * servidor: trazer as prescrições de todo o hospital para depois escolher uma
+ * no browser fazia passar pela rede dados clínicos de outras crianças sem
+ * necessidade nenhuma.
+ */
+const fetchPlanosDeUmPaciente = async (
+  idPaciente: string,
+): Promise<PlanoPorPaciente | null> => {
+  // O nome continua a vir da lista do backend (rota protegida por perfil): é a
+  // mesma fonte de sempre e mantém o "paciente não encontrado" quando o id não
+  // pertence a nenhum paciente.
+  const pacientes = await pacientesService.getPacientes();
+  const paciente = pacientes.find((p) => p.id_user === idPaciente);
+  if (!paciente) return null;
+
+  const { data: prescricoes, error } = await supabase
+    .from("prescricoes")
+    .select(COLUNAS_PRESCRICAO)
+    .eq("id_paciente", idPaciente)
+    .order("data_inicio", { ascending: false });
+
+  if (error) throw new Error(error.message);
+
+  return {
+    id_paciente: paciente.id_user,
+    nome: paciente.nome,
+    planos: ((prescricoes as unknown as PrescricaoDb[]) ?? [])
+      .map(mapPrescricaoParaPlano)
+      .sort(doMaisRecenteParaOMaisAntigo),
+  };
 };
 
 export const planosService = {
@@ -148,14 +184,19 @@ export const planosService = {
 
     if (errPE) throw new Error(errPE.message);
     if (!peData || peData.length === 0) {
-      const ativos = prescricoes.filter((p) => p.ativo);
-      const inativos = prescricoes.filter((p) => !p.ativo);
+      const ativos = prescricoes.filter(isPlanoAtivo);
+      const inativos = prescricoes.filter((p) => !isPlanoAtivo(p));
+      // O campo `ativo` tem de vir preenchido também por este caminho: quem
+      // consome (PlanosPaciente) filtra por `ativo === true` para não pôr a
+      // criança a treinar por uma prescrição já cancelada. Sem ele, o plano em
+      // vigor tinha `ativo: undefined` e desaparecia do ecrã dela.
       return {
         ativo: ativos[0]
           ? {
               id_plano: ativos[0].id_prescricao,
               frequencia_semanal: ativos[0].frequencia_semanal,
               notas_medicas: ativos[0].notas_medicas,
+              ativo: true,
               dificuldade: ativos[0].dificuldade ?? "facil",
               condicao_paciente: ativos[0].condicao_paciente ?? "A",
               exercicios: [],
@@ -165,6 +206,7 @@ export const planosService = {
           id_plano: p.id_prescricao,
           frequencia_semanal: p.frequencia_semanal,
           notas_medicas: p.notas_medicas,
+          ativo: false,
           dificuldade: p.dificuldade ?? "facil",
           condicao_paciente: p.condicao_paciente ?? "A",
           exercicios: [],
@@ -363,14 +405,7 @@ export const planosService = {
 
   getPlanosPorPacientes: fetchPlanosPorPacientes,
 
-  getPlanosPorPaciente: async (
-    idPaciente: string,
-  ): Promise<PlanoPorPaciente | null> => {
-    const lista = await fetchPlanosPorPacientes();
-    return (
-      lista.find((paciente) => paciente.id_paciente === idPaciente) ?? null
-    );
-  },
+  getPlanosPorPaciente: fetchPlanosDeUmPaciente,
 
   /**
    * Todos os planos criados (templates standard e prescritos), ativos ou
@@ -435,10 +470,14 @@ export const planosService = {
       .single();
     if (error) throw new Error(error.message);
 
-    const { data: pe } = await supabase
+    // O erro tem de rebentar aqui: ignorá-lo abria o ecrã de edição sem
+    // exercícios nenhuns e, ao guardar, apagava os que a criança tinha
+    // prescritos.
+    const { data: pe, error: errPE } = await supabase
       .from("prescricoes_exercicios")
       .select("id_exercicio, duracao_segundos")
       .eq("id_prescricao", idPrescricao);
+    if (errPE) throw new Error(errPE.message);
 
     return {
       ...p,

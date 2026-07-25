@@ -162,7 +162,13 @@ export const PlanosPaciente = () => {
       planosService.getPlanosStandard(),
     ])
       .then(([{ ativo, historico }, standard]) => {
-        const pessoais = [ativo, ...historico].filter(Boolean) as PlanoAtivo[];
+        // Só planos vigentes chegam à criança: o `historico` traz prescrições
+        // que o clínico já cancelou ou substituiu, e treinar por elas seria
+        // seguir indicação clínica retirada. `ativo === true` é o mesmo critério
+        // que o resto do código usa para decidir o que é plano em vigor.
+        const pessoais = [ativo, ...historico].filter(
+          (p): p is PlanoAtivo => p?.ativo === true,
+        );
         setPlanos([...pessoais, ...standard]);
       })
       .catch(console.error)
@@ -234,10 +240,12 @@ export const PlanosPaciente = () => {
           Fizeste todos os {planoEmCurso?.exercicios.length} exercícios do plano. És incrível! 🎉
         </p>
         <div className="rounded-(--radius-vinheta) bg-raio/15 border-[3px] border-tinta px-8 py-4 text-center shadow-vinheta">
-          <p className="text-xs font-semibold uppercase tracking-widest text-raio-fundo mb-1">
+          {/* O amarelo fica só no fundo: raio-fundo como texto sobre papel dá
+              1,46:1 de contraste e era ilegível. */}
+          <p className="text-xs font-semibold uppercase tracking-widest text-tinta mb-1">
             XP ganho hoje
           </p>
-          <p className="text-4xl font-display text-raio-fundo">+{xpTotal} XP</p>
+          <p className="text-4xl font-display text-tinta">+{xpTotal} XP</p>
         </div>
         <button
           onClick={() => {

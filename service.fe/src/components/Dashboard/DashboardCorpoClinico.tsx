@@ -71,34 +71,72 @@ const DashboardCorpoClinico = () => {
         
         const listaPacientes = await pacientesService.getPacientes();
 
-        const { data: sessoesDados, error: errSessao } = await supabase
-          .from("sessoes_realizadas")
-          .select("id_paciente, status, data_hora")
-          .eq("status", "concluido");
-
-        if (errSessao) throw new Error(errSessao.message);
-
-        const sessoesPorPaciente = new Map<string, Date>();
-        let totalConcluidos = 0;
-        let concluidosSemana = 0;
-
         const seteDiasAtras = new Date();
         seteDiasAtras.setDate(seteDiasAtras.getDate() - 7);
 
-        if (sessoesDados) {
+        // `data_hora` é um timestamp sem fuso e todo o painel o lê como hora
+        // local; o filtro tem de seguir no mesmo formato, senão a contagem da
+        // semana deslocava-se pelo desvio para UTC.
+        const dois = (n: number) => String(n).padStart(2, "0");
+        const limiteSemana =
+          `${seteDiasAtras.getFullYear()}-${dois(seteDiasAtras.getMonth() + 1)}-${dois(seteDiasAtras.getDate())}` +
+          `T${dois(seteDiasAtras.getHours())}:${dois(seteDiasAtras.getMinutes())}:${dois(seteDiasAtras.getSeconds())}`;
+
+        // Contar no servidor (count exact + head: true, zero linhas na
+        // resposta). Antes descarregavam-se todas as sessões do hospital só
+        // para as contar e o Supabase truncava a resposta no limite por
+        // omissão — os contadores ficavam errados sem qualquer aviso.
+        const [resTotal, resSemana] = await Promise.all([
+          supabase
+            .from("sessoes_realizadas")
+            .select("id_sessao", { count: "exact", head: true })
+            .eq("status", "concluido"),
+          supabase
+            .from("sessoes_realizadas")
+            .select("id_sessao", { count: "exact", head: true })
+            .eq("status", "concluido")
+            .gte("data_hora", limiteSemana),
+        ]);
+
+        if (resTotal.error) throw new Error(resTotal.error.message);
+        if (resSemana.error) throw new Error(resSemana.error.message);
+
+        const totalConcluidos = resTotal.count ?? 0;
+        const concluidosSemana = resSemana.count ?? 0;
+
+        // Último treino de cada paciente: percorre as sessões da mais recente
+        // para a mais antiga, em páginas, e pára assim que todos os pacientes
+        // da lista já têm data. Sem paginação a resposta era truncada em
+        // silêncio e havia crianças a aparecer como "Nunca treinou" (e a cair
+        // indevidamente em "Precisam de atenção").
+        const sessoesPorPaciente = new Map<string, Date>();
+        const porCobrir = new Set(listaPacientes.map((p) => p.id_user));
+        const TAMANHO_PAGINA = 1000;
+        let deslocamento = 0;
+
+        while (porCobrir.size > 0) {
+          const { data: sessoesDados, error: errSessao } = await supabase
+            .from("sessoes_realizadas")
+            .select("id_paciente, data_hora")
+            .eq("status", "concluido")
+            .order("data_hora", { ascending: false })
+            // Desempate estável para a paginação não saltar nem repetir linhas
+            // quando há sessões com a mesma data_hora.
+            .order("id_sessao", { ascending: false })
+            .range(deslocamento, deslocamento + TAMANHO_PAGINA - 1);
+
+          if (errSessao) throw new Error(errSessao.message);
+          if (!sessoesDados || sessoesDados.length === 0) break;
+
           sessoesDados.forEach((s) => {
-            totalConcluidos++;
-            const sessaoDate = new Date(s.data_hora);
-            if (sessaoDate >= seteDiasAtras) {
-              concluidosSemana++;
-            }
-            if (s.id_paciente) {
-              const existente = sessoesPorPaciente.get(s.id_paciente);
-              if (!existente || sessaoDate > existente) {
-                sessoesPorPaciente.set(s.id_paciente, sessaoDate);
-              }
+            // Vem ordenado do mais recente para o mais antigo: a primeira
+            // ocorrência de cada paciente é o seu último treino.
+            if (s.id_paciente && porCobrir.delete(s.id_paciente)) {
+              sessoesPorPaciente.set(s.id_paciente, new Date(s.data_hora));
             }
           });
+
+          deslocamento += sessoesDados.length;
         }
 
         const formatarDataExibicao = (data: Date) => {
