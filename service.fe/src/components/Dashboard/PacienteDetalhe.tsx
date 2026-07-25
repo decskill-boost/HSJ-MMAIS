@@ -5,6 +5,14 @@ import {
   type PlanoPorPaciente,
 } from "../../services/planosService";
 import BtnGlobal from "../BtnGlobal";
+import EstadoVazio from "../ui/EstadoVazio";
+import {
+  CabecaTabela,
+  CorpoTabela,
+  LinhaMensagem,
+  Tabela,
+  Th,
+} from "../ui/Tabela";
 import { supabase } from "../../services/supabaseClient";
 import LoadingSpinner from "../LoadingSpinner";
 import {
@@ -315,7 +323,7 @@ const PacienteDetalhe = () => {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <article className="rounded-3xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
+        <article className="painel p-5">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
             Treinos Concluídos
           </p>
@@ -326,7 +334,7 @@ const PacienteDetalhe = () => {
             Total de sessões realizadas por esta criança.
           </p>
         </article>
-        <article className="rounded-3xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
+        <article className="painel p-5">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
             Esforço Médio
           </p>
@@ -337,7 +345,7 @@ const PacienteDetalhe = () => {
             Perceção de esforço média relatada.
           </p>
         </article>
-        <article className="rounded-3xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
+        <article className="painel p-5">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
             Frequência Cardíaca Média
           </p>
@@ -351,7 +359,7 @@ const PacienteDetalhe = () => {
       </div>
 
       {/* Histórico de Treinos / Sessões */}
-      <div className="mt-8 rounded-3xl border border-tinta/15 bg-papel-claro shadow-sm overflow-hidden">
+      <div className="mt-8 painel overflow-hidden">
         <div className="p-6 border-b border-tinta/10">
           <h2 className="text-lg font-bold text-tinta">
             Histórico de Treinos / Sessões
@@ -361,68 +369,60 @@ const PacienteDetalhe = () => {
           </p>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="min-w-full border-collapse text-left text-sm">
-            <thead className="bg-papel text-aco">
-              <tr>
-                <th className="px-4 py-4 font-semibold">Data e Hora</th>
-                <th className="px-4 py-4 font-semibold">Exercício</th>
-                <th className="px-4 py-4 font-semibold">Duração</th>
-                <th className="px-4 py-4 font-semibold text-center">Esforço</th>
-                <th className="px-4 py-4 text-center font-semibold">Alertas</th>
-                <th className="px-4 py-4 text-right font-semibold">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sessoes.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={6}
-                    className="px-4 py-8 text-center text-sm text-aco"
+        <Tabela legenda="Treinos registados por esta criança">
+          <CabecaTabela>
+            <tr>
+              <Th>Data e hora</Th>
+              <Th>Exercício</Th>
+              <Th>Duração</Th>
+              <Th className="text-center">Esforço</Th>
+              <Th className="text-center">Alertas</Th>
+              <Th className="text-right">Ações</Th>
+            </tr>
+          </CabecaTabela>
+          <CorpoTabela>
+            {sessoes.length === 0 ? (
+              <LinhaMensagem colunas={6}>
+                <EstadoVazio
+                  titulo="Ainda sem treinos"
+                  descricao="Quando esta criança concluir o primeiro exercício, o registo aparece aqui."
+                />
+              </LinhaMensagem>
+            ) : (
+              sessoesPaginadas.map((sessao: SessaoRealizadaInfo) => {
+                const nomeExercicio =
+                  sessao.exercicios?.nome_exercicio ?? "Exercício Geral";
+                return (
+                  <tr
+                    key={sessao.id_sessao}
+                    className="transition-colors hover:bg-raio/15"
                   >
-                    Nenhum treino registado por esta criança.
-                  </td>
-                </tr>
-              ) : (
-                sessoesPaginadas.map((sessao: SessaoRealizadaInfo) => {
-                  const nomeExercicio =
-                    sessao.exercicios?.nome_exercicio ??
-                    "Exercício Geral";
-                  return (
-                    <tr
-                      key={sessao.id_sessao}
-                      className="border-t border-tinta/10 last:border-b hover:bg-papel/40"
-                    >
-                      <td className="px-4 py-4 text-tinta font-medium">
-                        {formatarDataHora(sessao.data_hora)}
-                      </td>
-                      <td className="px-4 py-4 text-tinta font-semibold">
-                        {nomeExercicio}
-                      </td>
-                      <td className="px-4 py-4 text-tinta font-medium">
-                        {formatarDuracaoSessao(sessao.duracao)}
-                      </td>
-                      <td className="px-4 py-4 text-center">
-                        {renderEsforco(sessao.esforco_1_a_10)}
-                      </td>
-                      <td className="px-4 py-4 text-center">
-                        {renderAlertas(sessao.teve_problemas, true)}
-                      </td>
-                      <td className="px-4 py-4 text-right">
-                        <button
-                          onClick={() => setSessaoDetalhada(sessao)}
-                          className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-cobalto px-3 py-2 text-xs font-bold text-papel shadow-vinheta transition hover:bg-cobalto-vivo active:scale-95 active:shadow-none"
-                        >
-                          Ver Métricas
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
+                    <td className="px-4 py-4 font-medium text-tinta">
+                      {formatarDataHora(sessao.data_hora)}
+                    </td>
+                    <td className="px-4 py-4 font-bold text-tinta">
+                      {nomeExercicio}
+                    </td>
+                    <td className="px-4 py-4 font-medium text-tinta">
+                      {formatarDuracaoSessao(sessao.duracao)}
+                    </td>
+                    <td className="px-4 py-4 text-center">
+                      {renderEsforco(sessao.esforco_1_a_10)}
+                    </td>
+                    <td className="px-4 py-4 text-center">
+                      {renderAlertas(sessao.teve_problemas, true)}
+                    </td>
+                    <td className="px-4 py-4 text-right">
+                      <BtnGlobal onClick={() => setSessaoDetalhada(sessao)}>
+                        Ver métricas
+                      </BtnGlobal>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </CorpoTabela>
+        </Tabela>
 
         {totalPaginasSessoes > 1 && (
           <div className="flex items-center justify-between border-t border-tinta/10 bg-papel-claro px-4 py-3 sm:px-6">
@@ -649,7 +649,7 @@ const PacienteDetalhe = () => {
         </div>
       )}
       {pacienteInfo && (
-        <section className="mt-8 rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-sm">
+        <section className="mt-8 painel p-6">
           <h2 className="text-lg font-bold text-tinta">
             Recompensas e Conquistas
           </h2>

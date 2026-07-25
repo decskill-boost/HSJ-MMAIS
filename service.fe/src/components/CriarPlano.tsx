@@ -277,7 +277,7 @@ export const CriarPlano = () => {
                 <select
                   value={filtroCategoria}
                   onChange={(e) => setFiltroCategoria(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro"
                 >
                   <option value="todas">Todas as categorias</option>
                   {categorias.map((cat) => (
@@ -295,7 +295,7 @@ export const CriarPlano = () => {
                 <select
                   value={filtroDificuldade}
                   onChange={(e) => setFiltroDificuldade(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro"
                 >
                   <option value="todas">Todas as dificuldades</option>
                   <option value="facil">Fácil</option>
@@ -311,7 +311,7 @@ export const CriarPlano = () => {
                 <select
                   value={filtroCondicao}
                   onChange={(e) => setFiltroCondicao(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro"
                 >
                   <option value="todas">Todas as condições</option>
                   <option value="A">Nível A</option>
@@ -327,7 +327,7 @@ export const CriarPlano = () => {
                 <select
                   value={filtroDuracao}
                   onChange={(e) => setFiltroDuracao(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none"
+                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro"
                 >
                   <option value="todas">Todas as durações</option>
                   <option value="ate5">Até 5 minutos</option>
@@ -343,7 +343,7 @@ export const CriarPlano = () => {
                 <button
                   type="button"
                   onClick={limparFiltros}
-                  className="rounded-xl border border-tinta/15 px-4 py-2 text-xs font-semibold text-aco hover:bg-papel focus:outline-none focus:ring-2 focus:ring-tinta/10"
+                  className="rounded-xl border border-tinta/15 px-4 py-2 text-xs font-semibold text-aco hover:bg-papel focus:ring-2 focus:ring-tinta/10"
                 >
                   Limpar
                 </button>
@@ -402,7 +402,7 @@ export const CriarPlano = () => {
                                     });
                                     setGuardado(false);
                                   }}
-                                  className="w-16 rounded-lg border border-tinta/15 bg-papel-claro px-2 py-1 text-center text-xs font-bold text-tinta focus:border-cobalto focus:outline-none"
+                                  className="w-16 rounded-lg border border-tinta/15 bg-papel-claro px-2 py-1 text-center text-xs font-bold text-tinta focus:border-cobalto"
                                 />
                                 <span className="text-xs text-aco">minutos</span>
                               </div>
@@ -474,7 +474,7 @@ export const CriarPlano = () => {
                       setGuardado(false);
                     }}
                     placeholder="Ex: Acamados, Mobilidade Reduzida..."
-                    className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/20"
+                    className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:ring-2 focus:ring-cobalto/20"
                   />
                 </div>
               )}
@@ -487,7 +487,7 @@ export const CriarPlano = () => {
                     setDificuldade(e.target.value);
                     setGuardado(false);
                   }}
-                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2.5 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/20"
+                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2.5 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:ring-2 focus:ring-cobalto/20"
                 >
                   <option value="facil">Fácil</option>
                   <option value="medio">Médio</option>
@@ -504,7 +504,7 @@ export const CriarPlano = () => {
                     setCondicaoPaciente(e.target.value);
                     setGuardado(false);
                   }}
-                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2.5 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/20"
+                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2.5 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:ring-2 focus:ring-cobalto/20"
                 >
                   <option value="A">Nível A (Baixa Intensidade)</option>
                   <option value="B">Nível B (Média Intensidade)</option>
@@ -526,7 +526,7 @@ export const CriarPlano = () => {
                     setFrequenciaSemanal(Number(e.target.value));
                     setGuardado(false);
                   }}
-                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2.5 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/20"
+                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2.5 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:ring-2 focus:ring-cobalto/20"
                 />
               </div>
 
@@ -542,7 +542,7 @@ export const CriarPlano = () => {
                     setDataValidade(e.target.value);
                     setGuardado(false);
                   }}
-                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2.5 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/20"
+                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2.5 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:ring-2 focus:ring-cobalto/20"
                 />
               </div>
 
@@ -559,7 +559,7 @@ export const CriarPlano = () => {
                     setGuardado(false);
                   }}
                   placeholder="Indicações ou observações para este plano…"
-                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/20"
+                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:ring-2 focus:ring-cobalto/20"
                 />
               </div>
             </div>
@@ -578,7 +578,7 @@ export const CriarPlano = () => {
                 type="button"
                 onClick={guardar}
                 disabled={selecionados.length === 0 || aGuardar}
-                className="w-full rounded-xl bg-cobalto px-4 py-3 text-sm font-bold text-papel shadow-sm transition hover:bg-cobalto-vivo focus:outline-none focus:ring-2 focus:ring-cobalto/30 disabled:cursor-not-allowed disabled:opacity-50"
+                className="w-full rounded-xl bg-cobalto px-4 py-3 text-sm font-bold text-papel shadow-sm transition hover:bg-cobalto-vivo focus:ring-2 focus:ring-cobalto/30 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {aGuardar
                   ? "A guardar…"

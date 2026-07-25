@@ -46,7 +46,7 @@ const PlanoList = ({ planoAtivo, historico, loading, onSelecionarExercicio }: Pr
             </p>
           </div>
         ) : (
-          <div className="rounded-2xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
+          <div className="painel painel-fino p-5">
             {planoAtivo.notas_medicas && (
               <div className="mb-4 rounded-xl border border-cobalto/15 bg-cobalto/10 px-4 py-2 text-sm text-cobalto-vivo">
                 <span className="font-semibold">Nota do médico: </span>
@@ -65,7 +65,7 @@ const PlanoList = ({ planoAtivo, historico, loading, onSelecionarExercicio }: Pr
                 <button
                   key={ex.id_exercicio}
                   onClick={() => onSelecionarExercicio(ex)}
-                  className="flex items-center gap-4 rounded-2xl border border-tinta/15 bg-papel-claro p-3 text-left shadow-sm transition hover:border-cobalto/40 hover:shadow-md"
+                  className="flex items-center gap-4 painel painel-fino p-3 text-left transition hover:border-cobalto/40 hover:shadow-md"
                 >
                   <div className="relative h-24 w-36 flex-shrink-0 overflow-hidden rounded-xl bg-tinta/10">
                     {ex.url_video ? (

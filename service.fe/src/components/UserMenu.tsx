@@ -49,7 +49,7 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-full text-sm font-bold text-papel transition focus:outline-none focus:ring-2 ${avatarColor} ${ringColor}`}
+        className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-full text-sm font-bold text-papel transition focus:ring-2 ${avatarColor} ${ringColor}`}
       >
         {user.url_foto_perfil ? (
           <img

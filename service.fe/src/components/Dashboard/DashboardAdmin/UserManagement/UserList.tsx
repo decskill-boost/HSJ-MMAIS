@@ -1,6 +1,15 @@
+import { useState } from "react";
 import type { UserProfile } from "../../../../types/permissions";
 import ConfirmDialog from "./ConfirmDialog";
-import { useState } from "react";
+import BtnGlobal from "../../../BtnGlobal";
+import LoadingSpinner from "../../../LoadingSpinner";
+import EstadoVazio from "../../../ui/EstadoVazio";
+import {
+  CabecaTabela,
+  CorpoTabela,
+  Tabela,
+  Th,
+} from "../../../ui/Tabela";
 
 interface Props {
   users: UserProfile[];
@@ -27,78 +36,76 @@ const getRoleLabel = (role?: string) => {
 const UserList = ({ users, loading, onEdit, onDisable }: Props) => {
   const [toDelete, setToDelete] = useState<UserProfile | null>(null);
 
-  if (loading && users.length === 0) {
-    return (
-      <div className="rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-sm flex items-center justify-center min-h-[200px]">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-tinta/15 border-t-cobalto"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-sm">
-      <div className="mb-6 flex items-center justify-between gap-4">
+    <div className="painel p-6">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-tinta">
+          <h2 className="font-display text-2xl tracking-wide text-tinta">
             Lista de utilizadores
           </h2>
           <p className="mt-1 text-sm text-aco">
             Faça a gestão das contas de acesso à plataforma.
           </p>
         </div>
-        <span className="rounded-full bg-papel px-3 py-1.5 text-xs font-semibold text-tinta">
-          {users.length} registos
+        <span className="rounded-full border-2 border-tinta bg-raio px-3 py-1 text-xs font-bold text-tinta">
+          {users.length} {users.length === 1 ? "registo" : "registos"}
         </span>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-tinta/15">
-        <table className="min-w-full divide-y divide-tinta/15 text-left text-sm">
-          <thead className="bg-papel text-xs font-bold uppercase tracking-wider text-aco">
+      {loading && users.length === 0 ? (
+        <LoadingSpinner mensagem="A carregar utilizadores..." />
+      ) : users.length === 0 ? (
+        <EstadoVazio
+          titulo="Ainda não há contas"
+          descricao="Crie a primeira conta de acesso para começar a povoar a Academia."
+        />
+      ) : (
+        <Tabela legenda="Contas de acesso à plataforma">
+          <CabecaTabela>
             <tr>
-              <th className="px-6 py-4 font-semibold w-[35%]">Nome</th>
-              <th className="px-6 py-4 font-semibold w-[35%]">Email</th>
-              <th className="px-6 py-4 font-semibold w-[20%]">Perfil</th>
-              <th className="px-6 py-4 font-semibold text-right w-[10%]">Ações</th>
+              <Th>Nome</Th>
+              <Th>Email</Th>
+              <Th>Perfil</Th>
+              {/* Largura fixa: com percentagens os dois botões partiam-se em
+                  duas linhas e a linha da tabela duplicava de altura. */}
+              <Th className="w-56 text-right">Ações</Th>
             </tr>
-          </thead>
-          <tbody className="divide-y divide-tinta/15 bg-papel-claro">
+          </CabecaTabela>
+          <CorpoTabela>
             {users.map((user) => (
-              <tr key={user.idUser} className="hover:bg-papel transition-colors">
-                <td className="px-6 py-4 font-medium text-tinta">
+              <tr key={user.idUser} className="transition-colors hover:bg-raio/15">
+                <td className="px-4 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-cobalto/10 to-cobalto/20 border border-cobalto/20 text-sm font-extrabold text-cobalto shadow-sm">
+                    <span
+                      aria-hidden="true"
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-2 border-tinta bg-cobalto-nevoa text-sm font-bold text-cobalto"
+                    >
                       {user.nome.charAt(0).toUpperCase()}
-                    </div>
-                    <span className="font-semibold text-tinta">{user.nome}</span>
+                    </span>
+                    <span className="font-bold text-tinta">{user.nome}</span>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-aco font-mono text-xs">{user.email}</td>
-                <td className="px-6 py-4">
-                  <span className="inline-flex items-center rounded-full bg-cobalto/10 px-2.5 py-1 text-xs font-semibold text-cobalto border border-cobalto/20">
+                <td className="px-4 py-4 text-aco">{user.email}</td>
+                <td className="px-4 py-4">
+                  <span className="inline-flex rounded-full border-2 border-cobalto bg-cobalto-nevoa px-3 py-1 text-xs font-bold text-cobalto">
                     {getRoleLabel(user.role || user.tipo_utilizador)}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex justify-end gap-2">
-                    <button
-                      onClick={() => onEdit(user)}
-                      className="rounded-xl bg-cobalto/10 px-3 py-1.5 text-xs font-bold text-cobalto border border-cobalto/20 hover:bg-cobalto hover:text-papel-claro hover:border-cobalto transition"
-                    >
+                <td className="px-4 py-4">
+                  <div className="flex justify-end gap-2 whitespace-nowrap">
+                    <BtnGlobal variant="secondary" onClick={() => onEdit(user)}>
                       Editar
-                    </button>
-                    <button
-                      onClick={() => setToDelete(user)}
-                      className="rounded-xl bg-capa/10 px-3 py-1.5 text-xs font-bold text-capa-escura border border-capa/20 hover:bg-capa hover:text-papel-claro hover:border-capa transition"
-                    >
+                    </BtnGlobal>
+                    <BtnGlobal variant="danger" onClick={() => setToDelete(user)}>
                       Apagar
-                    </button>
+                    </BtnGlobal>
                   </div>
                 </td>
               </tr>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </CorpoTabela>
+        </Tabela>
+      )}
 
       {toDelete && (
         <ConfirmDialog

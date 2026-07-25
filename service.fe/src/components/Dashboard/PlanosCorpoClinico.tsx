@@ -1,6 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LoadingSpinner from "../LoadingSpinner";
+import BtnGlobal from "../BtnGlobal";
+import EstadoVazio from "../ui/EstadoVazio";
+import {
+  CabecaTabela,
+  CorpoTabela,
+  LinhaMensagem,
+  Tabela,
+  Th,
+} from "../ui/Tabela";
 import { pacientesService } from "../../services/pacientes";
 import { supabase } from "../../services/supabaseClient";
 
@@ -86,7 +95,7 @@ const PlanosCorpoClinico = () => {
       {/* Cabeçalho */}
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-tinta">
+          <h1 className="font-display text-3xl tracking-wide text-tinta">
             Acompanhamento de Pacientes
           </h1>
           <p className="mt-1 text-sm text-aco">
@@ -96,27 +105,32 @@ const PlanosCorpoClinico = () => {
       </div>
 
       {/* Estatísticas Gerais */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-tinta/15 bg-papel-claro p-5 shadow-sm">
+      <dl className="painel mb-4 flex flex-wrap items-center justify-between gap-3 p-5">
         <div>
-          <p className="text-sm font-semibold text-aco">
-            Pacientes Acompanhados
-          </p>
-          <p className="mt-1 text-2xl font-bold text-tinta">
+          <dt className="text-xs font-bold uppercase tracking-wider text-aco">
+            Pacientes acompanhados
+          </dt>
+          <dd className="mt-1 font-display text-3xl tracking-wide text-cobalto">
             {loading ? "…" : pacientes.length}
-          </p>
+          </dd>
         </div>
         <div>
-          <p className="text-sm font-semibold text-aco">Total de Treinos</p>
-          <p className="mt-1 text-2xl font-bold text-tinta">
+          <dt className="text-xs font-bold uppercase tracking-wider text-aco">
+            Total de treinos
+          </dt>
+          <dd className="mt-1 font-display text-3xl tracking-wide text-cobalto">
             {loading ? "…" : totalTreinosGerais}
-          </p>
+          </dd>
         </div>
-      </div>
+      </dl>
 
       {erro && (
-        <div className="mb-6 rounded-2xl bg-capa/10 p-4 text-sm text-capa-escura">
+        <p
+          role="alert"
+          className="painel mb-6 border-capa p-4 text-sm font-bold text-capa-escura"
+        >
           {erro}
-        </div>
+        </p>
       )}
 
       {/* Pesquisa — com muitos pacientes, percorrer a lista à mão é impraticável */}
@@ -130,84 +144,73 @@ const PlanosCorpoClinico = () => {
           value={pesquisa}
           onChange={(e) => setPesquisa(e.target.value)}
           placeholder="Pesquisar por nome ou email…"
-          className="w-full max-w-md rounded-xl border border-tinta/15 bg-papel-claro px-4 py-2.5 text-sm text-tinta placeholder:text-aco focus:border-cobalto focus:outline-none focus:ring-2 focus:ring-cobalto/20"
+          className="min-h-12 w-full max-w-md rounded-xl border-2 border-tinta/35 bg-papel-claro px-4 text-sm text-tinta placeholder:text-aco/70 focus:border-cobalto"
         />
       </div>
 
       {/* Listagem */}
-      <div className="overflow-x-auto rounded-3xl border border-tinta/15 bg-papel-claro shadow-sm">
-        <table className="min-w-full divide-y divide-tinta/15 text-left text-sm">
-          <thead className="bg-papel text-aco">
-            <tr>
-              <th className="px-6 py-4 font-semibold">Criança</th>
-              <th className="px-6 py-4 font-semibold">Email</th>
-              <th className="px-6 py-4 font-semibold text-center">Treinos Concluídos</th>
-              <th className="px-6 py-4 font-semibold text-center">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-tinta/10">
-            {loading ? (
-              <tr>
-                <td
-                  colSpan={4}
-                  className="px-6 py-8 text-center text-sm text-aco"
-                >
-                  <LoadingSpinner mensagem="A carregar pacientes..." />
+      <Tabela legenda="Pacientes acompanhados e treinos concluídos">
+        <CabecaTabela>
+          <tr>
+            <Th>Criança</Th>
+            <Th>Email</Th>
+            <Th className="text-center">Treinos concluídos</Th>
+            <Th className="text-center">Ações</Th>
+          </tr>
+        </CabecaTabela>
+        <CorpoTabela>
+          {loading ? (
+            <LinhaMensagem colunas={4}>
+              <LoadingSpinner mensagem="A carregar pacientes..." />
+            </LinhaMensagem>
+          ) : pacientesFiltrados.length === 0 ? (
+            <LinhaMensagem colunas={4}>
+              <EstadoVazio
+                titulo={
+                  pesquisa ? "Sem resultados" : "Ainda não há pacientes"
+                }
+                descricao={
+                  pesquisa
+                    ? `Nenhum paciente corresponde a «${pesquisa}». Tenta outro nome ou email.`
+                    : "Assim que houver crianças inscritas, aparecem aqui com os treinos concluídos."
+                }
+              />
+            </LinhaMensagem>
+          ) : (
+            pacientesFiltrados.map((p) => (
+              <tr key={p.id_user} className="transition-colors hover:bg-raio/15">
+                <td className="px-4 py-4 font-bold text-tinta">{p.nome}</td>
+                <td className="px-4 py-4 text-aco">{p.email}</td>
+                <td className="px-4 py-4 text-center">
+                  <span className="inline-flex rounded-full border-2 border-cobalto bg-cobalto-nevoa px-3 py-1 text-xs font-bold text-cobalto">
+                    {p.totalTreinos}{" "}
+                    {p.totalTreinos === 1 ? "treino" : "treinos"}
+                  </span>
+                </td>
+                <td className="px-4 py-4">
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <BtnGlobal
+                      onClick={() =>
+                        navigate(`/plano/criar?paciente=${p.id_user}`)
+                      }
+                    >
+                      Atribuir plano
+                    </BtnGlobal>
+                    <BtnGlobal
+                      variant="secondary"
+                      onClick={() =>
+                        navigate(`/dashboard/medico/pacientes/${p.id_user}`)
+                      }
+                    >
+                      Ver detalhe
+                    </BtnGlobal>
+                  </div>
                 </td>
               </tr>
-            ) : pacientesFiltrados.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={4}
-                  className="px-6 py-8 text-center text-sm text-aco"
-                >
-                  {pesquisa
-                    ? `Nenhum paciente encontrado para "${pesquisa}".`
-                    : "Nenhum paciente encontrado."}
-                </td>
-              </tr>
-            ) : (
-              pacientesFiltrados.map((p) => {
-                return (
-                  <tr key={p.id_user} className="hover:bg-papel">
-                    <td className="px-6 py-4 font-semibold text-tinta">
-                      {p.nome}
-                    </td>
-                    <td className="px-6 py-4 text-aco">
-                      {p.email}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span className="inline-flex items-center rounded-full bg-cobalto/10 px-3 py-1 text-xs font-semibold text-cobalto">
-                        {p.totalTreinos} treinos
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex justify-center gap-2">
-                        <button
-                          onClick={() =>
-                            navigate(`/plano/criar?paciente=${p.id_user}`)
-                          }
-                          className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-cobalto px-4 py-2 text-xs font-bold text-papel shadow-vinheta transition hover:bg-cobalto-vivo active:scale-95 active:shadow-none"
-                        >
-                          Atribuir plano
-                        </button>
-                        <button
-                          onClick={() =>
-                            navigate(`/dashboard/medico/pacientes/${p.id_user}`)
-                          }
-                          className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro px-4 py-2 text-xs font-bold text-tinta shadow-vinheta transition hover:bg-papel active:scale-95 active:shadow-none"
-                        >
-                          Ver detalhe
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
+            ))
+          )}
+        </CorpoTabela>
+      </Tabela>
     </div>
   );
 };

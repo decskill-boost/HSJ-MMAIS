@@ -51,7 +51,7 @@ const Login = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1 block w-full rounded-xl border-2 border-tinta/20 bg-papel px-4 py-3 text-tinta transition focus:border-cobalto focus:bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/25"
+                  className="mt-1 block w-full rounded-xl border-2 border-tinta/20 bg-papel px-4 py-3 text-tinta transition focus:border-cobalto focus:bg-papel-claro focus:ring-2 focus:ring-cobalto/25"
                   placeholder="exemplo@ulsjoao.min-saude.pt"
                 />
               </div>
@@ -69,7 +69,7 @@ const Login = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="mt-1 block w-full rounded-xl border-2 border-tinta/20 bg-papel px-4 py-3 text-tinta transition focus:border-cobalto focus:bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/25"
+                  className="mt-1 block w-full rounded-xl border-2 border-tinta/20 bg-papel px-4 py-3 text-tinta transition focus:border-cobalto focus:bg-papel-claro focus:ring-2 focus:ring-cobalto/25"
                   placeholder="••••••••"
                 />
               </div>

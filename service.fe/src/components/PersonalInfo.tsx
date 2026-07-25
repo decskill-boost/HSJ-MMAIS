@@ -36,7 +36,7 @@ export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
         <h1 className="mb-6 text-2xl font-bold text-tinta">O Meu Perfil</h1>
 
         {/* Cartão Principal */}
-        <div className="rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-sm sm:p-8">
+        <div className="painel p-6 sm:p-8">
           {/* Cabeçalho: Foto + Info Básica */}
           <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:text-left">
             <div className="flex-shrink-0">

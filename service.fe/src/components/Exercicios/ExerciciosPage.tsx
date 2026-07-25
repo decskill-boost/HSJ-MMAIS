@@ -248,7 +248,7 @@ const ExerciciosPage = () => {
             <select
               value={filtroCategoria}
               onChange={(e) => setFiltroCategoria(e.target.value)}
-              className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/30"
+              className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-papel-claro focus:ring-2 focus:ring-cobalto/30"
             >
               {categorias.map((c) => <option key={c}>{c}</option>)}
             </select>
@@ -258,7 +258,7 @@ const ExerciciosPage = () => {
             <select
               value={filtroDuracao}
               onChange={(e) => setFiltroDuracao(e.target.value)}
-              className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/30"
+              className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-papel-claro focus:ring-2 focus:ring-cobalto/30"
             >
               {["Todas", "Até 5 min", "5–15 min", "Mais de 15 min"].map((o) => <option key={o}>{o}</option>)}
             </select>
@@ -268,7 +268,7 @@ const ExerciciosPage = () => {
             <select
               value={filtroDificuldade}
               onChange={(e) => setFiltroDificuldade(e.target.value)}
-              className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/30"
+              className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-papel-claro focus:ring-2 focus:ring-cobalto/30"
             >
               {["Todas", "Fácil", "Médio", "Difícil"].map((o) => <option key={o}>{o}</option>)}
             </select>
@@ -278,7 +278,7 @@ const ExerciciosPage = () => {
             <select
               value={filtroCondicao}
               onChange={(e) => setFiltroCondicao(e.target.value)}
-              className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-papel-claro focus:outline-none focus:ring-2 focus:ring-cobalto/30"
+              className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-papel-claro focus:ring-2 focus:ring-cobalto/30"
             >
               {["Todas", "A", "B", "C"].map((o) => <option key={o}>{o}</option>)}
             </select>

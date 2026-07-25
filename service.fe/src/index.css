@@ -42,14 +42,61 @@
   --color-turbo: #17c3b2;
   --color-turbo-escuro: #0c7d74;
   --color-aco: #5a6483;
+  /* Tinta cobalto diluída. Um `bg-cobalto/10` sobre papel dava cinzento sujo. */
+  --color-cobalto-nevoa: #e6ecff;
 
   /* Tipografia */
   --font-display: "Bangers", "Arial Black", system-ui, sans-serif;
   --font-sans: "Atkinson Hyperlegible", system-ui, sans-serif;
 
-  /* Forma — vinhetas de BD */
+  /* Forma — vinhetas de BD, em três alturas */
   --radius-vinheta: 0.75rem;
+  --shadow-vinheta-pequena: 2px 2px 0 #141f3c;
   --shadow-vinheta: 3px 3px 0 #141f3c;
+  --shadow-vinheta-grande: 5px 5px 0 #141f3c;
+}
+
+@layer components {
+  /*
+   * Gramática de banda desenhada partilhada por todos os ecrãs: a vinheta
+   * (painel) e a legenda do narrador. Antes cada tabela e cada cartão
+   * inventava a sua moldura (`rounded-3xl border-tinta/15 shadow-sm`), que
+   * não era a linguagem da marca nem era igual entre ecrãs.
+   */
+
+  /** Vinheta: o contentor base de tudo o que é cartão, tabela ou caixa. */
+  .painel {
+    border: 3px solid var(--color-tinta);
+    border-radius: var(--radius-vinheta);
+    background-color: var(--color-papel-claro);
+    box-shadow: var(--shadow-vinheta);
+  }
+  .painel-fino {
+    border-width: 2px;
+  }
+  .painel-alto {
+    box-shadow: var(--shadow-vinheta-grande);
+  }
+
+  /** Legenda: a caixa do narrador ao canto da vinheta. Rotula, não decora. */
+  .legenda {
+    display: inline-block;
+    border: 2.5px solid var(--color-tinta);
+    border-radius: 0.3rem;
+    background-color: var(--color-raio);
+    box-shadow: var(--shadow-vinheta-pequena);
+    padding: 0.1rem 0.7rem 0.2rem;
+    color: var(--color-tinta);
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transform: rotate(-1.5deg);
+  }
+  .legenda-cobalto {
+    background-color: var(--color-cobalto);
+    color: var(--color-papel);
+  }
 }
 
 body {
@@ -60,6 +107,19 @@ body {
   background-position: 0 0, 9px 9px;
   color: var(--color-tinta);
   font-family: var(--font-sans);
+}
+
+/*
+ * Foco de teclado sempre visível e sempre igual. Tinta sobre papel tem
+ * contraste de sobra; nos blocos de fundo escuro passa a Raio (`.sobre-escuro`),
+ * senão desaparecia contra o Cobalto.
+ */
+:focus-visible {
+  outline: 3px solid var(--color-tinta);
+  outline-offset: 3px;
+}
+.sobre-escuro :focus-visible {
+  outline-color: var(--color-raio);
 }
 
 /* Seleção de texto e scrollbar com o uniforme da marca */

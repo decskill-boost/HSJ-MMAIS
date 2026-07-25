@@ -37,13 +37,13 @@ const UserForm = ({
   roles,
 }: Props) => {
   return (
-    <div className="h-fit rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-sm">
-      <h2 className="text-xl font-semibold text-tinta">
+    <div className="h-fit painel p-6">
+      <h2 className="font-display text-2xl tracking-wide text-tinta">
         {editingUserId ? "Editar utilizador" : "Criar novo utilizador"}
       </h2>
+      {/* Descreve o que acontece para quem usa, não como está construído. */}
       <p className="mt-2 text-sm text-aco">
-        Os utilizadores criados aqui serão gravados no Supabase e no perfil da
-        base de dados.
+        A conta fica logo ativa e a pessoa passa a poder entrar na plataforma.
       </p>
 
       <form
@@ -61,7 +61,7 @@ const UserForm = ({
             value={form.nome}
             onChange={(event) => setForm({ ...form, nome: event.target.value })}
             disabled={loading}
-            className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none"
+            className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro"
           />
         </div>
         <div>
@@ -75,13 +75,13 @@ const UserForm = ({
               setForm({ ...form, email: event.target.value })
             }
             disabled={loading}
-            className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none"
+            className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro"
           />
         </div>
         {!editingUserId && (
           <div>
             <label className="block text-sm font-semibold text-tinta">
-              Password
+              Palavra-passe
             </label>
             <input
               type="password"
@@ -90,7 +90,7 @@ const UserForm = ({
                 setForm({ ...form, password: event.target.value })
               }
               disabled={loading}
-              className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none"
+              className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro"
             />
           </div>
         )}
@@ -107,7 +107,7 @@ const UserForm = ({
               })
             }
             disabled={loading}
-            className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro focus:outline-none"
+            className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro"
           >
             {roles.map((role) => (
               <option key={role.value} value={role.value}>

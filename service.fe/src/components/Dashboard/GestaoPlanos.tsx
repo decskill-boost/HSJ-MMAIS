@@ -137,7 +137,7 @@ const GestaoPlanos = () => {
             value={pesquisa}
             onChange={(e) => setPesquisa(e.target.value)}
             placeholder="Pesquisar por paciente ou notas…"
-            className="min-w-[220px] flex-1 rounded-xl border border-tinta/15 bg-papel-claro px-4 py-2 text-sm text-tinta placeholder:text-aco focus:border-cobalto focus:outline-none focus:ring-2 focus:ring-cobalto/20"
+            className="min-w-[220px] flex-1 rounded-xl border border-tinta/15 bg-papel-claro px-4 py-2 text-sm text-tinta placeholder:text-aco focus:border-cobalto focus:ring-2 focus:ring-cobalto/20"
           />
         </div>
       </div>

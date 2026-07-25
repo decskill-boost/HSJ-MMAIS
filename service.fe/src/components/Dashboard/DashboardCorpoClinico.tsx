@@ -1,6 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { Link, useNavigate, useOutletContext } from "react-router-dom";
 import BtnGlobal from "../BtnGlobal";
+import EstadoVazio from "../ui/EstadoVazio";
+import {
+  CabecaTabela,
+  CorpoTabela,
+  LinhaMensagem,
+  Tabela,
+  Th,
+} from "../ui/Tabela";
 import type { UserProfile } from "../../types/user";
 import LoadingSpinner from "../LoadingSpinner";
 import { pacientesService } from "../../services/pacientes";
@@ -233,80 +241,89 @@ const DashboardCorpoClinico = () => {
               </div>
             )}
 
-            <div className="mt-6 overflow-x-auto rounded-3xl border border-tinta/15 bg-papel">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-papel-claro text-aco">
-                  <tr>
-                    <th className="px-4 py-4 font-semibold">Criança</th>
-                    <th className="px-4 py-4 text-center font-semibold">Último Treino</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-tinta/15 bg-papel-claro">
-                  {loading ? (
-                    <tr>
-                      <td colSpan={2} className="px-4 py-8">
-                        <LoadingSpinner mensagem="A carregar pacientes..." />
-                      </td>
-                    </tr>
-                  ) : pacientes.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={2}
-                        className="px-4 py-8 text-center text-aco"
-                      >
-                        Nenhum paciente encontrado.
-                      </td>
-                    </tr>
-                  ) : (
-                    paginatedPacientes.map((paciente) => (
-                      <tr
-                        key={paciente.id_user}
-                        onClick={() =>
-                          navigate(
-                            `/dashboard/medico/pacientes/${paciente.id_user}`,
-                          )
-                        }
-                        className="cursor-pointer transition hover:bg-cobalto/10"
-                      >
-                        <td className="px-4 py-4 font-semibold text-tinta">
+            <Tabela
+              legenda="Pacientes e data do último treino"
+              className="mt-6"
+            >
+              <CabecaTabela>
+                <tr>
+                  <Th>Criança</Th>
+                  <Th className="text-center">Último treino</Th>
+                </tr>
+              </CabecaTabela>
+              <CorpoTabela>
+                {loading ? (
+                  <LinhaMensagem colunas={2}>
+                    <LoadingSpinner mensagem="A carregar pacientes..." />
+                  </LinhaMensagem>
+                ) : pacientes.length === 0 ? (
+                  <LinhaMensagem colunas={2}>
+                    <EstadoVazio
+                      titulo="Ainda não há pacientes"
+                      descricao="Assim que houver crianças a treinar, o último treino de cada uma aparece aqui."
+                    />
+                  </LinhaMensagem>
+                ) : (
+                  paginatedPacientes.map((paciente) => (
+                    <tr
+                      key={paciente.id_user}
+                      onClick={() =>
+                        navigate(
+                          `/dashboard/medico/pacientes/${paciente.id_user}`,
+                        )
+                      }
+                      className="cursor-pointer transition-colors hover:bg-raio/15"
+                    >
+                      <td className="px-4 py-4 font-bold text-tinta">
+                        {/* Ligação a sério: a linha só era clicável com rato. */}
+                        <Link
+                          to={`/dashboard/medico/pacientes/${paciente.id_user}`}
+                          className="hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           {paciente.nome}
-                        </td>
-                        <td className="px-4 py-4 text-center">
-                          <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+                        </Link>
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <span
+                          className={`inline-flex rounded-full border-2 px-3 py-1 text-xs font-bold ${
                             paciente.ultimoTreinoDate
-                              ? "border-turbo/30 bg-turbo/15 text-turbo-escuro"
-                              : "border-tinta/15 bg-tinta/5 text-aco"
-                          }`}>
-                            {paciente.ultimoTreino}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
+                              ? "border-turbo bg-turbo/20 text-turbo-escuro"
+                              : "border-tinta/20 bg-papel text-aco"
+                          }`}
+                        >
+                          {paciente.ultimoTreino}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </CorpoTabela>
+            </Tabela>
 
             {totalPaginas > 1 && (
-              <div className="mt-4 flex items-center justify-between gap-4 border-t border-tinta/10 pt-4">
+              <nav
+                aria-label="Paginação da lista de pacientes"
+                className="mt-4 flex items-center justify-between gap-4 border-t-2 border-tinta/10 pt-4"
+              >
                 <button
                   disabled={currentPage === 1}
                   onClick={() => setCurrentPage((prev) => prev - 1)}
-                  className="rounded-xl border border-tinta/15 bg-papel-claro px-3 py-1.5 text-xs font-semibold text-tinta transition hover:bg-papel disabled:cursor-not-allowed disabled:opacity-50"
+                  className="min-h-11 rounded-(--radius-vinheta) border-2 border-tinta bg-papel-claro px-4 text-xs font-bold text-tinta transition-colors hover:bg-raio/25 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Anterior
                 </button>
-                <span className="text-xs font-medium text-aco">
+                <span aria-live="polite" className="text-xs font-bold text-aco">
                   Página {currentPage} de {totalPaginas}
                 </span>
                 <button
                   disabled={currentPage === totalPaginas}
                   onClick={() => setCurrentPage((prev) => prev + 1)}
-                  className="rounded-xl border border-tinta/15 bg-papel-claro px-3 py-1.5 text-xs font-semibold text-tinta transition hover:bg-papel disabled:cursor-not-allowed disabled:opacity-50"
+                  className="min-h-11 rounded-(--radius-vinheta) border-2 border-tinta bg-papel-claro px-4 text-xs font-bold text-tinta transition-colors hover:bg-raio/25 disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Seguinte
                 </button>
-              </div>
+              </nav>
             )}
           </article>
 
