@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import LoadingSpinner from "../LoadingSpinner";
 import { planosService, type PlanoGerido } from "../../services/planosService";
+import ConfirmDialog from "../ui/ConfirmDialog";
 
 type Filtro = "todos" | "standard" | "prescritos" | "cancelados";
 
@@ -18,6 +19,8 @@ const GestaoPlanos = () => {
   const [erro, setErro] = useState<string | null>(null);
   const [filtro, setFiltro] = useState<Filtro>("todos");
   const [pesquisa, setPesquisa] = useState("");
+  // Cancelar tira o plano a uma criança e não tem volta atrás: pede confirmação.
+  const [planoACancelar, setPlanoACancelar] = useState<PlanoGerido | null>(null);
   const [aProcessar, setAProcessar] = useState<string | null>(null);
   const [confirmarEliminar, setConfirmarEliminar] = useState<string | null>(null);
 
@@ -230,7 +233,7 @@ const GestaoPlanos = () => {
                 </button>
                 {p.ativo && (
                   <button
-                    onClick={() => cancelar(p.id_plano)}
+                    onClick={() => setPlanoACancelar(p)}
                     disabled={aProcessar === p.id_plano}
                     className="rounded-xl border-2 border-tinta bg-papel-claro px-4 py-2 text-xs font-bold text-tinta transition hover:bg-papel active:scale-95 disabled:opacity-50"
                   >
@@ -265,6 +268,23 @@ const GestaoPlanos = () => {
             </article>
           ))}
         </div>
+      )}
+
+      {planoACancelar && (
+        <ConfirmDialog
+          title="Cancelar plano"
+          message={`Cancelar o plano${
+            planoACancelar.nome_paciente ? ` de ${planoACancelar.nome_paciente}` : ""
+          }? A criança deixa de o ver na Academia e esta ação não tem volta atrás.`}
+          confirmLabel="Cancelar o plano"
+          cancelLabel="Manter o plano"
+          onCancel={() => setPlanoACancelar(null)}
+          onConfirm={() => {
+            const id = planoACancelar.id_plano;
+            setPlanoACancelar(null);
+            void cancelar(id);
+          }}
+        />
       )}
     </div>
   );

@@ -98,14 +98,12 @@ export class UsersService {
     });
 
     if (error || !data.user?.id) {
-      // Log detalhado para debugging: mostra tanto o erro quanto o objeto retornado
-      // assim conseguimos ver a resposta do Supabase no servidor (stack trace no terminal).
-      // Não alterar lógica de rethrow — mantemos 500 para o cliente.
+      // Só o erro do Supabase: o `createUserDto` traz a palavra-passe em claro
+      // e o `data` traz o utilizador todo. Nada disso entra nos registos.
       // eslint-disable-next-line no-console
       console.error('Supabase admin.createUser falhou', {
-        error,
-        data,
-        createUserDto,
+        mensagem: error?.message,
+        estado: error?.status,
       });
       throw new Error(
         error?.message ?? 'Não foi possível criar o utilizador no Supabase',

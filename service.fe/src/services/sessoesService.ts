@@ -24,8 +24,10 @@ export interface AvaliacaoSessao {
   id_prescricao: string;
   id_sessao?: string;
   duracao: number;
-  diversao_1_a_5: number;
-  esforco_1_a_10: number;
+  /** Só quando a criança responde ao questionário. Nos exercícios intermédios
+   *  fica por preencher — inventar um valor seria dado clínico falso. */
+  diversao_1_a_5?: number;
+  esforco_1_a_10?: number;
   teve_problemas?: boolean;
   participacao_familiares?: boolean;
   fc_maxima?: number;

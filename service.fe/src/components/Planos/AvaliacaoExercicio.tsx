@@ -59,6 +59,7 @@ const AvaliacaoExercicio = ({
   const [descricaoProblema, setDescricaoProblema] = useState("");
   const [companhia, setCompanhia] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
+  const [erroEnvio, setErroEnvio] = useState("");
   const [concluido, setConcluido] = useState(false);
   const [xpGanho, setXpGanho] = useState(recompensaXp);
 
@@ -91,6 +92,7 @@ const AvaliacaoExercicio = ({
 
   const handleSubmit = async () => {
     setLoading(true);
+    setErroEnvio("");
     try {
       const resultado = await sessoesService.registarSessao({
         id_exercicio: idExercicio,
@@ -106,7 +108,12 @@ const AvaliacaoExercicio = ({
       setXpGanho(resultado.xpGained);
       setConcluido(true);
     } catch (err) {
+      // A criança acabou o treino: se isto falha em silêncio, ela fica a olhar
+      // para um botão que não faz nada e o treino perde-se.
       console.error(err);
+      setErroEnvio(
+        "Não conseguimos guardar o teu treino. Vê a ligação e tenta outra vez.",
+      );
     } finally {
       setLoading(false);
     }
@@ -419,12 +426,23 @@ const AvaliacaoExercicio = ({
           <button
             onClick={handleSubmit}
             disabled={!podeAvancar() || loading}
+            aria-describedby={erroEnvio ? "erro-envio-avaliacao" : undefined}
             className="flex-1 rounded-2xl border-[3px] border-tinta bg-turbo py-4 font-display text-xl tracking-wide text-tinta shadow-vinheta transition hover:brightness-105 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-vinheta"
           >
             {loading ? "A guardar…" : "Enviar — CATRAPUM!"}
           </button>
         )}
       </div>
+
+      {erroEnvio && (
+        <p
+          id="erro-envio-avaliacao"
+          role="alert"
+          className="mt-3 rounded-2xl border-[3px] border-capa bg-capa/20 px-4 py-3 text-center text-sm font-bold text-papel"
+        >
+          {erroEnvio}
+        </p>
+      )}
     </div>
   );
 };

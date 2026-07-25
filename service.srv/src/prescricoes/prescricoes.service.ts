@@ -18,7 +18,6 @@ export class PrescricoesService {
   ) {}
 
   async create(dados: CreatePrescricaoDto) {
-    console.log('--- DADOS RECEBIDOS NO BACKEND ---', dados);
     const cleanPacienteId = cleanUuid(dados.id_paciente);
     const cleanMedicoId = cleanUuid(dados.id_medico);
 
@@ -47,7 +46,6 @@ export class PrescricoesService {
     });
 
     const prescricaoGuardada = await this.prescricaoRepository.save(prescricao);
-    console.log('--- PRESCRICAO GUARDADA ---', prescricaoGuardada);
     const idPrescricao = prescricaoGuardada.id_prescricao;
 
     if (dados.exercicios && dados.exercicios.length > 0) {

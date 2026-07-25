@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, FindOptionsWhere, In, MoreThanOrEqual, Repository } from 'typeorm';
 import { Prescricao } from '../entities/prescricao.entity';
@@ -25,6 +31,8 @@ const MAX_DIAS_INTERVALO = 92;
 
 @Injectable()
 export class PacientesService {
+  private readonly logger = new Logger(PacientesService.name);
+
   constructor(
     @InjectRepository(Utilizador)
     private readonly utilizadorRepo: Repository<Utilizador>,
@@ -120,27 +128,18 @@ export class PacientesService {
   }
 
   async getPacientesComAdesao(medicoId?: string): Promise<PacienteComAdesao[]> {
-    if (medicoId) {
-      const doctor = await this.utilizadorRepo.findOne({ where: { id_user: medicoId } });
-      if (doctor) {
-        console.log(`[getPacientesComAdesao] Médico encontrado: ${doctor.email}`);
-      } else {
-        console.log(`[getPacientesComAdesao] Médico ID ${medicoId} não encontrado na DB`);
-      }
-    } else {
-      console.log(`[getPacientesComAdesao] Sem medicoId (Unit Tests?)`);
-    }
-
     const whereCondition: FindOptionsWhere<Utilizador> = { tipo_utilizador: UserRole.PACIENTE };
-
-    console.log('[getPacientesComAdesao] Condição da Query:', whereCondition);
 
     const pacientes = await this.utilizadorRepo.find({
       where: whereCondition,
       order: { nome: 'ASC' },
     });
 
-    console.log(`[getPacientesComAdesao] Pacientes encontrados (${pacientes.length}):`, pacientes.map(p => p.nome));
+    // Sem nomes nem emails nos registos: são dados de saúde de crianças e os
+    // logs do servidor não são um sítio para eles viverem.
+    this.logger.debug(
+      `getPacientesComAdesao: ${pacientes.length} pacientes${medicoId ? ' (com médico)' : ''}`,
+    );
     if (pacientes.length === 0) {
       return [];
     }

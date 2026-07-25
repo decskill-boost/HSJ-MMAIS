@@ -47,12 +47,14 @@ const ExercicioPlayer = ({
   const handleProximoExercicio = async () => {
     setIsSaving(true);
     try {
+      // Nos exercícios intermédios a criança não responde ao questionário:
+      // regista-se a sessão para a adesão contar, mas sem esforço nem diversão.
+      // Antes gravava 5 e 3 fixos — valores que ela nunca deu e que o corpo
+      // clínico lia como auto-relato verdadeiro.
       await sessoesService.registarSessao({
         id_exercicio: exercicio.id_exercicio,
         id_prescricao: idPrescricao,
         duracao: timeElapsed,
-        diversao_1_a_5: 3,
-        esforco_1_a_10: 5,
       });
     } catch (err) {
       console.error("Erro ao guardar progresso do exercício intermédio:", err);
