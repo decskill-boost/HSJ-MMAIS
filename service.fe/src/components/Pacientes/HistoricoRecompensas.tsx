@@ -47,23 +47,33 @@ const HistoricoRecompensas = () => {
   const [recompensas, setRecompensas] = useState<Recompensa[]>([]);
   const [xpTotal, setXpTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user?.idUser) return;
 
     const fetchTudo = async () => {
       try {
+        setErro(null);
         const [historicoData, recompensasData, xpData] = await Promise.all([
           sessoesService.getHistorico(user.idUser),
           supabase.from("recompensas").select("*").order("xp_necessario"),
           supabase.from("utilizadores").select("xp").eq("id_user", user.idUser).single(),
         ]);
 
+        // O supabase-js não lança em falha de consulta: devolve { data: null, error }.
+        // Sem isto, uma leitura falhada mostrava «0 XP» a uma criança que tem XP.
+        if (recompensasData.error) throw new Error(recompensasData.error.message);
+        if (xpData.error) throw new Error(xpData.error.message);
+
         setSessoes(historicoData as unknown as Sessao[]);
         setRecompensas(recompensasData.data ?? []);
         setXpTotal(xpData.data?.xp ?? 0);
       } catch (err) {
         console.error(err);
+        setErro(
+          "Não foi possível carregar o teu progresso. Verifica a ligação e tenta outra vez daqui a pouco.",
+        );
       } finally {
         setLoading(false);
       }
@@ -83,6 +93,17 @@ const HistoricoRecompensas = () => {
         <h1 className="font-display text-3xl tracking-wide text-tinta">
           O meu progresso
         </h1>
+
+        {/* Sem isto, uma consulta falhada mostrava «0 XP» e todas as conquistas
+            bloqueadas a uma criança que pode ter centenas de XP. */}
+        {erro && (
+          <p
+            role="alert"
+            className="painel mt-4 border-capa bg-capa/10 p-4 text-sm font-bold text-capa-escura"
+          >
+            {erro}
+          </p>
+        )}
 
         {/* XP total */}
         <div className="mt-4 overflow-hidden rounded-(--radius-vinheta) border-[3px] border-tinta bg-[linear-gradient(135deg,#3D6BFF_0%,#1D42C8_100%)] p-5 text-papel shadow-vinheta">

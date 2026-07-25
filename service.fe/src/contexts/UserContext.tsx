@@ -85,20 +85,25 @@ export function UserProvider({ children }: { children: ReactNode }) {
     async function loadUser() {
       console.log("[UserContext] a iniciar carregamento de utilizador");
       const storedAuth = loadStoredAuth();
+      const temCacheLocal = Boolean(storedAuth?.accessToken && storedAuth.user);
       if (storedAuth?.accessToken && storedAuth.user) {
+        // Cache otimista: mostramos já o perfil guardado para não haver ecrã
+        // em branco, mas confirmamos sempre com o servidor logo a seguir.
+        // O role e as permissões que estão em storage nunca podem ser a
+        // palavra final - quem edite o localStorage não pode ganhar ecrãs.
         console.log(
-          "[UserContext] utilizador restaurado do storage",
+          "[UserContext] utilizador restaurado do storage (a revalidar)",
           storedAuth.user.email,
         );
         setUser(storedAuth.user);
         userRef.current = storedAuth.user;
         setIsLoading(false);
         isInitialLoadDone = true;
-        return;
       }
 
       const {
         data: { session },
+        error: erroSessao,
       } = await supabase.auth.getSession();
       console.log("[UserContext] sessão obtida do Supabase", {
         hasToken: Boolean(session?.access_token),
@@ -110,10 +115,20 @@ export function UserProvider({ children }: { children: ReactNode }) {
           session.access_token,
           session.expires_at ?? null,
         );
+      } else if (temCacheLocal && erroSessao) {
+        // Falha a contactar a Supabase (rede ou serviço em baixo): mantemos a
+        // cache local em vez de deslogar por um problema temporário.
+        console.warn(
+          "[UserContext] sessão indisponível, a manter cache local",
+          erroSessao,
+        );
       } else {
+        // Sem sessão viva, o que está em storage não serve para nada - se não
+        // for limpo, a cache órfã ressuscita no recarregamento seguinte.
         console.log("[UserContext] sem sessão válida no Supabase");
         setUser(null);
         userRef.current = null;
+        clearStoredAuth();
       }
 
       setIsLoading(false);

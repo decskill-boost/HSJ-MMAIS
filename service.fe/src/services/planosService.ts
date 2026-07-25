@@ -137,11 +137,19 @@ const fetchPlanosPorPacientes = async (): Promise<PlanoPorPaciente[]> => {
 const fetchPlanosDeUmPaciente = async (
   idPaciente: string,
 ): Promise<PlanoPorPaciente | null> => {
-  // O nome continua a vir da lista do backend (rota protegida por perfil): é a
-  // mesma fonte de sempre e mantém o "paciente não encontrado" quando o id não
-  // pertence a nenhum paciente.
-  const pacientes = await pacientesService.getPacientes();
-  const paciente = pacientes.find((p) => p.id_user === idPaciente);
+  // Só a linha desta criança: pedir a lista inteira de pacientes ao backend
+  // (que calcula a adesão de toda a coorte) para tirar de lá um nome era
+  // varrer o hospital a cada abertura do detalhe. `maybeSingle` mantém o
+  // comportamento de antes — id que não é de nenhum paciente devolve `null` e
+  // o ecrã continua a mostrar "Paciente não encontrado".
+  const { data: paciente, error: errPaciente } = await supabase
+    .from("utilizadores")
+    .select("id_user, nome")
+    .eq("id_user", idPaciente)
+    .eq("tipo_utilizador", "paciente")
+    .maybeSingle();
+
+  if (errPaciente) throw new Error(errPaciente.message);
   if (!paciente) return null;
 
   const { data: prescricoes, error } = await supabase
@@ -424,10 +432,14 @@ export const planosService = {
     if (!prescricoes || prescricoes.length === 0) return [];
 
     const ids = prescricoes.map((p) => p.id_prescricao);
-    const { data: peData } = await supabase
+    // Sem isto, uma falha a ler os exercícios fazia todos os cartões anunciar
+    // "0 exercícios", como se os planos estivessem vazios. O ecrã que chama
+    // (GestaoPlanos) já apanha o erro e mostra a mensagem de falha.
+    const { data: peData, error: errPE } = await supabase
       .from("prescricoes_exercicios")
       .select("id_prescricao, id_exercicio")
       .in("id_prescricao", ids);
+    if (errPE) throw new Error(errPE.message);
 
     // Os nomes vêm pelo backend: o RLS de `utilizadores` não deixa o clínico
     // lê-los diretamente, e sem isto os planos prescritos apareciam sem nome.

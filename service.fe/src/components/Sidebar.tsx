@@ -97,9 +97,17 @@ export const Sidebar = ({ links, isOpen, onClose }: SidebarProps) => {
       )}
 
       {/* Sidebar - flutuante em mobile, fixa/estática em desktop */}
+      {/*
+        Em mobile, a gaveta fechada é apenas empurrada para fora do ecrã: sem
+        `invisible` as ligações continuariam na ordem de tabulação e na árvore de
+        acessibilidade (WCAG 2.4.3/2.4.7). A transição inclui `visibility` para
+        que a animação de fecho continue visível — só passa a hidden no fim.
+        `md:visible` garante que a partir do breakpoint md a barra volta a ser
+        focável, já que aí está sempre visível mesmo com `isOpen` a falso.
+      */}
       <aside
-        className={`fixed inset-y-0 left-0 top-[68px] z-40 w-60 transform overflow-y-auto border-r border-tinta/15 bg-papel-claro transition-transform duration-300 ease-in-out md:static md:block md:translate-x-0 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed inset-y-0 left-0 top-[68px] z-40 w-60 transform overflow-y-auto border-r border-tinta/15 bg-papel-claro transition-[transform,visibility] duration-300 ease-in-out md:static md:block md:translate-x-0 md:visible ${
+          isOpen ? "translate-x-0" : "-translate-x-full invisible"
         }`}
       >
         <nav className="flex flex-col gap-1 p-4">

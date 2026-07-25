@@ -76,14 +76,21 @@ const WelcomePage = () => {
     return () => clearTimeout(t);
   }, []);
 
-  // Carrossel das promessas do Capitão
+  // Carrossel das promessas do Capitão — arranca pausado se o utilizador
+  // pedir menos movimento, e pode sempre ser parado à mão.
   const [fraseAtual, setFraseAtual] = useState(0);
+  const [pausado, setPausado] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
   useEffect(() => {
+    if (pausado) return;
     const intervalo = setInterval(() => {
       setFraseAtual((atual) => (atual + 1) % FRASES_CAPITAO.length);
     }, 5000);
     return () => clearInterval(intervalo);
-  }, []);
+  }, [pausado]);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -159,24 +166,46 @@ const WelcomePage = () => {
               </p>
             </div>
             <p
-              key={fraseAtual}
-              className="entrada-pop mx-auto mt-6 min-h-[4.5rem] max-w-xl font-display text-2xl leading-relaxed tracking-wide text-cobalto sm:text-3xl"
+              aria-live="polite"
+              aria-atomic="true"
+              className="mx-auto mt-6 min-h-[4.5rem] max-w-xl font-display text-2xl leading-relaxed tracking-wide text-cobalto sm:text-3xl"
             >
-              {FRASES_CAPITAO[fraseAtual]}
+              <span key={fraseAtual} className="entrada-pop inline-block">
+                {FRASES_CAPITAO[fraseAtual]}
+              </span>
             </p>
-            <div className="mt-6 flex justify-center gap-3">
+            <div className="mt-4 flex items-center justify-center gap-1">
               {FRASES_CAPITAO.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setFraseAtual(i)}
                   aria-label={`Ver promessa ${i + 1}`}
-                  className={`h-2.5 rounded-full border-2 border-tinta transition-all ${
-                    i === fraseAtual
-                      ? "w-8 bg-raio"
-                      : "w-2.5 bg-papel-claro hover:bg-raio/50"
-                  }`}
-                />
+                  aria-current={i === fraseAtual}
+                  /* O ponto continua pequeno, mas a área de toque tem 48px:
+                     antes eram 10x10 px, impossíveis de acertar num tablet. */
+                  className="group flex min-h-12 min-w-12 items-center justify-center"
+                >
+                  <span
+                    className={`h-2.5 rounded-full border-2 border-tinta transition-all ${
+                      i === fraseAtual
+                        ? "w-8 bg-raio"
+                        : "w-2.5 bg-papel-claro group-hover:bg-raio/50"
+                    }`}
+                  />
+                </button>
               ))}
+
+              {/* Texto que muda sozinho tem de poder ser parado. */}
+              <button
+                type="button"
+                onClick={() => setPausado((p) => !p)}
+                className="ml-1 flex min-h-12 min-w-12 items-center justify-center rounded-lg text-sm font-bold text-aco transition-colors hover:bg-tinta/5 hover:text-tinta"
+              >
+                <span aria-hidden="true">{pausado ? "▶" : "❚❚"}</span>
+                <span className="sr-only">
+                  {pausado ? "Retomar" : "Pausar"} as promessas do Capitão
+                </span>
+              </button>
             </div>
           </div>
         </div>
