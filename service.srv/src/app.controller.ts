@@ -1,12 +1,13 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { AppService, type HealthStatus } from './app.service';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  /** Sonda de saúde do serviço (`GET /api/health`). */
   @Get('health')
-  getHealth() {
-    return { status: 'ok', message: 'NestJS está a funcionar!' };
+  getHealth(): HealthStatus {
+    return this.appService.getHealth();
   }
 }

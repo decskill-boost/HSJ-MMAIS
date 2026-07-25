@@ -1,5 +1,6 @@
 interface CapitaoMaisProps {
   className?: string;
+  /** Nome acessível. Vazio marca o desenho como decorativo (`aria-hidden`). */
   title?: string;
 }
 
@@ -8,7 +9,16 @@ const CapitaoMais = ({
   className = "h-16 w-auto",
   title = "Capitão Mais",
 }: CapitaoMaisProps) => (
-  <svg viewBox="0 0 140 150" className={className} role="img" aria-label={title}>
+  <svg
+    viewBox="0 0 140 150"
+    className={className}
+    // Ao lado de texto que já o descreve (logótipo, 404) o Capitão é
+    // decorativo: sai da árvore de acessibilidade em vez de ficar uma
+    // imagem anunciada sem nome.
+    {...(title
+      ? { role: "img" as const, "aria-label": title }
+      : { "aria-hidden": true })}
+  >
     <defs>
       <linearGradient id="cap-corpo" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0" stopColor="#3D6BFF" />

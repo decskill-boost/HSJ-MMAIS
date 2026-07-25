@@ -1,6 +1,8 @@
 interface AvatarHeroiProps {
   variante: "clinico" | "crianca";
   className?: string;
+  /** Desliga o balanço — em miniatura (navbar) só acrescentaria ruído. */
+  animado?: boolean;
 }
 
 /**
@@ -9,10 +11,14 @@ interface AvatarHeroiProps {
  * estetoscópio). Ambos piscam os olhos; a criança balança (classes globais
  * cap-olhos / cap-brilho / animate-balancar, desativadas com reduced-motion).
  */
-const AvatarHeroi = ({ variante, className = "h-full w-full" }: AvatarHeroiProps) => {
+const AvatarHeroi = ({
+  variante,
+  className = "h-full w-full",
+  animado = true,
+}: AvatarHeroiProps) => {
   if (variante === "crianca") {
     return (
-      <span className="animate-balancar h-full w-full">
+      <span className={animado ? "animate-balancar h-full w-full" : "block h-full w-full"}>
         <svg viewBox="0 0 120 120" className={className} role="img" aria-label="Avatar de herói em treino">
           <defs>
             <linearGradient id="av-fato" x1="0" y1="0" x2="0" y2="1">

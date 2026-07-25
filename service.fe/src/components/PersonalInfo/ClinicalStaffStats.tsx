@@ -1,9 +1,9 @@
 const ClinicalStaffStats = () => (
-  <div className="entrada-pop-2 mt-8 w-full max-w-md rounded-2xl border-2 border-cobalto/40 bg-cobalto/10 p-4 text-left shadow-sm">
-    <p className="text-sm font-medium text-cobalto">
-      🩺 <strong>Acesso Clínico Ativo:</strong> Como membro do corpo clínico da
-      ULS São João, pode gerir prescrições e monitorizar o progresso dos
-      pacientes.
+  <div className="painel painel-fino entrada-pop-2 mt-4 w-full max-w-md border-cobalto bg-cobalto-nevoa p-5 text-left">
+    <p className="text-sm font-bold text-cobalto">Acesso clínico ativo</p>
+    <p className="mt-1 text-sm text-tinta/80">
+      Enquanto membro do corpo clínico da ULS São João, pode prescrever planos e
+      acompanhar o progresso dos doentes.
     </p>
   </div>
 );

@@ -8,10 +8,11 @@ export const useAuth = () => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [success, setSuccess] = useState<boolean>(false);
 
-  const handleLogin = async (e: React.SubmitEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg(null);
+    setSuccess(false);
 
     try {
       await authService.login({ email, password });

@@ -22,10 +22,14 @@ https://hsj-mmais.vercel.app/
 link de acesso backend: 
 https://hsj-mmais-production.up.railway.app/api
 
-## Conta de Teste 
+## Conta de Teste
 
 **E-mail:** "suporte.mmais@gmail.com"
 **Palavra-passe:** "12345"
+
+> Conta partilhada de demonstração, com credenciais em texto claro no repositório:
+> não deve ter dados reais de doentes nem privilégios de administração. Se o
+> repositório passar a público, rodar a palavra-passe e tirar daqui.
 
 Repositório base com dois serviços **independentes**:
 
@@ -71,7 +75,7 @@ npm install
 npm run start:dev         # http://localhost:3000
 ```
 
-A API é servida sob o prefixo `/api` (ex.: `GET http://localhost:3000/api`).
+A API é servida sob o prefixo `/api`. Sonda de saúde: `GET http://localhost:3000/api/health`.
 
 ### Frontend (`service.fe`)
 
@@ -87,12 +91,22 @@ Em dev, basta o frontend chamar `fetch('/api/...')` — sem problemas de CORS.
 
 ## Variáveis de ambiente
 
-| Serviço       | Ficheiro              | Variáveis                          |
-| ------------- | --------------------- | ---------------------------------- |
-| `service.srv` | `.env` / `.env.local` | `PORT`, `API_PREFIX`, `APP_ENV`    |
-| `service.fe`  | `.env.local`          | `VITE_API_TARGET`                  |
+| Serviço       | Variável                 | Para que serve                                                     |
+| ------------- | ------------------------ | ------------------------------------------------------------------ |
+| `service.srv` | `PORT`                   | Porta do NestJS (default `3000`)                                    |
+| `service.srv` | `API_PREFIX`             | Prefixo global da API (default `api`)                               |
+| `service.srv` | `APP_ENV`                | Ambiente (`dev` \| `pre` \| `prd`)                                  |
+| `service.srv` | `CORS_ORIGIN`            | Origens permitidas, separadas por vírgula                           |
+| `service.fe`  | `VITE_API_TARGET`        | Alvo do proxy do Vite em dev (`/api` → backend)                     |
+| `service.fe`  | `VITE_API_URL`           | Base do `apiClient` (default `/api`)                                |
+| `service.fe`  | `VITE_SUPABASE_URL`      | URL do projeto Supabase                                             |
+| `service.fe`  | `VITE_SUPABASE_ANON_KEY` | Chave anónima do Supabase                                           |
+
+Backend em `.env` / `.env.local`, frontend em `.env.local`.
 
 > Ficheiros `.env`/`.env.local` estão no `.gitignore`. Os `.env.example` versionados servem de referência.
+> As variáveis `VITE_*` **vão no bundle** e são públicas — só a chave anónima do Supabase,
+> nunca a `service_role`.
 
 ## Testes
 

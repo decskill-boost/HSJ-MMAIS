@@ -1,8 +1,11 @@
+/** Papéis da plataforma — coluna `tipo_utilizador` da tabela `utilizadores`. */
+export type TipoUtilizador = "paciente" | "corpo_clinico" | "admin";
+
 export interface UserProfile {
   id_user: string;
   nome: string;
   email: string;
-  tipo_utilizador: string;
+  tipo_utilizador: TipoUtilizador;
   xp: number;
   nivel: number;
   streak_atual: number;
@@ -14,11 +17,4 @@ export interface PatientStatsProps {
   nivel: number;
   xp: number;
   streak: number;
-  themeColor: string;
-}
-
-export interface PersonalInfoProps {
-  user: UserProfile;
-  onLogout?: () => void;
-  onBack?: () => void;
 }

@@ -35,6 +35,8 @@
   --color-papel-claro: #fffdf4;
   --color-cobalto: #1d42c8;
   --color-cobalto-vivo: #3d6bff;
+  /* Tinta cobalto diluída. Um `bg-cobalto/10` sobre papel dava cinzento sujo. */
+  --color-cobalto-nevoa: #e6ecff;
   --color-raio: #ffce29;
   --color-raio-fundo: #ffb800;
   --color-capa: #ff3d57;
@@ -47,9 +49,94 @@
   --font-display: "Bangers", "Arial Black", system-ui, sans-serif;
   --font-sans: "Atkinson Hyperlegible", system-ui, sans-serif;
 
-  /* Forma — vinhetas de BD */
+  /* Forma — vinhetas de BD, em três alturas */
   --radius-vinheta: 0.75rem;
+  --shadow-vinheta-pequena: 2px 2px 0 #141f3c;
   --shadow-vinheta: 3px 3px 0 #141f3c;
+  --shadow-vinheta-grande: 5px 5px 0 #141f3c;
+}
+
+@layer components {
+  /*
+   * Gramática de banda desenhada, em três peças reutilizadas em todos os
+   * ecrãs: a vinheta (painel), a legenda do narrador e o balão de fala.
+   */
+
+  /** Vinheta: o contentor base de tudo o que é cartão ou caixa. */
+  .painel {
+    border: 3px solid var(--color-tinta);
+    border-radius: var(--radius-vinheta);
+    background-color: var(--color-papel-claro);
+    box-shadow: var(--shadow-vinheta);
+  }
+  .painel-fino {
+    border-width: 2px;
+  }
+  .painel-alto {
+    box-shadow: var(--shadow-vinheta-grande);
+  }
+
+  /** Legenda: a caixa do narrador ao canto da vinheta. Rotula, não decora. */
+  .legenda {
+    display: inline-block;
+    border: 2.5px solid var(--color-tinta);
+    border-radius: 0.3rem;
+    background-color: var(--color-raio);
+    box-shadow: var(--shadow-vinheta-pequena);
+    padding: 0.1rem 0.7rem 0.2rem;
+    color: var(--color-tinta);
+    font-family: var(--font-display);
+    font-size: 0.9rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    transform: rotate(-1.5deg);
+  }
+  .legenda-cobalto {
+    background-color: var(--color-cobalto);
+    color: var(--color-papel);
+  }
+
+  /** Céu da Academia — o fundo dos momentos-estrela. */
+  .fundo-academia {
+    background-image: linear-gradient(
+      160deg,
+      var(--color-cobalto-vivo) 0%,
+      var(--color-cobalto) 55%,
+      #16307f 100%
+    );
+  }
+  .fundo-cartao {
+    background-image: linear-gradient(
+      160deg,
+      var(--color-cobalto-vivo) 0%,
+      var(--color-cobalto) 100%
+    );
+  }
+
+  /** Balão de fala com bico para cima — quem fala está sempre por cima dele. */
+  .balao {
+    position: relative;
+  }
+  .balao::before,
+  .balao::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+  }
+  .balao::before {
+    top: -18px;
+    margin-left: -12px;
+    border-bottom: 18px solid var(--color-tinta);
+  }
+  .balao::after {
+    top: -13px;
+    margin-left: -8px;
+    border-left-width: 8px;
+    border-right-width: 8px;
+    border-bottom: 17px solid var(--color-papel-claro);
+  }
 }
 
 body {
@@ -60,6 +147,19 @@ body {
   background-position: 0 0, 9px 9px;
   color: var(--color-tinta);
   font-family: var(--font-sans);
+}
+
+/*
+ * Foco de teclado sempre visível e sempre igual. Tinta sobre papel tem
+ * contraste de sobra; nos blocos de fundo escuro passa a Raio (ver
+ * `.sobre-escuro`), senão desaparecia contra o Cobalto.
+ */
+:focus-visible {
+  outline: 3px solid var(--color-tinta);
+  outline-offset: 3px;
+}
+.sobre-escuro :focus-visible {
+  outline-color: var(--color-raio);
 }
 
 /* Seleção de texto e scrollbar com o uniforme da marca */
@@ -109,7 +209,7 @@ body {
 /* ===== Capitão Mais 2.5D — camadas com profundidade (só nos momentos-estrela) ===== */
 .cap3d-stage {
   perspective: 800px;
-  width: min(230px, 58vw);
+  width: min(230px, 52vw);
   aspect-ratio: 14 / 16;
   position: relative;
   cursor: pointer;
@@ -134,6 +234,12 @@ body {
 .cap3d-l3 { transform: translateZ(22px); }
 .cap3d-l4 { transform: translateZ(46px); }
 .cap3d-l5 { transform: translateZ(60px); }
+/* Em ecrãs pequenos o Capitão encolhe para o botão «Começar!» caber sem rolar. */
+@media (max-width: 640px) {
+  .cap3d-stage {
+    width: min(230px, 44vw);
+  }
+}
 .cap3d-sombra {
   width: 58%;
   height: 20px;

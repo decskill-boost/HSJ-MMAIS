@@ -9,13 +9,20 @@ async function bootstrap() {
   const apiPrefix = config.get<string>('API_PREFIX', 'api');
   app.setGlobalPrefix(apiPrefix);
 
-  // PERMITIR A LIGAÇÃO DO FRONTEND
+  // Origens permitidas (CORS) — lista separada por vírgulas vinda do ambiente.
+  // Em dev assume o Vite local; em pre/prd define-se CORS_ORIGIN no deploy.
+  const corsOrigin = config
+    .get<string>('CORS_ORIGIN', 'http://localhost:5173')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+
   app.enableCors({
-    origin: 'http://localhost:5173',
+    origin: corsOrigin,
     credentials: true,
   });
 
   const port = config.get<number>('PORT', 3000);
   await app.listen(port);
 }
-bootstrap();
+void bootstrap();

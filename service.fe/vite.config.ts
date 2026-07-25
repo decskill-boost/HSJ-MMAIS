@@ -23,6 +23,13 @@ export default defineConfig(({ mode }) => {
       globals: true,
       environment: "jsdom",
       setupFiles: ["./__tests__/setup.ts"],
+      // Valores fictícios para os testes — evita que o supabaseClient
+      // rebente no import quando não há .env.local.
+      env: {
+        VITE_SUPABASE_URL: "http://localhost:54321",
+        VITE_SUPABASE_ANON_KEY: "test-anon-key",
+        VITE_API_URL: "/api",
+      },
       include: ["__tests__/**/*.{test,spec}.{ts,tsx}"],
       css: false,
       coverage: {

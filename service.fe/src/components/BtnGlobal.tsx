@@ -1,51 +1,74 @@
 import { Link } from "react-router-dom";
 
+type Variante = "primary" | "secondary" | "danger" | "raio";
+type Tamanho = "sm" | "md" | "lg";
+
 interface BtnGlobalProps {
   to?: string;
   onClick?: (e?: React.MouseEvent) => void;
   children: React.ReactNode;
+  /** Só para posicionamento (margens, largura) — o espaçamento vem de `size`. */
   className?: string;
-  variant?: "primary" | "secondary" | "danger" | "raio";
+  variant?: Variante;
+  size?: Tamanho;
   type?: "button" | "submit" | "reset";
   disabled?: boolean;
   isLoading?: boolean;
 }
 
+// Alvo tátil mínimo de 48px em todos os tamanhos (brandbook, cap. 08).
+const tamanhos: Record<Tamanho, string> = {
+  sm: "min-h-12 px-4 py-2",
+  md: "min-h-12 px-5 py-2.5",
+  lg: "min-h-14 px-8 py-3.5",
+};
+
+// Variantes da marca: Cobalto para o QG clínico, Raio para a Academia.
+const variantes: Record<Variante, string> = {
+  primary: "bg-cobalto text-papel hover:bg-cobalto-vivo",
+  secondary: "bg-papel-claro text-tinta hover:bg-raio/25",
+  danger: "bg-capa-escura text-papel hover:bg-[#a01330]",
+  raio: "bg-linear-to-b from-raio to-raio-fundo text-tinta hover:brightness-105",
+};
+
+/**
+ * Botão único da plataforma. Ao ser premido encosta à própria sombra de
+ * vinheta, como um carimbo — o feedback tátil que o brandbook pede.
+ */
 const BtnGlobal = ({
   to,
   onClick,
   children,
   className = "",
   variant = "primary",
+  size = "md",
   type = "button",
   disabled,
   isLoading = false,
 }: BtnGlobalProps) => {
-  // Classes base focadas em feedback tátil rápido; alvo tátil mínimo de 48px (brandbook, cap. 08)
-  const baseStyle = `inline-flex min-h-12 min-w-[96px] items-center justify-center whitespace-nowrap rounded-(--radius-vinheta) border-[3px] border-tinta text-sm font-bold shadow-vinheta transition-all duration-75 active:scale-95 active:shadow-none disabled:opacity-50 disabled:pointer-events-none select-none ${
-    className.includes("p-") ? "" : "px-5 py-2.5"
-  }`;
+  const texto =
+    variant === "raio"
+      ? `font-display tracking-wide ${size === "lg" ? "text-xl" : "text-lg"}`
+      : `font-bold ${size === "lg" ? "text-base" : "text-sm"}`;
 
-  // Variantes da marca: Cobalto para o QG clínico, Raio para a Academia das crianças
-  const variants = {
-    primary:
-      "bg-cobalto text-papel hover:bg-cobalto-vivo focus:ring-2 focus:ring-cobalto/30",
-    secondary:
-      "bg-transparent text-tinta hover:bg-tinta/5 focus:ring-2 focus:ring-tinta/20",
-    danger:
-      "bg-capa-escura text-papel hover:bg-[#a01330] focus:ring-2 focus:ring-capa/30",
-    raio:
-      "bg-linear-to-b from-raio to-raio-fundo font-display text-lg tracking-wide text-tinta hover:brightness-105 focus:ring-2 focus:ring-raio/40",
-  };
+  const estilo = [
+    "inline-flex min-w-24 select-none items-center justify-center gap-2 whitespace-nowrap",
+    "rounded-(--radius-vinheta) border-[3px] border-tinta shadow-vinheta",
+    "transition-all duration-75 active:translate-x-[3px] active:translate-y-[3px] active:shadow-none",
+    "disabled:pointer-events-none disabled:opacity-50",
+    tamanhos[size],
+    variantes[variant],
+    texto,
+    className,
+  ].join(" ");
 
-  const combinedStyle = `${baseStyle} ${variants[variant]} ${className}`;
-
-  const renderContent = () => (
+  const conteudo = (
     <>
       {isLoading && (
         <svg
-          className="mr-2 h-4 w-4 animate-spin text-current"
+          className="h-4 w-4 animate-spin text-current"
           viewBox="0 0 24 24"
+          aria-hidden="true"
         >
           <circle
             className="opacity-25"
@@ -69,8 +92,8 @@ const BtnGlobal = ({
 
   if (to && !disabled && !isLoading) {
     return (
-      <Link to={to} className={combinedStyle}>
-        {renderContent()}
+      <Link to={to} className={estilo}>
+        {conteudo}
       </Link>
     );
   }
@@ -78,11 +101,12 @@ const BtnGlobal = ({
   return (
     <button
       onClick={onClick}
-      className={combinedStyle}
+      className={estilo}
       type={type}
       disabled={disabled || isLoading}
+      aria-busy={isLoading || undefined}
     >
-      {renderContent()}
+      {conteudo}
     </button>
   );
 };

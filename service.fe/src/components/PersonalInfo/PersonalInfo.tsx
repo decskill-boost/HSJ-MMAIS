@@ -1,64 +1,74 @@
-import { useOutletContext } from "react-router-dom";
-import BtnGlobal from "../BtnGlobal";
+import { Navigate } from "react-router-dom";
 import AvatarHeroi from "./AvatarHeroi";
 import ClinicalStaffStats from "./ClinicalStaffStats";
 import { PatientStats } from "./PatientStats";
-import type { UserProfile } from "../../types/user";
+import { useLayoutContext } from "../../routes/layoutContext";
+import { useTituloPagina } from "../../hooks/useTituloPagina";
 
-interface PersonalInfoProps {
-  onBack?: () => void;
-}
+/**
+ * Número de série do cartão, estável e próprio de cada herói — antes era
+ * «001» para toda a gente. Não é classificação, é a matrícula da carta.
+ */
+const numeroHeroi = (id: string) => {
+  let soma = 0;
+  for (const caracter of id) {
+    soma = (soma * 31 + caracter.charCodeAt(0)) % 999;
+  }
+  return String(soma + 1).padStart(3, "0");
+};
 
-interface LayoutContext {
-  user: UserProfile | null;
-  handleLoginSuccess: () => void;
-  handleLogout: () => void;
-}
+export const PersonalInfo = () => {
+  const { user, aCarregar } = useLayoutContext();
+  useTituloPagina("O meu perfil");
 
-export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
-  const { user } = useOutletContext<LayoutContext>();
-
-  if (!user) {
+  // Enquanto a sessão guardada está a ser restaurada não se pode concluir nada
+  // sobre o utilizador — sem esta espera, um refresh atirava-o para o login.
+  if (aCarregar) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center px-4 py-12">
-        <p className="text-aco">Utilizador não autenticado</p>
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 py-12">
+        <span className="animate-flutuar text-4xl" aria-hidden="true">
+          ⚡
+        </span>
+        <p className="font-bold text-aco" role="status">
+          A carregar o teu perfil…
+        </p>
       </div>
     );
   }
 
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
   const isClinico = user.tipo_utilizador === "corpo_clinico";
 
-  // Tema por tipo de utilizador: Cobalto (QG clínico) ou Raio/Turbo (herói) — brandbook Heróis, cap. 07
-  const theme = isClinico
+  // Tema por tipo de utilizador: Cobalto (QG clínico) ou Raio (Academia) —
+  // brandbook Heróis, cap. 07.
+  const tema = isClinico
     ? {
-        color: "text-cobalto",
-        bg: "bg-cobalto/10 text-cobalto",
-        badge: "bg-cobalto/10 text-cobalto border-cobalto/30",
-        label: "Corpo Clínico",
+        legenda: "legenda legenda-cobalto",
+        cracha: "border-cobalto/40 bg-cobalto/10 text-cobalto",
+        papel: "Corpo Clínico",
       }
     : {
-        color: "text-cobalto",
-        bg: "bg-raio/25 text-tinta",
-        badge: "bg-raio/25 text-tinta border-raio",
-        label: "Herói em treino",
+        legenda: "legenda",
+        cracha: "border-raio bg-raio/25 text-tinta",
+        papel: "Herói em treino",
       };
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-4 py-12 text-center">
+    <div className="flex flex-1 flex-col items-center px-4 py-10 text-center sm:py-12">
       {isClinico ? (
         <>
-          {/* Foto de Perfil — QG clínico */}
           <div className="entrada-pop flex justify-center">
             {user.url_foto_perfil ? (
               <img
                 src={user.url_foto_perfil}
-                alt={user.nome}
-                className="h-28 w-28 rounded-2xl border-2 border-tinta object-cover shadow-vinheta"
+                alt=""
+                className="painel painel-fino h-28 w-28 rounded-2xl object-cover"
               />
             ) : (
-              <div
-                className={`flex h-28 w-28 items-end justify-center overflow-hidden rounded-2xl border-2 border-tinta ${theme.bg} shadow-vinheta`}
-              >
+              <div className="painel painel-fino flex h-28 w-28 items-end justify-center overflow-hidden rounded-2xl bg-cobalto-nevoa">
                 <AvatarHeroi variante="clinico" />
               </div>
             )}
@@ -70,12 +80,15 @@ export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
         </>
       ) : (
         <>
-          {/* Cartão de herói — o perfil da criança é um cartão colecionável */}
-          <div className="entrada-pop relative w-60 -rotate-2 overflow-hidden rounded-2xl border-[3px] border-tinta bg-[linear-gradient(160deg,#3D6BFF_0%,#1D42C8_100%)] p-3 pb-2.5 shadow-vinheta">
-            <div className="fundo-reticula pointer-events-none absolute inset-0 opacity-50" aria-hidden="true" />
+          {/* O perfil da criança é um cartão colecionável, não uma ficha. */}
+          <div className="entrada-pop fundo-cartao painel painel-alto relative w-60 -rotate-2 overflow-hidden p-3 pb-2.5">
+            <div
+              className="fundo-reticula pointer-events-none absolute inset-0 opacity-50"
+              aria-hidden="true"
+            />
             <div className="relative flex items-center justify-between px-1">
               <span className="font-display text-xs tracking-[.14em] text-raio [text-shadow:1.5px_1.5px_0_#141F3C]">
-                HERÓI Nº 001
+                Herói nº {numeroHeroi(user.id_user)}
               </span>
               <span className="font-display text-xs tracking-[.14em] text-papel [text-shadow:1.5px_1.5px_0_#141F3C]">
                 MMAIS+
@@ -85,72 +98,65 @@ export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
               {user.url_foto_perfil ? (
                 <img
                   src={user.url_foto_perfil}
-                  alt={user.nome}
+                  alt=""
                   className="h-full w-full rounded-xl border-2 border-tinta object-cover"
                 />
               ) : (
                 <AvatarHeroi variante="crianca" />
               )}
             </div>
-            <div className="relative mt-1.5 rounded-lg border-2 border-tinta bg-papel-claro px-2 py-1.5">
+            <h1 className="painel painel-fino relative mt-1.5 rounded-lg px-2 py-1.5">
               <span className="block font-display text-xl leading-tight tracking-wide text-tinta">
                 {user.nome}
               </span>
               <span className="block text-[10px] font-bold uppercase tracking-widest text-aco">
                 Herói em treino · Nível {user.nivel}
               </span>
-            </div>
+            </h1>
           </div>
-          <p className="mt-3 text-sm font-bold text-aco">{user.email}</p>
+          <p className="mt-4 text-sm font-bold text-aco">{user.email}</p>
         </>
       )}
 
-      {/* Estatísticas: corpo clínico vs. paciente (gamificação) */}
       {isClinico ? (
-        <ClinicalStaffStats />
+        <>
+          <h2 className={`${tema.legenda} mt-10`}>O seu acesso</h2>
+          <ClinicalStaffStats />
+        </>
       ) : (
-        <PatientStats
-          nivel={user.nivel}
-          xp={user.xp}
-          streak={user.streak_atual}
-          themeColor={theme.color}
-        />
+        <>
+          <h2 className={`${tema.legenda} mt-10`}>Os teus números</h2>
+          <PatientStats
+            nivel={user.nivel}
+            xp={user.xp}
+            streak={user.streak_atual}
+          />
+        </>
       )}
 
-      {/* Card de Detalhes da Conta */}
-      <div className="entrada-pop-4 mt-6 w-full max-w-md rounded-2xl border-2 border-tinta bg-papel-claro p-6 text-left shadow-vinheta">
-        <h2
-          className={`text-sm font-bold uppercase tracking-wider ${theme.color} mb-4`}
-        >
-          Detalhes da Conta
-        </h2>
-        <div className="space-y-4">
-          <div>
-            <label className="text-xs font-bold uppercase tracking-wider text-aco">
-              Tipo de Utilizador
-            </label>
-            <span
-              className={`ml-2 inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${theme.badge}`}
+      <h2 className={`${tema.legenda} mt-10`}>Detalhes da conta</h2>
+      <div className="painel painel-fino entrada-pop-4 mt-4 w-full max-w-md p-6 text-left">
+        <dl className="space-y-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <dt className="text-xs font-bold uppercase tracking-wider text-aco">
+              Tipo de utilizador
+            </dt>
+            <dd
+              className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-bold ${tema.cracha}`}
             >
-              {theme.label}
-            </span>
+              {tema.papel}
+            </dd>
           </div>
           <div className="border-t border-tinta/10 pt-3">
-            <label className="text-xs font-bold uppercase tracking-wider text-aco">
+            <dt className="text-xs font-bold uppercase tracking-wider text-aco">
               Membro desde
-            </label>
-            <p className="text-base font-bold text-tinta">
+            </dt>
+            <dd className="text-base font-bold text-tinta">
               {new Date(user.data_registo).toLocaleDateString("pt-PT")}
-            </p>
+            </dd>
           </div>
-        </div>
+        </dl>
       </div>
-
-      {onBack && (
-        <BtnGlobal onClick={onBack} variant="primary" className="mt-8 px-10 py-3.5">
-          Voltar ao Menu
-        </BtnGlobal>
-      )}
     </div>
   );
 };

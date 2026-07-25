@@ -1,35 +1,23 @@
 import type { PatientStatsProps } from "../../types/user";
 
-export const PatientStats = ({
-  nivel,
-  xp,
-  streak,
-  themeColor,
-}: PatientStatsProps) => (
-  <div className="mt-8 grid w-full max-w-md grid-cols-3 gap-4">
-    <div className="entrada-pop rounded-2xl border-2 border-tinta bg-papel-claro p-4 shadow-vinheta">
-      <span className={`block font-display text-2xl tracking-wide ${themeColor}`}>
-        {nivel}
-      </span>
-      <span className="text-xs font-bold uppercase tracking-wider text-aco">
-        Nível
-      </span>
+const numero = "block font-display text-3xl tracking-wide";
+const rotulo = "mt-0.5 block text-[11px] font-bold uppercase tracking-wider text-aco";
+
+export const PatientStats = ({ nivel, xp, streak }: PatientStatsProps) => (
+  <div className="mt-4 grid w-full max-w-md grid-cols-3 gap-3 sm:gap-4">
+    <div className="painel painel-fino entrada-pop p-3 sm:p-4">
+      <span className={`${numero} text-cobalto`}>{nivel}</span>
+      <span className={rotulo}>Nível</span>
     </div>
-    <div className="entrada-pop-2 rounded-2xl border-2 border-tinta bg-papel-claro p-4 shadow-vinheta">
-      <span className={`block font-display text-2xl tracking-wide ${themeColor}`}>
-        {xp}
-      </span>
-      <span className="text-xs font-bold uppercase tracking-wider text-aco">
-        XP
-      </span>
+    <div className="painel painel-fino entrada-pop-2 p-3 sm:p-4">
+      <span className={`${numero} text-cobalto`}>{xp}</span>
+      <span className={rotulo}>XP</span>
     </div>
-    <div className="entrada-pop-3 rounded-2xl border-2 border-tinta bg-papel-claro p-4 shadow-vinheta">
-      <span className="block font-display text-2xl tracking-wide text-turbo-escuro">
-        ⚡ {streak}
+    <div className="painel painel-fino entrada-pop-3 p-3 sm:p-4">
+      <span className={`${numero} text-turbo-escuro`}>
+        <span aria-hidden="true">⚡</span> {streak}
       </span>
-      <span className="text-xs font-bold uppercase tracking-wider text-aco">
-        Dias Ativos
-      </span>
+      <span className={rotulo}>Dias seguidos</span>
     </div>
   </div>
 );
