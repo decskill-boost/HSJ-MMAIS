@@ -75,7 +75,7 @@ export const Navbar = ({
           {user && (
             <button
               onClick={onMenuToggle}
-              className="rounded-lg p-2 text-aco transition-colors hover:bg-tinta/10 md:hidden"
+              className="flex min-h-12 min-w-12 items-center justify-center rounded-lg text-aco transition-colors hover:bg-tinta/10 md:hidden"
               aria-label="Alternar menu"
               aria-expanded={isMenuOpen}
             >

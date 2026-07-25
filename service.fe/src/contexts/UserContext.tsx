@@ -9,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { ApiError, fetchCurrentUser } from "../lib/api";
+import { registarDebug } from "../lib/registo";
 import {
   clearStoredAuth,
   loadStoredAuth,
@@ -83,7 +84,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
 
     async function loadUser() {
-      console.log("[UserContext] a iniciar carregamento de utilizador");
+      registarDebug("[UserContext] a iniciar carregamento de utilizador");
       const storedAuth = loadStoredAuth();
       const temCacheLocal = Boolean(storedAuth?.accessToken && storedAuth.user);
       if (storedAuth?.accessToken && storedAuth.user) {
@@ -91,7 +92,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         // em branco, mas confirmamos sempre com o servidor logo a seguir.
         // O role e as permissões que estão em storage nunca podem ser a
         // palavra final - quem edite o localStorage não pode ganhar ecrãs.
-        console.log(
+        registarDebug(
           "[UserContext] utilizador restaurado do storage (a revalidar)",
           storedAuth.user.email,
         );
@@ -105,7 +106,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         data: { session },
         error: erroSessao,
       } = await supabase.auth.getSession();
-      console.log("[UserContext] sessão obtida do Supabase", {
+      registarDebug("[UserContext] sessão obtida do Supabase", {
         hasToken: Boolean(session?.access_token),
         expiresAt: session?.expires_at,
       });
@@ -125,7 +126,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       } else {
         // Sem sessão viva, o que está em storage não serve para nada - se não
         // for limpo, a cache órfã ressuscita no recarregamento seguinte.
-        console.log("[UserContext] sem sessão válida no Supabase");
+        registarDebug("[UserContext] sem sessão válida no Supabase");
         setUser(null);
         userRef.current = null;
         clearStoredAuth();
@@ -140,7 +141,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log("[UserContext] auth state change", {
+      registarDebug("[UserContext] auth state change", {
         event: _event,
         hasToken: Boolean(session?.access_token),
       });
@@ -151,7 +152,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       // limpar uma sessão válida por causa de uma falha
       // pontual/redundante desta segunda chamada.
       if (_event === "INITIAL_SESSION" && userRef.current) {
-        console.log(
+        registarDebug(
           "[UserContext] INITIAL_SESSION ignorado, utilizador já carregado",
         );
         return;
@@ -163,7 +164,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
           session.expires_at ?? null,
         );
       } else {
-        console.log("[UserContext] sessão removida no auth state change");
+        registarDebug("[UserContext] sessão removida no auth state change");
         setUser(null);
         userRef.current = null;
         clearStoredAuth();

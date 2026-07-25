@@ -63,8 +63,11 @@ export const Layout = () => {
   const mostrarSidebar =
     linksDoUtilizador && !paginasSemSidebar.includes(location.pathname);
 
+  // h-dvh acompanha a barra do browser no telemóvel (100vh ficava por baixo
+  // dela); w-full evita o scroll horizontal que 100vw provoca quando existe
+  // barra de deslocamento vertical.
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-papel">
+    <div className="flex h-dvh w-full overflow-hidden bg-papel">
       {/* 1. COLUNA ESQUERDA: Sidebar ocupa a altura inteira */}
       {mostrarSidebar && (
         <Sidebar

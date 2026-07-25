@@ -376,7 +376,14 @@ body {
   .entrada-pop,
   .entrada-pop-2,
   .entrada-pop-3,
-  .entrada-pop-4 {
+  .entrada-pop-4,
+  .animate-bounce,
+  .animate-pulse,
+  .animate-ping {
     animation: none;
+  }
+  /* O spinner não pára: sem rotação parecia avariado. Só roda mais devagar. */
+  .animate-spin {
+    animation-duration: 2.4s;
   }
 }

@@ -4,6 +4,7 @@ import type { Exercicio } from "../../services/exercicios";
 import type { ExercicioDoPlano } from "../../services/planosService";
 import CapitaoMais from "../CapitaoMais";
 import LoadingSpinner from "../LoadingSpinner";
+import MiniaturaVideo from "../ui/MiniaturaVideo";
 
 interface Props {
   onVoltar: () => void;
@@ -128,13 +129,7 @@ const BibliotecaExercicios = ({ onVoltar, onSelecionarExercicio }: Props) => {
               {/* Thumbnail */}
               <div className="relative h-44 w-full flex-shrink-0 border-b-[3px] border-tinta bg-papel">
                 {ex.url_video ? (
-                  <video
-                    src={`${ex.url_video}#t=0.1`}
-                    className="h-full w-full object-cover"
-                    preload="metadata"
-                    muted
-                    playsInline
-                  />
+                  <MiniaturaVideo url={ex.url_video} />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center text-tinta/30">
                     <span className="text-4xl">🎬</span>

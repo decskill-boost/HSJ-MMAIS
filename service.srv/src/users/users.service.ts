@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -159,6 +160,45 @@ export class UsersService {
     return this.mapUtilizadorToProfile(await this.utilizadorRepo.save(user));
   }
 
+  /**
+   * Remove as credenciais no Supabase Auth. Trata o «utilizador não existe»
+   * como sucesso, para que uma segunda tentativa não fique bloqueada.
+   */
+  private async removerCredenciaisSupabase(id_user: string) {
+    const { error: deleteError } =
+      await this.supabaseAdmin.auth.admin.deleteUser(id_user);
+
+    if (!deleteError || deleteError.status === 404) {
+      return;
+    }
+
+    // Só a mensagem e o estado: a resposta do Supabase traz dados do
+    // utilizador que não devem entrar nos registos.
+    // eslint-disable-next-line no-console
+    console.error('Supabase admin.deleteUser falhou', {
+      mensagem: deleteError.message,
+      estado: deleteError.status,
+    });
+
+    // Se não conseguimos apagar, pelo menos banimos a conta para garantir
+    // que já não é possível autenticar.
+    const { error: banError } =
+      await this.supabaseAdmin.auth.admin.updateUserById(id_user, {
+        ban_duration: '1000000h',
+      });
+
+    if (banError) {
+      // eslint-disable-next-line no-console
+      console.error('Supabase admin.updateUserById (ban) também falhou', {
+        mensagem: banError.message,
+        estado: banError.status,
+      });
+      throw new InternalServerErrorException(
+        'Não foi possível desativar as credenciais do utilizador',
+      );
+    }
+  }
+
   async disableUser(id_user: string) {
     const user = await this.utilizadorRepo.findOne({
       where: { id_user },
@@ -168,53 +208,20 @@ export class UsersService {
       throw new NotFoundException('Utilizador não encontrado');
     }
 
-    // Tentar remover o utilizador também do Supabase Auth (credenciais)
-    try {
-      // Supabase admin API: tenta apagar o utilizador por ID
-      const { error: deleteError } =
-        await this.supabaseAdmin.auth.admin.deleteUser(id_user);
+    // A base de dados primeiro, dentro da transacção, e o Supabase Auth como
+    // último passo antes do commit: se a remoção do registo for recusada
+    // (chaves estrangeiras de sessões, prescrições ou permissões), a
+    // transacção é revertida e as credenciais ficam intactas.
+    //
+    // Fica uma janela por fechar: se o commit falhar depois de as credenciais
+    // já terem sido apagadas, o registo sobrevive sem forma de autenticar.
+    // É o lado seguro a falhar — ninguém ganha acesso a mais nada — mas obriga
+    // a limpar o registo à mão. Fechá-la exigiria outbox ou commit em 2 fases.
+    await this.utilizadorRepo.manager.transaction(async (manager) => {
+      await manager.delete(Utilizador, { id_user });
+      await this.removerCredenciaisSupabase(id_user);
+    });
 
-      if (deleteError) {
-        // Regista e falha para permitir diagnóstico — veremos se devemos fallback
-        // eslint-disable-next-line no-console
-        console.error('Supabase admin.deleteUser falhou', {
-          deleteError,
-          id_user,
-        });
-        throw new Error(
-          deleteError.message ?? 'Falha ao remover utilizador do Supabase',
-        );
-      }
-    } catch (supabaseErr) {
-      // Se a remoção direta falhar, tentamos aplicar um ban como fallback
-      // para garantir que o utilizador não consegue autenticar.
-      // eslint-disable-next-line no-console
-      console.warn(
-        'Remoção no Supabase falhou — a tentar ban temporário como fallback',
-        {
-          err: supabaseErr,
-          id_user,
-        },
-      );
-
-      const { error: banError } =
-        await this.supabaseAdmin.auth.admin.updateUserById(id_user, {
-          ban_duration: '1000000h',
-        });
-
-      if (banError) {
-        // eslint-disable-next-line no-console
-        console.error('Supabase admin.updateUserById (ban) também falhou', {
-          banError,
-          id_user,
-        });
-        throw new Error(
-          banError.message ?? 'Falha ao desativar utilizador no Supabase',
-        );
-      }
-    }
-
-    await this.utilizadorRepo.delete({ id_user });
     return { success: true };
   }
 }

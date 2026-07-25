@@ -1,5 +1,6 @@
 import type { PlanoAtivo, ExercicioDoPlano } from "../../services/planosService";
 import { useState } from "react";
+import MiniaturaVideo from "../ui/MiniaturaVideo";
 
 interface Props {
   planoAtivo: PlanoAtivo | null;
@@ -69,13 +70,7 @@ const PlanoList = ({ planoAtivo, historico, loading, onSelecionarExercicio }: Pr
                 >
                   <div className="relative h-24 w-36 flex-shrink-0 overflow-hidden rounded-xl bg-tinta/10">
                     {ex.url_video ? (
-                      <video
-                        src={`${ex.url_video}#t=0.1`}
-                        className="h-full w-full object-cover"
-                        preload="metadata"
-                        muted
-                        playsInline
-                      />
+                      <MiniaturaVideo url={ex.url_video} />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center text-tinta/20">
                         <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -146,7 +141,7 @@ const PlanoList = ({ planoAtivo, historico, loading, onSelecionarExercicio }: Pr
                         <div key={ex.id_exercicio} className="flex items-center gap-4 rounded-xl border border-tinta/10 bg-papel p-3 opacity-75">
                           <div className="relative h-16 w-24 flex-shrink-0 overflow-hidden rounded-lg bg-tinta/15">
                             {ex.url_video ? (
-                              <video src={`${ex.url_video}#t=0.1`} className="h-full w-full object-cover" preload="metadata" muted playsInline />
+                              <MiniaturaVideo url={ex.url_video} />
                             ) : (
                               <div className="flex h-full w-full items-center justify-center text-tinta/20">
                                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

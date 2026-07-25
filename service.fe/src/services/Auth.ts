@@ -2,6 +2,7 @@ import { supabase } from "./supabaseClient";
 import { clearStoredAuth, persistAuthState } from "./authPersistence";
 import type { LoginCredentials } from "../types/auth.types";
 import type { UserProfile } from "../types/permissions";
+import { registarDebug } from "../lib/registo";
 
 // O Supabase devolve os erros de autenticação em inglês técnico e essa mensagem
 // chegava tal e qual ao ecrã de login. Traduzimos os casos conhecidos e dizemos
@@ -51,7 +52,7 @@ const traduzErroLogin = (erro: {
 
 export const authService = {
   async login({ email, password }: LoginCredentials) {
-    console.log("[Auth] a tentar login no Supabase", { email });
+    registarDebug("[Auth] a tentar login no Supabase", { email });
 
     // 1. Faz o login no Supabase (Auth)
     const { data: authData, error: authError } =
@@ -138,7 +139,7 @@ export const authService = {
   },
 
   async logout() {
-    console.log("[Auth] a terminar sessão");
+    registarDebug("[Auth] a terminar sessão");
     await supabase.auth.signOut();
     clearStoredAuth();
   },

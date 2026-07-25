@@ -53,6 +53,19 @@ const infoDificuldade = (d?: string) => {
   }
 };
 
+// A/B/C é a classificação clínica de intensidade (ver CriarPlano.tsx:
+// A = baixa, B = média, C = alta). A criança nunca vê a letra — vê o ritmo
+// de treino. Os valores guardados e filtrados continuam a ser A/B/C.
+const RITMOS = [
+  { valor: "Todos", rotulo: "Todos" },
+  { valor: "A", rotulo: "Calmo" },
+  { valor: "B", rotulo: "Médio" },
+  { valor: "C", rotulo: "Forte" },
+] as const;
+
+const rotuloRitmo = (valor: string) =>
+  RITMOS.find((r) => r.valor === valor)?.rotulo ?? valor;
+
 // Classe de entrada em cascata (evita entrada-pop-1 inexistente)
 const cascata = (idx: number) => `entrada-pop${["", "-2", "-3", "-4"][idx % 4]}`;
 
@@ -283,9 +296,11 @@ export const PlanosPaciente = () => {
     return (
       <div className="fixed inset-0 z-50 flex flex-col bg-tinta">
         <div className="flex items-center justify-between bg-papel-claro px-5 py-4 shadow-vinheta">
+          {/* Mesmo alvo de toque do ExercicioPlayer: 48px (brandbook, cap. 08),
+              com o -ml-3 a compensar o px-3 para o texto não sair do sítio. */}
           <button
             onClick={() => setView("plano-list")}
-            className="text-sm font-medium text-aco transition hover:text-tinta"
+            className="-ml-3 inline-flex min-h-12 items-center rounded-lg px-3 text-sm font-medium text-aco transition hover:text-tinta"
           >
             ← Voltar
           </button>
@@ -540,13 +555,13 @@ export const PlanosPaciente = () => {
         <h1 className="text-2xl font-display tracking-tight text-tinta">Escolhe um plano 📋</h1>
         <p className="mt-1 text-sm text-aco">Toca num plano para o ver e começar!</p>
 
-        {/* Filtro por condição — quadrados grandes, um toque escolhe */}
+        {/* Filtro por ritmo — quadrados grandes, um toque escolhe */}
         <div className="mt-5">
           <p className="mb-2 text-xs font-bold uppercase tracking-wide text-aco">
-            Condição
+            Ritmo do treino
           </p>
           <div className="flex flex-wrap gap-3">
-            {["Todos", "A", "B", "C"].map((op) => {
+            {RITMOS.map(({ valor: op, rotulo }) => {
               const ativo = filtroCondicao === op;
               return (
                 <button
@@ -554,13 +569,13 @@ export const PlanosPaciente = () => {
                   type="button"
                   aria-pressed={ativo}
                   onClick={() => setFiltroCondicao(op)}
-                  className={`flex h-16 min-w-16 items-center justify-center rounded-(--radius-vinheta) border-[3px] border-tinta px-5 font-display text-xl tracking-wide shadow-vinheta transition active:scale-95 active:shadow-none ${
+                  className={`flex h-16 items-center justify-center rounded-(--radius-vinheta) border-[3px] border-tinta px-5 font-display text-xl tracking-wide shadow-vinheta transition active:scale-95 active:shadow-none ${
                     ativo
                       ? "bg-cobalto text-papel"
                       : "bg-papel-claro text-tinta hover:bg-papel"
                   }`}
                 >
-                  {op}
+                  {rotulo}
                 </button>
               );
             })}
@@ -581,7 +596,8 @@ export const PlanosPaciente = () => {
             ) : (
               <>
                 <p className="text-aco">
-                  Ainda não há planos da condição {filtroCondicao}.
+                  Ainda não há planos de ritmo{" "}
+                  {rotuloRitmo(filtroCondicao).toLowerCase()}.
                 </p>
                 <button
                   onClick={() => setFiltroCondicao("Todos")}

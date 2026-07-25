@@ -270,13 +270,16 @@ const AvaliacaoExercicio = ({
             </h2>
             <div className="flex w-full flex-col items-center gap-4">
               <p className="text-lg font-bold text-[#EAEFFF]">{OMNI_LABELS[esforco]}</p>
-              <div className="grid grid-cols-5 gap-2 sm:gap-3" role="group" aria-label="Perceção de esforço de 1 a 10">
+              {/* Os círculos acompanham a largura disponível (`w-full` + `aspect-square`):
+                  com dimensão fixa, as 5 colunas transbordavam o ecrã em telemóveis
+                  estreitos. O `max-w-sm` evita círculos enormes em tablet. */}
+              <div className="grid w-full max-w-sm grid-cols-5 gap-2 sm:gap-3" role="group" aria-label="Perceção de esforço de 1 a 10">
                 {[1,2,3,4,5,6,7,8,9,10].map((n) => (
                   <button
                     key={n}
                     onClick={() => { setEsforco(n); avancoAutomatico(); }}
                     aria-pressed={esforco === n}
-                    className={`flex h-16 w-16 items-center justify-center rounded-full border-[3px] border-tinta font-display text-xl tracking-wide transition-all active:scale-90 sm:h-16 sm:w-16 ${
+                    className={`flex aspect-square w-full items-center justify-center rounded-full border-[3px] border-tinta font-display text-xl tracking-wide transition-all active:scale-90 ${
                       esforco === n
                         ? "scale-110 bg-turbo text-tinta shadow-vinheta"
                         : "bg-papel-claro/15 text-papel hover:bg-papel-claro/30"

@@ -171,7 +171,7 @@ const PlanosCorpoClinico = () => {
                 }
                 descricao={
                   pesquisa
-                    ? `Nenhum paciente corresponde a «${pesquisa}». Tenta outro nome ou email.`
+                    ? `Nenhum paciente corresponde a «${pesquisa}». Tente outro nome ou email.`
                     : "Assim que houver crianças inscritas, aparecem aqui com os treinos concluídos."
                 }
               />

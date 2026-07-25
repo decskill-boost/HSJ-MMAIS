@@ -1,4 +1,5 @@
 import type { UserProfile } from "../types/permissions";
+import { registarDebug } from "./registo";
 
 const API_URL = import.meta.env.VITE_API_URL as string;
 
@@ -15,7 +16,7 @@ export class ApiError extends Error {
 export async function fetchCurrentUser(
   accessToken: string,
 ): Promise<UserProfile> {
-  console.log("[api] a pedir perfil ao backend", {
+  registarDebug("[api] a pedir perfil ao backend", {
     accessToken: Boolean(accessToken),
     apiUrl: API_URL,
   });
@@ -33,7 +34,7 @@ export async function fetchCurrentUser(
 
   if (!res.ok) {
     const body = await res.text().catch(() => "");
-    console.log("[api] falha ao buscar perfil do backend", {
+    registarDebug("[api] falha ao buscar perfil do backend", {
       status: res.status,
       body,
     });
@@ -44,6 +45,6 @@ export async function fetchCurrentUser(
   }
 
   const profile = (await res.json()) as UserProfile;
-  console.log("[api] perfil recebido do backend", profile.email);
+  registarDebug("[api] perfil recebido do backend", profile.email);
   return profile;
 }

@@ -22,7 +22,7 @@ const faixaDuracao = (s: number) =>
 export const CriarPlano = () => {
   const { user } = useUser();
 
-  // Prescrever a um paciente concreto: /plano/criar?paciente=<id>.
+  // Atribuir a um paciente concreto: /plano/criar?paciente=<id>.
   // Sem este parâmetro o ecrã cria um template (plano standard), como antes.
   const [searchParams] = useSearchParams();
   const idPacienteAlvo = searchParams.get("paciente");
@@ -82,7 +82,7 @@ export const CriarPlano = () => {
     buscar();
   }, []);
 
-  // Nome do paciente a quem se vai prescrever (para o clínico ver a quem está a atribuir)
+  // Nome do paciente a quem se vai atribuir (para o clínico ver a quem está a atribuir)
   useEffect(() => {
     if (!idPacienteAlvo) return;
     pacientesService
@@ -166,7 +166,20 @@ export const CriarPlano = () => {
       setErroGuardar("Por favor, especifique a condição clínica para o plano personalizável.");
       return;
     }
-    
+
+    // Rede de segurança para durações já gravadas em planos antigos que cheguem
+    // a 0 ou negativas pelo modo de edição (o input já não as deixa criar).
+    const temDuracaoInvalida = selecionados.some((id) => {
+      const dur = duracoesCustomizadas[id];
+      return dur !== undefined && dur <= 0;
+    });
+    if (temDuracaoInvalida) {
+      setErroGuardar(
+        "Cada exercício tem de ter pelo menos 1 minuto de duração. Corrija as durações personalizadas.",
+      );
+      return;
+    }
+
     setAGuardar(true);
     setErroGuardar(null);
     setGuardado(false);
@@ -196,7 +209,7 @@ export const CriarPlano = () => {
         });
       } else {
         await planosService.criarPlano({
-          // Com ?paciente= prescreve-se a essa criança; sem ele cria-se um template.
+          // Com ?paciente= atribui-se a essa criança; sem ele cria-se um template.
           id_paciente: idPacienteAlvo,
           id_medico: user.idUser,
           frequencia_semanal: frequenciaSemanal,
@@ -245,7 +258,7 @@ export const CriarPlano = () => {
           {idPlanoEditar
             ? "Editar plano"
             : idPacienteAlvo
-              ? "Prescrever plano"
+              ? "Atribuir plano"
               : "Criar plano de exercícios"}
         </h1>
         {idPacienteAlvo ? (
@@ -254,7 +267,7 @@ export const CriarPlano = () => {
           </p>
         ) : (
           <p className="mt-1 text-sm text-aco">
-            Monte templates de planos de treino gerais ou prescreva planos
+            Monte templates de planos de treino gerais ou atribua planos
             individuais com durações customizadas.
           </p>
         )}
@@ -397,9 +410,12 @@ export const CriarPlano = () => {
                                   value={Math.round((duracoesCustomizadas[ex.id_exercicio] ?? ex.duracao_segundos) / 60)}
                                   onChange={(e) => {
                                     const mins = Number(e.target.value);
+                                    // A duração tem de ser de pelo menos 1 minuto: campos vazios ou
+                                    // valores negativos ficariam a 0 e o treino terminava ao fim de 1 s.
+                                    if (!Number.isFinite(mins) || mins < 1) return;
                                     setDuracoesCustomizadas({
                                       ...duracoesCustomizadas,
-                                      [ex.id_exercicio]: mins * 60,
+                                      [ex.id_exercicio]: Math.round(mins) * 60,
                                     });
                                     setGuardado(false);
                                   }}
@@ -428,7 +444,7 @@ export const CriarPlano = () => {
 
             <div className="space-y-4">
               {/* Tipo de Plano — só quando se está a criar um template.
-                  A prescrever a uma criança, o plano é sempre individual. */}
+                  A atribuir a uma criança, o plano é sempre individual. */}
               <div className={idPacienteAlvo ? "hidden" : undefined}>
                 <label className="block text-xs font-semibold text-aco">Tipo de Plano</label>
                 <div className="mt-1 flex gap-4">
@@ -586,7 +602,7 @@ export const CriarPlano = () => {
                   : idPlanoEditar
                     ? "Guardar alterações"
                     : idPacienteAlvo
-                    ? `Prescrever a ${pacienteAlvo?.nome ?? "este paciente"}`
+                    ? `Atribuir a ${pacienteAlvo?.nome ?? "este paciente"}`
                     : tipoPlano === "standard"
                       ? "Criar plano standard"
                       : "Criar plano personalizável"}
@@ -594,7 +610,11 @@ export const CriarPlano = () => {
             </div>
             {guardado && (
               <p className="mt-3 text-center text-xs font-semibold text-turbo-escuro">
-                Plano guardado com sucesso! ✓
+                {idPlanoEditar
+                  ? "Alterações guardadas! ✓"
+                  : idPacienteAlvo
+                    ? `Plano atribuído a ${pacienteAlvo?.nome ?? "este paciente"}! ✓`
+                    : "Plano criado com sucesso! ✓"}
               </p>
             )}
             {erroGuardar && (

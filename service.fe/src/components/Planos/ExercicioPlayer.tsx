@@ -151,9 +151,11 @@ const ExercicioPlayer = ({
     <div className="fixed inset-0 z-50 flex flex-col bg-tinta">
       {/* Barra de cima */}
       <div className="flex items-center justify-between border-b-[3px] border-tinta bg-papel-claro px-5 py-4">
+        {/* O -ml-3 compensa o px-3: o alvo de toque chega aos 48px do brandbook
+            (cap. 08) sem o texto sair do sítio nem desalinhar a barra. */}
         <button
           onClick={onVoltar}
-          className="text-sm font-bold text-aco transition hover:text-tinta"
+          className="-ml-3 inline-flex min-h-12 items-center rounded-lg px-3 text-sm font-bold text-aco transition hover:text-tinta"
         >
           ← Voltar
         </button>

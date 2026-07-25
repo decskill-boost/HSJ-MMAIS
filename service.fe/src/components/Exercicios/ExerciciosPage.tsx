@@ -6,6 +6,7 @@ import type { Exercicio } from "../../services/exercicios";
 import { supabase } from "../../services/supabaseClient";
 import { CriarExercicioModal } from "./CriarExercicioModal";
 import LoadingSpinner from "../LoadingSpinner";
+import MiniaturaVideo from "../ui/MiniaturaVideo";
 
 const CATEGORIAS_OPCOES = [
   "Quadríceps",
@@ -319,7 +320,7 @@ const ExerciciosPage = () => {
             >
               <div className="relative h-48 w-full flex-shrink-0 border-b-[3px] border-tinta bg-papel">
                 {ex.url_video ? (
-                  <video src={`${ex.url_video}#t=0.1`} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                  <MiniaturaVideo url={ex.url_video} />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-aco">
                     <svg className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">

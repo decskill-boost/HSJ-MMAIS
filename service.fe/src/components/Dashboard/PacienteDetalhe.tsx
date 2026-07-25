@@ -316,7 +316,7 @@ const PacienteDetalhe = () => {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {/* Prescrever sem ter de voltar à lista — era o passo em falta */}
+          {/* Atribuir sem ter de voltar à lista — era o passo em falta */}
           <button
             onClick={() => navigate(`/plano/criar?paciente=${pacienteId}`)}
             className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-cobalto px-5 py-2.5 text-sm font-bold text-papel shadow-vinheta transition hover:bg-cobalto-vivo active:scale-95 active:shadow-none"
