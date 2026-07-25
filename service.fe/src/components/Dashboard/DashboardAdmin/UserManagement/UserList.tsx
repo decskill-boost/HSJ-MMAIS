@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { UserProfile } from "../../../../types/permissions";
-import ConfirmDialog from "./ConfirmDialog";
+import ConfirmDialog from "../../../ui/ConfirmDialog";
 import BtnGlobal from "../../../BtnGlobal";
 import LoadingSpinner from "../../../LoadingSpinner";
 import EstadoVazio from "../../../ui/EstadoVazio";

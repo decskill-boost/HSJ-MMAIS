@@ -304,6 +304,7 @@ const AvaliacaoExercicio = ({
                   </p>
                 )}
                 <input
+                  aria-label="BPM médio"
                   type="number" inputMode="numeric" placeholder="ex: 95" value={bpmMedio}
                   onChange={(e) => validarBpm(e.target.value, setBpmMedio, setErroBpmMedio)}
                   min={1} max={300} step={1}
@@ -318,6 +319,7 @@ const AvaliacaoExercicio = ({
                   </p>
                 )}
                 <input
+                  aria-label="BPM máximo"
                   type="number" inputMode="numeric" placeholder="ex: 130" value={bpmMaximo}
                   onChange={(e) => validarBpm(e.target.value, setBpmMaximo, setErroBpmMaximo)}
                   min={1} max={300} step={1}
@@ -355,6 +357,7 @@ const AvaliacaoExercicio = ({
             </div>
             {problemas === true && (
               <textarea
+                aria-label="O que aconteceu durante o exercício"
                 value={descricaoProblema}
                 onChange={(e) => setDescricaoProblema(e.target.value)}
                 placeholder="Conta-me o que aconteceu…"

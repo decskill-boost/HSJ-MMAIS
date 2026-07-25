@@ -43,7 +43,7 @@ export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
               {user?.url_foto_perfil ? (
                 <img
                   src={user.url_foto_perfil}
-                  alt={user.nome}
+                  alt=""
                   className="h-24 w-24 rounded-full border border-tinta/15 object-cover shadow-sm"
                 />
               ) : (

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useOutletContext } from "react-router-dom";
+import { useTeclaEscape } from "../hooks/useTeclaEscape";
 import {
   planosService,
   type PlanoAtivo,
@@ -137,6 +138,8 @@ export const PlanosPaciente = () => {
   const [planos, setPlanos] = useState<PlanoAtivo[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<View>("escolha");
+  // A pré-visualização do plano tapa o ecrã todo; Escape volta à lista.
+  useTeclaEscape(() => setView("plano-list"), view === "plano-preview");
   const [filtroCondicao, setFiltroCondicao] = useState<string>("Todos");
 
   // Fluxo exercício individual

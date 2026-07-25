@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { useTeclaEscape } from "../hooks/useTeclaEscape";
 
 // Ícones inline (sem dependências)
 const IconHome = (props: React.SVGProps<SVGSVGElement>) => (
@@ -81,6 +82,9 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ links, isOpen, onClose }: SidebarProps) => {
+  // A gaveta tapava o ecrã em mobile e só fechava com um toque no fundo.
+  useTeclaEscape(() => onClose?.(), Boolean(isOpen));
+
   return (
     <>
       {/* Overlay escuro para mobile quando a sidebar está aberta */}

@@ -271,10 +271,10 @@ export const CriarPlano = () => {
             {/* Filtros */}
             <div className="flex flex-wrap items-end gap-3 mb-6">
               <div className="min-w-[140px] flex-1">
-                <label className="block text-xs font-semibold text-aco">
+                <label className="block text-xs font-semibold text-aco" htmlFor="plano-categoria">
                   Categoria
                 </label>
-                <select
+                <select id="plano-categoria"
                   value={filtroCategoria}
                   onChange={(e) => setFiltroCategoria(e.target.value)}
                   className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro"
@@ -289,10 +289,10 @@ export const CriarPlano = () => {
               </div>
 
               <div className="min-w-[140px] flex-1">
-                <label className="block text-xs font-semibold text-aco">
+                <label className="block text-xs font-semibold text-aco" htmlFor="plano-intensidade">
                   Intensidade
                 </label>
-                <select
+                <select id="plano-intensidade"
                   value={filtroDificuldade}
                   onChange={(e) => setFiltroDificuldade(e.target.value)}
                   className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro"
@@ -305,10 +305,10 @@ export const CriarPlano = () => {
               </div>
 
               <div className="min-w-[140px] flex-1">
-                <label className="block text-xs font-semibold text-aco">
+                <label className="block text-xs font-semibold text-aco" htmlFor="plano-condicao">
                   Condição
                 </label>
-                <select
+                <select id="plano-condicao"
                   value={filtroCondicao}
                   onChange={(e) => setFiltroCondicao(e.target.value)}
                   className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro"
@@ -321,10 +321,10 @@ export const CriarPlano = () => {
               </div>
 
               <div className="min-w-[140px] flex-1">
-                <label className="block text-xs font-semibold text-aco">
+                <label className="block text-xs font-semibold text-aco" htmlFor="plano-duracao">
                   Duração
                 </label>
-                <select
+                <select id="plano-duracao"
                   value={filtroDuracao}
                   onChange={(e) => setFiltroDuracao(e.target.value)}
                   className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro"
@@ -369,7 +369,7 @@ export const CriarPlano = () => {
                     return (
                       <li key={ex.id_exercicio}>
                         <div className={`flex flex-col gap-3 rounded-xl border p-4 bg-papel-claro transition ${ativo ? "border-cobalto/40 bg-cobalto/10" : "border-tinta/15 hover:bg-papel"}`}>
-                          <label className="flex cursor-pointer items-start gap-3">
+                          <label className="flex cursor-pointer items-start gap-3" htmlFor="plano-toggle-ex-id-exercicio-classname-mt-1-h-4-w-4-rounded-border-tinta-20-text-cobalto-focus-ring-cobalto-duracao-padrao-intensidade-condicao-nivel-ativo-duracao-customizada-const-mins-number-e-target-value-setduracoescustomizadas-setguardado-false-classname-w-16-rounded-lg-border-border-tinta-15-bg-papel-claro-px-2-py-1-text-center-text-xs-font-bold-text-tinta-focus-border-cobalto-minutos-configuracoes-do-plano-tipo-de-plano-classname-h-4-w-4-text-cobalto-focus-ring-cobalto-standard-geral-classname-h-4-w-4-text-cobalto-focus-ring-cobalto-personalizavel-especializado-tipoplano-personalizavel-condicao-clinica-perfil-destinatario">
                             <input
                               type="checkbox"
                               checked={ativo}
@@ -391,6 +391,7 @@ export const CriarPlano = () => {
                               <span className="text-xs font-semibold text-cobalto">Duração customizada:</span>
                               <div className="flex items-center gap-2">
                                 <input
+                                  aria-label={`Duração em minutos de ${ex.nome_exercicio}`}
                                   type="number"
                                   min={1}
                                   value={Math.round((duracoesCustomizadas[ex.id_exercicio] ?? ex.duracao_segundos) / 60)}
@@ -466,7 +467,7 @@ export const CriarPlano = () => {
               {tipoPlano === "personalizavel" && (
                 <div>
                   <label className="block text-xs font-semibold text-aco">Condição Clínica / Perfil Destinatário</label>
-                  <input
+                  <input id="plano-toggle-ex-id-exercicio-classname-mt-1-h-4-w-4-rounded-border-tinta-20-text-cobalto-focus-ring-cobalto-duracao-padrao-intensidade-condicao-nivel-ativo-duracao-customizada-const-mins-number-e-target-value-setduracoescustomizadas-setguardado-false-classname-w-16-rounded-lg-border-border-tinta-15-bg-papel-claro-px-2-py-1-text-center-text-xs-font-bold-text-tinta-focus-border-cobalto-minutos-configuracoes-do-plano-tipo-de-plano-classname-h-4-w-4-text-cobalto-focus-ring-cobalto-standard-geral-classname-h-4-w-4-text-cobalto-focus-ring-cobalto-personalizavel-especializado-tipoplano-personalizavel-condicao-clinica-perfil-destinatario"
                     type="text"
                     value={condicaoClinica}
                     onChange={(e) => {
@@ -480,8 +481,8 @@ export const CriarPlano = () => {
               )}
               {/* Intensidade do Plano */}
               <div>
-                <label className="block text-xs font-semibold text-aco">Classificação de Intensidade</label>
-                <select
+                <label className="block text-xs font-semibold text-aco" htmlFor="plano-classificacao-de-intensidade">Classificação de Intensidade</label>
+                <select id="plano-classificacao-de-intensidade"
                   value={dificuldade}
                   onChange={(e) => {
                     setDificuldade(e.target.value);
@@ -497,8 +498,8 @@ export const CriarPlano = () => {
 
               {/* Condição do Paciente */}
               <div>
-                <label className="block text-xs font-semibold text-aco">Condição do Paciente</label>
-                <select
+                <label className="block text-xs font-semibold text-aco" htmlFor="plano-condicao-do-paciente">Condição do Paciente</label>
+                <select id="plano-condicao-do-paciente"
                   value={condicaoPaciente}
                   onChange={(e) => {
                     setCondicaoPaciente(e.target.value);
@@ -514,10 +515,10 @@ export const CriarPlano = () => {
 
               {/* Frequência */}
               <div>
-                <label className="block text-xs font-semibold text-aco">
+                <label className="block text-xs font-semibold text-aco" htmlFor="plano-frequencia-semanal-vezes-por-semana">
                   Frequência semanal (vezes por semana)
                 </label>
-                <input
+                <input id="plano-frequencia-semanal-vezes-por-semana"
                   type="number"
                   min={1}
                   max={7}
@@ -532,10 +533,10 @@ export const CriarPlano = () => {
 
               {/* Data Validade */}
               <div>
-                <label className="block text-xs font-semibold text-aco">
+                <label className="block text-xs font-semibold text-aco" htmlFor="plano-data-de-validade">
                   Data de validade
                 </label>
-                <input
+                <input id="plano-data-de-validade"
                   type="date"
                   value={dataValidade}
                   onChange={(e) => {
@@ -548,10 +549,10 @@ export const CriarPlano = () => {
 
               {/* Notas médicas */}
               <div>
-                <label className="block text-xs font-semibold text-aco">
+                <label className="block text-xs font-semibold text-aco" htmlFor="plano-notas-indicacoes-do-plano">
                   Notas / Indicações do plano
                 </label>
-                <textarea
+                <textarea id="plano-notas-indicacoes-do-plano"
                   rows={3}
                   value={notasMedicas}
                   onChange={(e) => {

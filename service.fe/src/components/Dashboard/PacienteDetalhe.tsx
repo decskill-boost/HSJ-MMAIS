@@ -6,6 +6,7 @@ import {
 } from "../../services/planosService";
 import BtnGlobal from "../BtnGlobal";
 import EstadoVazio from "../ui/EstadoVazio";
+import Modal from "../ui/Modal";
 import {
   CabecaTabela,
   CorpoTabela,
@@ -540,26 +541,12 @@ const PacienteDetalhe = () => {
 
       {/* Modal de Métricas do Treino */}
       {sessaoDetalhada && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-tinta/60 backdrop-blur-sm p-4">
-          <div className="relative w-full max-w-lg rounded-3xl border border-tinta/15 bg-papel-claro p-6 shadow-xl entrada-pop">
-            <button
-              onClick={() => setSessaoDetalhada(null)}
-              className="absolute right-4 top-4 rounded-xl p-1.5 text-aco hover:bg-papel hover:text-aco"
-            >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
+        <Modal
+          titulo="Métricas detalhadas do treino"
+          aoFechar={() => setSessaoDetalhada(null)}
+          className="max-w-lg p-6"
+        >
+          <>
 
             <h3 className="text-xl font-bold text-tinta">
               Métricas Detalhadas do Treino
@@ -638,15 +625,12 @@ const PacienteDetalhe = () => {
             </div>
 
             <div className="mt-6 flex justify-end">
-              <button
-                onClick={() => setSessaoDetalhada(null)}
-                className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-tinta px-4 py-2.5 text-sm font-bold text-papel shadow-vinheta transition hover:bg-tinta/90 active:scale-95 active:shadow-none"
-              >
+              <BtnGlobal onClick={() => setSessaoDetalhada(null)}>
                 Fechar
-              </button>
+              </BtnGlobal>
             </div>
-          </div>
-        </div>
+          </>
+        </Modal>
       )}
       {pacienteInfo && (
         <section className="mt-8 painel p-6">

@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import Modal from "../ui/Modal";
 import { supabase } from "../../services/supabaseClient";
 import { exerciciosService } from "../../services/exercicios";
 
@@ -151,8 +152,8 @@ export const CriarExercicioModal = ({ isOpen, onClose, onSucesso, categorias, ma
   }
 
   return (
-    <div className="fixed inset-0 bg-tinta/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-papel-claro rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+    <Modal titulo="Criar exercício" aoFechar={onClose} className="max-w-lg p-6">
+      <>
         {passo === 3 ? (
           <div className="flex flex-col items-center justify-center py-8">
             <div className="h-16 w-16 bg-turbo/15 text-turbo-escuro rounded-full flex items-center justify-center mb-4">
@@ -177,7 +178,7 @@ export const CriarExercicioModal = ({ isOpen, onClose, onSucesso, categorias, ma
             {passo === 1 ? (
               <div className="flex flex-col gap-4">
                 <div>
-                  <label className="text-xs font-medium text-aco">
+                  <label className="text-xs font-medium text-aco" htmlFor="novo-ex-video-mp4-mov-max-100mb-fileinputref-current-click-classname-mt-1-w-full-rounded-xl-border-2-border-dashed-transition-cursor-pointer-flex-flex-col-items-center-justify-center-overflow-hidden-style-errovideo-nome">
                     Vídeo <span className="text-aco">(MP4/MOV, máx 100MB)</span>
                   </label>
                   <div
@@ -202,7 +203,7 @@ export const CriarExercicioModal = ({ isOpen, onClose, onSucesso, categorias, ma
 
                 <div>
                   <label className="text-xs font-medium text-aco">Nome *</label>
-                  <input
+                  <input id="novo-ex-video-mp4-mov-max-100mb-fileinputref-current-click-classname-mt-1-w-full-rounded-xl-border-2-border-dashed-transition-cursor-pointer-flex-flex-col-items-center-justify-center-overflow-hidden-style-errovideo-nome"
                     className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm"
                     placeholder="Ex: Agachamento"
                     value={form.nome_exercicio}
@@ -211,8 +212,8 @@ export const CriarExercicioModal = ({ isOpen, onClose, onSucesso, categorias, ma
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-aco">Categoria *</label>
-                  <select
+                  <label className="text-xs font-medium text-aco" htmlFor="novo-ex-categoria">Categoria *</label>
+                  <select id="novo-ex-categoria"
                     className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm bg-papel-claro"
                     value={form.categoria}
                     onChange={(e) => setForm({ ...form, categoria: e.target.value })}
@@ -237,7 +238,7 @@ export const CriarExercicioModal = ({ isOpen, onClose, onSucesso, categorias, ma
             ) : (
               <div className="flex flex-col gap-4">
                 <div>
-                  <label className="text-xs font-medium text-aco mb-2 block">
+                  <label className="text-xs font-medium text-aco mb-2 block" htmlFor="novo-ex-materiais-necessarios-opcional-materiais-map-m-string-classname-px-3-py-1-5-rounded-full-text-xs-font-medium-transition-duracao-seg">
                     Materiais Necessários <span className="text-aco">(opcional)</span>
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -260,7 +261,7 @@ export const CriarExercicioModal = ({ isOpen, onClose, onSucesso, categorias, ma
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-xs font-medium text-aco">Duração (seg) *</label>
-                    <input
+                    <input id="novo-ex-materiais-necessarios-opcional-materiais-map-m-string-classname-px-3-py-1-5-rounded-full-text-xs-font-medium-transition-duracao-seg"
                       type="number"
                       className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm ${erroDuracao ? "border-capa" : "border-tinta/15"}`}
                       value={form.duracao_segundos}
@@ -273,8 +274,8 @@ export const CriarExercicioModal = ({ isOpen, onClose, onSucesso, categorias, ma
                     {erroDuracao && <p className="text-xs text-capa-escura mt-1">{erroDuracao}</p>}
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-aco">XP *</label>
-                    <input
+                    <label className="text-xs font-medium text-aco" htmlFor="novo-ex-xp">XP *</label>
+                    <input id="novo-ex-xp"
                       type="number"
                       className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm ${erroXp ? "border-capa" : "border-tinta/15"}`}
                       value={form.recompensa_xp}
@@ -287,8 +288,8 @@ export const CriarExercicioModal = ({ isOpen, onClose, onSucesso, categorias, ma
                     {erroXp && <p className="text-xs text-capa-escura mt-1">{erroXp}</p>}
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-aco">Intensidade *</label>
-                    <select
+                    <label className="text-xs font-medium text-aco" htmlFor="novo-ex-intensidade">Intensidade *</label>
+                    <select id="novo-ex-intensidade"
                       className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm bg-papel-claro"
                       value={form.dificuldade_clinica}
                       onChange={(e) => setForm({ ...form, dificuldade_clinica: e.target.value })}
@@ -297,8 +298,8 @@ export const CriarExercicioModal = ({ isOpen, onClose, onSucesso, categorias, ma
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-aco">Condição do Paciente *</label>
-                    <select
+                    <label className="text-xs font-medium text-aco" htmlFor="novo-ex-condicao-do-paciente">Condição do Paciente *</label>
+                    <select id="novo-ex-condicao-do-paciente"
                       className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm bg-papel-claro"
                       value={form.condicao_paciente}
                       onChange={(e) => setForm({ ...form, condicao_paciente: e.target.value })}
@@ -310,10 +311,10 @@ export const CriarExercicioModal = ({ isOpen, onClose, onSucesso, categorias, ma
                   </div>
                   {/* Campo de repetições */}
                   <div className="col-span-2">
-                    <label className="text-xs font-medium text-aco">
+                    <label className="text-xs font-medium text-aco" htmlFor="novo-ex-repeticoes-opcional">
                       Repetições <span className="text-aco">(opcional)</span>
                     </label>
-                    <input
+                    <input id="novo-ex-repeticoes-opcional"
                       type="number"
                       min="1"
                       className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm"
@@ -336,6 +337,7 @@ export const CriarExercicioModal = ({ isOpen, onClose, onSucesso, categorias, ma
                     </span>
                   </div>
                   <textarea
+                    aria-label="Instruções do exercício"
                     rows={3}
                     maxLength={1000}
                     className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm resize-none"
@@ -372,7 +374,7 @@ export const CriarExercicioModal = ({ isOpen, onClose, onSucesso, categorias, ma
             )}
           </>
         )}
-      </div>
-    </div>
+      </>
+    </Modal>
   );
 };

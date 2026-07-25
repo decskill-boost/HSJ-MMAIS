@@ -54,7 +54,7 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
         {user.url_foto_perfil ? (
           <img
             src={user.url_foto_perfil}
-            alt={user.nome}
+            alt=""
             className="h-10 w-10 rounded-full object-cover"
           />
         ) : (

@@ -14,7 +14,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
     : "flex flex-col items-center justify-center p-8 w-full min-h-[200px]";
 
   return (
-    <div className={containerClass}>
+    <div className={containerClass} role="status" aria-live="polite">
       <div className="relative flex items-center justify-center">
         <div className="h-12 w-12 rounded-full border-4 border-tinta/15 border-t-cobalto animate-spin" />
         <span className="absolute h-4 w-4 rounded-full bg-raio" />

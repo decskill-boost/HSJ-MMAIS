@@ -134,6 +134,7 @@ const GestaoPlanos = () => {
           </div>
           <input
             type="search"
+            aria-label="Pesquisar planos por paciente ou notas"
             value={pesquisa}
             onChange={(e) => setPesquisa(e.target.value)}
             placeholder="Pesquisar por paciente ou notas…"

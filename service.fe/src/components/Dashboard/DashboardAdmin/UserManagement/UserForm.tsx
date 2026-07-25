@@ -54,10 +54,10 @@ const UserForm = ({
         }}
       >
         <div>
-          <label className="block text-sm font-semibold text-tinta">
+          <label className="block text-sm font-semibold text-tinta" htmlFor="conta-nome">
             Nome
           </label>
-          <input
+          <input id="conta-nome"
             value={form.nome}
             onChange={(event) => setForm({ ...form, nome: event.target.value })}
             disabled={loading}
@@ -65,10 +65,10 @@ const UserForm = ({
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-tinta">
+          <label className="block text-sm font-semibold text-tinta" htmlFor="conta-email">
             Email
           </label>
-          <input
+          <input id="conta-email"
             type="email"
             value={form.email}
             onChange={(event) =>
@@ -80,10 +80,10 @@ const UserForm = ({
         </div>
         {!editingUserId && (
           <div>
-            <label className="block text-sm font-semibold text-tinta">
+            <label className="block text-sm font-semibold text-tinta" htmlFor="conta-palavra-passe">
               Palavra-passe
             </label>
-            <input
+            <input id="conta-palavra-passe"
               type="password"
               value={form.password}
               onChange={(event) =>
@@ -95,10 +95,10 @@ const UserForm = ({
           </div>
         )}
         <div>
-          <label className="block text-sm font-semibold text-tinta">
+          <label className="block text-sm font-semibold text-tinta" htmlFor="conta-perfil">
             Perfil
           </label>
-          <select
+          <select id="conta-perfil"
             value={form.tipo_utilizador}
             onChange={(event) =>
               setForm({

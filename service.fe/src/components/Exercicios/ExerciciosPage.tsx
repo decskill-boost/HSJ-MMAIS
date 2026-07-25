@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import Modal from "../ui/Modal";
+import ConfirmDialog from "../ui/ConfirmDialog";
 import { exerciciosService } from "../../services/exercicios";
 import type { Exercicio } from "../../services/exercicios";
 import { supabase } from "../../services/supabaseClient";
@@ -244,8 +246,8 @@ const ExerciciosPage = () => {
         </div>
         <div className="flex flex-wrap items-end gap-4 border-t border-tinta/15 pt-5">
           <div>
-            <label className="block text-xs font-medium text-aco mb-1">Categoria</label>
-            <select
+            <label className="block text-xs font-medium text-aco mb-1" htmlFor="ex-categoria">Categoria</label>
+            <select id="ex-categoria"
               value={filtroCategoria}
               onChange={(e) => setFiltroCategoria(e.target.value)}
               className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-papel-claro focus:ring-2 focus:ring-cobalto/30"
@@ -254,8 +256,8 @@ const ExerciciosPage = () => {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-aco mb-1">Duração</label>
-            <select
+            <label className="block text-xs font-medium text-aco mb-1" htmlFor="ex-duracao">Duração</label>
+            <select id="ex-duracao"
               value={filtroDuracao}
               onChange={(e) => setFiltroDuracao(e.target.value)}
               className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-papel-claro focus:ring-2 focus:ring-cobalto/30"
@@ -264,8 +266,8 @@ const ExerciciosPage = () => {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-aco mb-1">Intensidade</label>
-            <select
+            <label className="block text-xs font-medium text-aco mb-1" htmlFor="ex-intensidade">Intensidade</label>
+            <select id="ex-intensidade"
               value={filtroDificuldade}
               onChange={(e) => setFiltroDificuldade(e.target.value)}
               className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-papel-claro focus:ring-2 focus:ring-cobalto/30"
@@ -274,8 +276,8 @@ const ExerciciosPage = () => {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-aco mb-1">Condição</label>
-            <select
+            <label className="block text-xs font-medium text-aco mb-1" htmlFor="ex-condicao">Condição</label>
+            <select id="ex-condicao"
               value={filtroCondicao}
               onChange={(e) => setFiltroCondicao(e.target.value)}
               className="rounded-lg border border-tinta/15 px-3 py-2 text-sm text-tinta bg-papel-claro focus:ring-2 focus:ring-cobalto/30"
@@ -406,8 +408,12 @@ const ExerciciosPage = () => {
 
       {/* Modal de detalhe */}
       {exercicioAberto && (
-        <div className="fixed inset-0 bg-tinta/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-papel-claro rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+        <Modal
+          titulo="Detalhe do exercício"
+          aoFechar={() => setExercicioAberto(null)}
+          className="max-w-3xl"
+        >
+          <>
             <div className="flex flex-col md:flex-row">
               {exercicioAberto.url_video ? (
                 <video
@@ -500,19 +506,22 @@ const ExerciciosPage = () => {
                 </div>
               </div>
             </div>
-          </div>
-        </div>
+          </>
+        </Modal>
       )}
 
       {/* Modal de edição */}
       {exercicioEditando && (
-        <div className="fixed inset-0 bg-tinta/40 flex items-center justify-center z-50 p-4">
-          <div className="bg-papel-claro rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <Modal
+          titulo="Editar exercício"
+          aoFechar={() => setExercicioEditando(null)}
+          className="max-w-lg"
+        >
             <div className="p-6">
               <h2 className="text-lg font-bold text-tinta mb-5">Editar Exercício</h2>
               <div className="flex flex-col gap-4">
                 <div>
-                  <label className="text-xs font-medium text-aco">
+                  <label className="text-xs font-medium text-aco" htmlFor="ex-video-mp4-ou-mov-max-100mb-uploadingedit-editfileinputref-current-click-classname-mt-1-w-full-rounded-xl-border-2-border-dashed-transition-cursor-pointer-overflow-hidden-style-errovideoedit-editvideofile-errovideoedit-novo-video-nome">
                     Vídeo <span className="text-aco">(MP4 ou MOV, máx. 100MB)</span>
                   </label>
                   <div
@@ -545,7 +554,7 @@ const ExerciciosPage = () => {
 
                 <div>
                   <label className="text-xs font-medium text-aco">Nome</label>
-                  <input
+                  <input id="ex-video-mp4-ou-mov-max-100mb-uploadingedit-editfileinputref-current-click-classname-mt-1-w-full-rounded-xl-border-2-border-dashed-transition-cursor-pointer-overflow-hidden-style-errovideoedit-editvideofile-errovideoedit-novo-video-nome"
                     className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm"
                     value={exercicioEditando.nome_exercicio}
                     onChange={(e) => setExercicioEditando({ ...exercicioEditando, nome_exercicio: e.target.value })}
@@ -553,8 +562,8 @@ const ExerciciosPage = () => {
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-aco">Categoria</label>
-                  <select
+                  <label className="text-xs font-medium text-aco" htmlFor="ex-categoria-2">Categoria</label>
+                  <select id="ex-categoria-2"
                     className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm bg-papel-claro"
                     value={exercicioEditando.categoria}
                     onChange={(e) => setExercicioEditando({ ...exercicioEditando, categoria: e.target.value })}
@@ -564,7 +573,7 @@ const ExerciciosPage = () => {
                 </div>
 
                 <div>
-                  <label className="text-xs font-medium text-aco mb-2 block">
+                  <label className="text-xs font-medium text-aco mb-2 block" htmlFor="ex-materiais-necessarios-opcional-materiais-opcoes-map-material-const-currentarr-exercicioeditando-materiais-necessarios-split-map-m-m-trim-filter-boolean-const-isselected-currentarr-includes-material-return-const-newstr-togglematerial-exercicioeditando-materiais-necessarios-material-setexercicioeditando-classname-px-3-py-1-5-rounded-full-text-xs-font-medium-transition-duracao-seg">
                     Materiais Necessários <span className="text-aco">(opcional)</span>
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -592,7 +601,7 @@ const ExerciciosPage = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="text-xs font-medium text-aco">Duração (seg)</label>
-                    <input
+                    <input id="ex-materiais-necessarios-opcional-materiais-opcoes-map-material-const-currentarr-exercicioeditando-materiais-necessarios-split-map-m-m-trim-filter-boolean-const-isselected-currentarr-includes-material-return-const-newstr-togglematerial-exercicioeditando-materiais-necessarios-material-setexercicioeditando-classname-px-3-py-1-5-rounded-full-text-xs-font-medium-transition-duracao-seg"
                       type="number"
                       className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm ${erroDuracaoEdit ? "border-capa" : "border-tinta/15"}`}
                       value={exercicioEditando.duracao_segundos}
@@ -605,8 +614,8 @@ const ExerciciosPage = () => {
                     {erroDuracaoEdit && <p className="text-xs text-capa mt-1">{erroDuracaoEdit}</p>}
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-aco">Recompensa XP</label>
-                    <input
+                    <label className="text-xs font-medium text-aco" htmlFor="ex-recompensa-xp">Recompensa XP</label>
+                    <input id="ex-recompensa-xp"
                       type="number"
                       className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm ${erroXpEdit ? "border-capa" : "border-tinta/15"}`}
                       value={exercicioEditando.recompensa_xp}
@@ -619,8 +628,8 @@ const ExerciciosPage = () => {
                     {erroXpEdit && <p className="text-xs text-capa mt-1">{erroXpEdit}</p>}
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-aco">Intensidade</label>
-                    <select
+                    <label className="text-xs font-medium text-aco" htmlFor="ex-intensidade-2">Intensidade</label>
+                    <select id="ex-intensidade-2"
                       className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm bg-papel-claro"
                       value={exercicioEditando.dificuldade_clinica}
                       onChange={(e) => setExercicioEditando({ ...exercicioEditando, dificuldade_clinica: e.target.value })}
@@ -629,8 +638,8 @@ const ExerciciosPage = () => {
                     </select>
                   </div>
                   <div>
-                    <label className="text-xs font-medium text-aco">Condição do Paciente</label>
-                    <select
+                    <label className="text-xs font-medium text-aco" htmlFor="ex-condicao-do-paciente">Condição do Paciente</label>
+                    <select id="ex-condicao-do-paciente"
                       className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm bg-papel-claro"
                       value={exercicioEditando.condicao_paciente || "A"}
                       onChange={(e) => setExercicioEditando({ ...exercicioEditando, condicao_paciente: e.target.value })}
@@ -642,10 +651,10 @@ const ExerciciosPage = () => {
                   </div>
                   {/* Campo de repetições no modal de edição */}
                   <div className="col-span-2">
-                    <label className="text-xs font-medium text-aco">
+                    <label className="text-xs font-medium text-aco" htmlFor="ex-repeticoes-opcional-deixa-vazio-se-for-por-tempo">
                       Repetições <span className="text-aco">(opcional — deixa vazio se for por tempo)</span>
                     </label>
-                    <input
+                    <input id="ex-repeticoes-opcional-deixa-vazio-se-for-por-tempo"
                       type="number"
                       min="1"
                       className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm"
@@ -671,6 +680,7 @@ const ExerciciosPage = () => {
                     </span>
                   </div>
                   <textarea
+                    aria-label="Instruções do exercício"
                     rows={3}
                     maxLength={1000}
                     className="mt-1 w-full rounded-lg border border-tinta/15 px-3 py-2 text-sm resize-none"
@@ -709,34 +719,19 @@ const ExerciciosPage = () => {
                 </button>
               </div>
             </div>
-          </div>
-        </div>
+        </Modal>
       )}
 
       {/* Modal de confirmação de eliminação */}
       {exercicioAEliminar && (
-        <div className="fixed inset-0 bg-tinta/40 flex items-center justify-center z-50">
-          <div className="bg-papel-claro rounded-2xl shadow-xl p-6 w-full max-w-sm">
-            <h2 className="text-lg font-bold text-tinta mb-2">Eliminar Exercício</h2>
-            <p className="text-sm text-aco mb-6">
-              Tem a certeza de que deseja eliminar este exercício? Esta ação não pode ser desfeita.
-            </p>
-            <div className="flex justify-end gap-2">
-              <button
-                onClick={() => setExercicioAEliminar(null)}
-                className="rounded-lg border border-tinta/15 px-4 py-2 text-sm font-medium text-aco hover:bg-papel"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={handleEliminar}
-                className="rounded-lg bg-capa px-4 py-2 text-sm font-bold text-white hover:bg-capa-escura"
-              >
-                Eliminar
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmDialog
+          title="Eliminar exercício"
+          message="Tem a certeza de que deseja eliminar este exercício? Esta ação não pode ser desfeita."
+          confirmLabel="Eliminar"
+          cancelLabel="Cancelar"
+          onCancel={() => setExercicioAEliminar(null)}
+          onConfirm={handleEliminar}
+        />
       )}
     </div>
   );

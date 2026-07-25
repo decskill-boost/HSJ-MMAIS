@@ -3,6 +3,7 @@ import type { ExercicioDoPlano } from "../../services/planosService";
 import AvaliacaoExercicio from "./AvaliacaoExercicio";
 import { sessoesService } from "../../services/sessoesService";
 import CapitaoMais from "../CapitaoMais";
+import { useTeclaEscape } from "../../hooks/useTeclaEscape";
 
 interface Props {
   exercicio: ExercicioDoPlano;
@@ -39,6 +40,9 @@ const ExercicioPlayer = ({
   const [isFinished, setIsFinished] = useState(false);
   const [materiaisChecked, setMateriaisChecked] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+
+  // O leitor tapa o ecrã todo: sem Escape, só se saía com o rato no "Voltar".
+  useTeclaEscape(onVoltar, !isStarted || isPaused);
 
   const handleProximoExercicio = async () => {
     setIsSaving(true);

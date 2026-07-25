@@ -1,5 +1,6 @@
-import { useEffect, useId, useRef } from "react";
-import BtnGlobal from "../../../BtnGlobal";
+import { useId } from "react";
+import { useDialogo } from "../../hooks/useDialogo";
+import BtnGlobal from "../BtnGlobal";
 
 interface Props {
   title?: string;
@@ -10,13 +11,13 @@ interface Props {
   onCancel: () => void;
 }
 
-const FOCAVEIS =
-  "button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])";
-
 /**
  * Diálogo de confirmação. Antes era só uma `<div>` por cima do ecrã: o foco
  * ficava atrás na página, o Escape não fechava e os leitores de ecrã nem
  * sabiam que havia um diálogo aberto.
+ *
+ * O «Cancelar» vem primeiro na ordem do DOM para receber o foco inicial — a
+ * ação destrutiva nunca fica debaixo do dedo.
  */
 const ConfirmDialog = ({
   title = "Confirmação",
@@ -26,54 +27,9 @@ const ConfirmDialog = ({
   onConfirm,
   onCancel,
 }: Props) => {
-  const caixa = useRef<HTMLDivElement>(null);
-  const botaoCancelar = useRef<HTMLButtonElement>(null);
-  const fechar = useRef(onCancel);
+  const caixa = useDialogo(onCancel);
   const idTitulo = useId();
   const idMensagem = useId();
-
-  useEffect(() => {
-    fechar.current = onCancel;
-  });
-
-  useEffect(() => {
-    const anterior = document.activeElement as HTMLElement | null;
-    // Abre no «Cancelar»: a ação destrutiva nunca fica debaixo do dedo.
-    botaoCancelar.current?.focus();
-
-    const overflowAnterior = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const aoTeclar = (evento: KeyboardEvent) => {
-      if (evento.key === "Escape") {
-        evento.preventDefault();
-        fechar.current();
-        return;
-      }
-      if (evento.key !== "Tab") return;
-
-      const focaveis = caixa.current?.querySelectorAll<HTMLElement>(FOCAVEIS);
-      if (!focaveis?.length) return;
-
-      const primeiro = focaveis[0];
-      const ultimo = focaveis[focaveis.length - 1];
-
-      if (evento.shiftKey && document.activeElement === primeiro) {
-        evento.preventDefault();
-        ultimo.focus();
-      } else if (!evento.shiftKey && document.activeElement === ultimo) {
-        evento.preventDefault();
-        primeiro.focus();
-      }
-    };
-
-    document.addEventListener("keydown", aoTeclar);
-    return () => {
-      document.removeEventListener("keydown", aoTeclar);
-      document.body.style.overflow = overflowAnterior;
-      anterior?.focus();
-    };
-  }, []);
 
   return (
     <div
@@ -88,7 +44,7 @@ const ConfirmDialog = ({
         aria-modal="true"
         aria-labelledby={idTitulo}
         aria-describedby={idMensagem}
-        className="painel painel-alto w-full max-w-md p-6"
+        className="painel painel-alto entrada-pop w-full max-w-md p-6"
       >
         <h2
           id={idTitulo}
@@ -102,7 +58,6 @@ const ConfirmDialog = ({
 
         <div className="mt-6 flex flex-wrap justify-end gap-3">
           <button
-            ref={botaoCancelar}
             type="button"
             onClick={onCancel}
             className="inline-flex min-h-12 items-center justify-center rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro px-5 text-sm font-bold text-tinta shadow-vinheta transition-all duration-75 hover:bg-papel active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
