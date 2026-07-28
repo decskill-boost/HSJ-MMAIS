@@ -53,18 +53,10 @@ const infoDificuldade = (d?: string) => {
   }
 };
 
-// A/B/C é a classificação clínica de intensidade (ver CriarPlano.tsx:
-// A = baixa, B = média, C = alta). A criança nunca vê a letra — vê o ritmo
-// de treino. Os valores guardados e filtrados continuam a ser A/B/C.
-const RITMOS = [
-  { valor: "Todos", rotulo: "Todos" },
-  { valor: "A", rotulo: "Calmo" },
-  { valor: "B", rotulo: "Médio" },
-  { valor: "C", rotulo: "Forte" },
-] as const;
-
-const rotuloRitmo = (valor: string) =>
-  RITMOS.find((r) => r.valor === valor)?.rotulo ?? valor;
+// A/B/C é a condição atribuída ao plano. Mostra-se a letra tal como está,
+// que é o mesmo vocabulário do ecrã do corpo clínico («Condição: Nível A»).
+// Traduzir para «ritmo» dava-lhe um significado que ela não tem.
+const CONDICOES = ["Todos", "A", "B", "C"] as const;
 
 // Classe de entrada em cascata (evita entrada-pop-1 inexistente)
 const cascata = (idx: number) => `entrada-pop${["", "-2", "-3", "-4"][idx % 4]}`;
@@ -555,13 +547,13 @@ export const PlanosPaciente = () => {
         <h1 className="text-2xl font-display tracking-tight text-tinta">Escolhe um plano 📋</h1>
         <p className="mt-1 text-sm text-aco">Toca num plano para o ver e começar!</p>
 
-        {/* Filtro por ritmo — quadrados grandes, um toque escolhe */}
+        {/* Filtro por condição — quadrados grandes, um toque escolhe */}
         <div className="mt-5">
           <p className="mb-2 text-xs font-bold uppercase tracking-wide text-aco">
-            Ritmo do treino
+            Condição
           </p>
           <div className="flex flex-wrap gap-3">
-            {RITMOS.map(({ valor: op, rotulo }) => {
+            {CONDICOES.map((op) => {
               const ativo = filtroCondicao === op;
               return (
                 <button
@@ -575,7 +567,7 @@ export const PlanosPaciente = () => {
                       : "bg-papel-claro text-tinta hover:bg-papel"
                   }`}
                 >
-                  {rotulo}
+                  {op === "Todos" ? op : `Nível ${op}`}
                 </button>
               );
             })}
@@ -596,8 +588,7 @@ export const PlanosPaciente = () => {
             ) : (
               <>
                 <p className="text-aco">
-                  Ainda não há planos de ritmo{" "}
-                  {rotuloRitmo(filtroCondicao).toLowerCase()}.
+                  Ainda não há planos de nível {filtroCondicao}.
                 </p>
                 <button
                   onClick={() => setFiltroCondicao("Todos")}
