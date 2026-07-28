@@ -2,7 +2,10 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Test } from '@nestjs/testing';
 import { Prescricao } from '../../entities/prescricao.entity';
-import { SessaoRealizada, SessaoStatus } from '../../entities/sessao-realizada.entity';
+import {
+  SessaoRealizada,
+  SessaoStatus,
+} from '../../entities/sessao-realizada.entity';
 import { Utilizador } from '../../entities/utilizador.entity';
 import { toLisbonDateKey } from '../../sessoes/streak.util';
 import { PacientesService } from '../pacientes.service';
@@ -28,11 +31,21 @@ const diaRelativo = (offset: number): Date => {
   return d;
 };
 
+/** Chainable stub of the aggregate QueryBuilder used by getAgregadosDeSessoes. */
+const mockQueryBuilder = (linhas: unknown[] = []) => ({
+  select: jest.fn().mockReturnThis(),
+  addSelect: jest.fn().mockReturnThis(),
+  where: jest.fn().mockReturnThis(),
+  andWhere: jest.fn().mockReturnThis(),
+  groupBy: jest.fn().mockReturnThis(),
+  getRawMany: jest.fn().mockResolvedValue(linhas),
+});
+
 describe('PacientesService', () => {
   let service: PacientesService;
   let utilizadorRepo: { findOne: jest.Mock; find: jest.Mock };
   let prescricaoRepo: { find: jest.Mock };
-  let sessaoRepo: { find: jest.Mock };
+  let sessaoRepo: { find: jest.Mock; createQueryBuilder: jest.Mock };
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -42,8 +55,17 @@ describe('PacientesService', () => {
           provide: getRepositoryToken(Utilizador),
           useValue: { findOne: jest.fn(), find: jest.fn() },
         },
-        { provide: getRepositoryToken(Prescricao), useValue: { find: jest.fn() } },
-        { provide: getRepositoryToken(SessaoRealizada), useValue: { find: jest.fn() } },
+        {
+          provide: getRepositoryToken(Prescricao),
+          useValue: { find: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(SessaoRealizada),
+          useValue: {
+            find: jest.fn(),
+            createQueryBuilder: jest.fn(() => mockQueryBuilder()),
+          },
+        },
       ],
     }).compile();
 
@@ -115,11 +137,15 @@ describe('PacientesService', () => {
 
     expect(resultado.dias).toHaveLength(5);
 
-    const diaComSessao = resultado.dias.find((d) => d.data === toLisbonDateKey(diaRelativo(-3)));
+    const diaComSessao = resultado.dias.find(
+      (d) => d.data === toLisbonDateKey(diaRelativo(-3)),
+    );
     expect(diaComSessao).toMatchObject({ status: 'concluido' });
     expect(diaComSessao?.sessoes[0]).toMatchObject({ nomeExercicio: 'Braços' });
 
-    const diaSemSessao = resultado.dias.find((d) => d.data === toLisbonDateKey(diaRelativo(-5)));
+    const diaSemSessao = resultado.dias.find(
+      (d) => d.data === toLisbonDateKey(diaRelativo(-5)),
+    );
     expect(diaSemSessao?.status).toBe('ignorado');
   });
 
@@ -143,6 +169,7 @@ describe('PacientesService', () => {
       expect(resultado).toEqual([]);
       expect(prescricaoRepo.find).not.toHaveBeenCalled();
       expect(sessaoRepo.find).not.toHaveBeenCalled();
+      expect(sessaoRepo.createQueryBuilder).not.toHaveBeenCalled();
     });
 
     it('returns null adesaoPercentual for every patient and skips the sessions query when nobody has a prescription', async () => {
@@ -155,8 +182,22 @@ describe('PacientesService', () => {
       const resultado = await service.getPacientesComAdesao();
 
       expect(resultado).toEqual([
-        { idUser: 'paciente-1', nome: 'Ana', email: 'paciente@example.com', adesaoPercentual: null },
-        { idUser: 'paciente-2', nome: 'Bruno', email: 'paciente@example.com', adesaoPercentual: null },
+        {
+          idUser: 'paciente-1',
+          nome: 'Ana',
+          email: 'paciente@example.com',
+          adesaoPercentual: null,
+          ultimoTreino: null,
+          totalSessoesConcluidas: 0,
+        },
+        {
+          idUser: 'paciente-2',
+          nome: 'Bruno',
+          email: 'paciente@example.com',
+          adesaoPercentual: null,
+          ultimoTreino: null,
+          totalSessoesConcluidas: 0,
+        },
       ]);
       expect(sessaoRepo.find).not.toHaveBeenCalled();
     });
@@ -219,7 +260,9 @@ describe('PacientesService', () => {
     });
 
     it('falls back to today for a prescription with no data_validade (does not crash and extends the window through today)', async () => {
-      utilizadorRepo.find.mockResolvedValue([mockPaciente({ id_user: 'paciente-1' })]);
+      utilizadorRepo.find.mockResolvedValue([
+        mockPaciente({ id_user: 'paciente-1' }),
+      ]);
       prescricaoRepo.find.mockResolvedValue([
         {
           id_paciente: { id_user: 'paciente-1' },

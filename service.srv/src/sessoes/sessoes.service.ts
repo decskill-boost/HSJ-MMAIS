@@ -20,6 +20,7 @@ import {
   endOfLisbonDay,
   startOfLisbonDay,
 } from './streak.util';
+import { toTimestampSemFuso } from '../utils/data-hora.util';
 import { cleanUuid } from '../utils/uuid.util';
 
 export interface ConclusaoResultado {
@@ -39,6 +40,34 @@ export interface InicioResultado {
   alreadyCompletedToday: boolean;
 }
 
+/** Uma linha do histórico de treinos da própria criança (GET /sessoes/minhas). */
+export interface SessaoDoHistorico {
+  id_sessao: string;
+  /**
+   * Hora de parede, sem sufixo de fuso — exatamente o que o PostgREST devolve
+   * hoje e o mesmo formato de `GET /pacientes/:id/sessoes`.
+   *
+   * Esta rota já esteve a responder com `toISOString()`. Parecia mais
+   * explícito, mas só acerta enquanto o fuso do SERVIDOR for igual ao do
+   * browser: com o servidor em UTC e a criança em Lisboa, o «último treino»
+   * do ecrã inicial aparecia uma hora à frente no horário de verão. Ver
+   * `utils/data-hora.util.ts`.
+   */
+  data_hora: string;
+  duracao: number | null;
+  esforco_1_a_10: number | null;
+  nome_exercicio: string;
+  recompensa_xp: number;
+}
+
+/** Contagens agregadas do hospital inteiro (GET /sessoes/estatisticas). */
+export interface EstatisticasSessoes {
+  totalConcluidas: number;
+  concluidasUltimos7Dias: number;
+}
+
+const DIAS_DA_JANELA_SEMANAL = 7;
+
 @Injectable()
 export class SessoesService {
   constructor(
@@ -48,12 +77,45 @@ export class SessoesService {
     private readonly exercicioRepo: Repository<Exercicio>,
     @InjectRepository(Utilizador)
     private readonly utilizadorRepo: Repository<Utilizador>,
+    @InjectRepository(Prescricao)
+    private readonly prescricaoRepo: Repository<Prescricao>,
     @InjectDataSource()
     private readonly dataSource: DataSource,
   ) {}
 
   private getDayBounds(now: Date): { startOfDay: Date; endOfDay: Date } {
     return { startOfDay: startOfLisbonDay(now), endOfDay: endOfLisbonDay(now) };
+  }
+
+  /**
+   * Um treino pode não estar ligado a plano nenhum (exploração livre da
+   * biblioteca, página de demonstração) — isso é legítimo e continua a
+   * passar. O que não é legítimo é uma criança carimbar o seu treino com o
+   * plano de OUTRA criança: além de sujar o historial clínico dessa outra,
+   * prende-lhe o plano para sempre, porque a chave estrangeira
+   * `fk_sessoes_prescricao` passa a impedir que o corpo clínico o elimine.
+   *
+   * Aceita-se, portanto: sem plano, um plano standard (sem paciente
+   * associado) ou um plano do próprio. A mensagem de recusa é a mesma em
+   * todos os casos, para não revelar se um dado identificador existe.
+   */
+  private async validarPrescricaoDoPaciente(
+    idPrescricao: string | null,
+    idPaciente: string,
+  ): Promise<void> {
+    if (!idPrescricao) {
+      return;
+    }
+
+    const prescricao = await this.prescricaoRepo.findOne({
+      where: { id_prescricao: idPrescricao },
+      relations: { id_paciente: true },
+    });
+
+    const idDono = prescricao?.id_paciente?.id_user ?? null;
+    if (!prescricao || (idDono !== null && idDono !== idPaciente)) {
+      throw new BadRequestException('Plano de treino inválido.');
+    }
   }
 
   async iniciarExercicio(
@@ -74,6 +136,8 @@ export class SessoesService {
     if (!exercicio) {
       throw new NotFoundException('Exercício não encontrado');
     }
+
+    await this.validarPrescricaoDoPaciente(cleanPrescricaoId, cleanPacienteId);
 
     const { startOfDay, endOfDay } = this.getDayBounds(new Date());
 
@@ -141,6 +205,8 @@ export class SessoesService {
     if (!exercicio) {
       throw new NotFoundException('Exercício não encontrado');
     }
+
+    await this.validarPrescricaoDoPaciente(cleanPrescricaoId, cleanPacienteId);
 
     const now = new Date();
     const { startOfDay, endOfDay } = this.getDayBounds(now);
@@ -255,5 +321,87 @@ export class SessoesService {
         alreadyCompletedToday: !!alreadyCompleted,
       };
     });
+  }
+
+  /**
+   * E10 — histórico de treinos concluídos da PRÓPRIA criança.
+   *
+   * `idPaciente` vem sempre de `payload.sub` (token verificado); não há, e não
+   * pode passar a haver, um parâmetro que o cliente controle. Substitui o
+   * `sessoesService.getHistorico(idPaciente)` do frontend, cujo argumento era
+   * livre e só o RLS impedia de apontar a outra criança.
+   *
+   * Nota de contrato assumida: o histórico do frontend filtrava por
+   * `concluido = true` (coluna booleana) e aqui filtra-se por
+   * `status = 'concluido'` (coluna enum). São colunas diferentes; o `status` é
+   * o que o resto do backend usa e o que o ecrã do corpo clínico já lê. Como o
+   * DEFAULT de `status` é `concluido`, o novo filtro é um superconjunto do
+   * antigo: linhas antigas com `concluido = false` podem passar a aparecer.
+   */
+  async listarMinhasSessoes(
+    idPaciente: string,
+    limite?: number,
+  ): Promise<SessaoDoHistorico[]> {
+    const cleanPacienteId = cleanUuid(idPaciente);
+    if (!cleanPacienteId) {
+      throw new BadRequestException('Paciente inválido');
+    }
+
+    const sessoes = await this.sessaoRepo.find({
+      where: {
+        id_paciente: { id_user: cleanPacienteId },
+        status: SessaoStatus.CONCLUIDO,
+      },
+      relations: { id_exercicio: true },
+      order: { data_hora: 'DESC' },
+      ...(limite ? { take: limite } : {}),
+    });
+
+    return sessoes.map((s) => ({
+      id_sessao: s.id_sessao,
+      data_hora: toTimestampSemFuso(s.data_hora),
+      duracao: s.duracao ?? null,
+      esforco_1_a_10: s.esforco_1_a_10 ?? null,
+      nome_exercicio: s.id_exercicio?.nome_exercicio ?? 'Exercício',
+      recompensa_xp: s.id_exercicio?.recompensa_xp ?? 0,
+    }));
+  }
+
+  /**
+   * E11 — dois contadores do painel do corpo clínico, do hospital inteiro.
+   *
+   * Não há regra de linha porque não há linhas na resposta: são dois números
+   * agregados, sem um único identificador de criança. Quem pode pedi-los é
+   * decidido pelo papel (`@Roles(CORPO_CLINICO)` no controlador), não pelo
+   * RLS.
+   *
+   * A fronteira dos 7 dias é calculada AQUI. Antes era calculada no browser,
+   * com o relógio e o fuso do posto de trabalho, e era essa fronteira que
+   * decidia que crianças apareciam ao clínico como precisando de atenção.
+   */
+  async getEstatisticas(): Promise<EstatisticasSessoes> {
+    const limiteSemana = new Date(
+      Date.now() - DIAS_DA_JANELA_SEMANAL * 24 * 60 * 60 * 1000,
+    );
+
+    // Uma única consulta: COUNT total + COUNT filtrado. Contar aqui evita
+    // descarregar sessões só para as contar (e evita a truncagem silenciosa
+    // que já dera contadores errados no painel).
+    const linha = await this.sessaoRepo
+      .createQueryBuilder('s')
+      .select('COUNT(*)', 'total')
+      .addSelect(
+        'COUNT(*) FILTER (WHERE "s"."data_hora" >= :limiteSemana)',
+        'ultimos7dias',
+      )
+      .where('s.status = :status', { status: SessaoStatus.CONCLUIDO })
+      .setParameter('limiteSemana', limiteSemana)
+      .getRawOne<{ total: string; ultimos7dias: string }>();
+
+    // O driver devolve os COUNT como texto (bigint).
+    return {
+      totalConcluidas: Number(linha?.total ?? 0),
+      concluidasUltimos7Dias: Number(linha?.ultimos7dias ?? 0),
+    };
   }
 }

@@ -20,8 +20,15 @@ export class CreatePrescricaoDto {
   @IsUUID(undefined, { message: 'Identificador de paciente inválido.' })
   id_paciente?: string | null;
 
-  @IsUUID(undefined, { message: 'Identificador de médico inválido.' })
-  id_medico: string;
+  // `id_medico` NÃO se declara aqui de propósito.
+  //
+  // Quem prescreve é quem está autenticado: o id vem do `sub` do token
+  // (`@CurrentUser()` no controlador), nunca do corpo do pedido. Enquanto era um
+  // campo do DTO, um clínico podia registar um plano em nome de outro colega
+  // apenas trocando o valor que o browser enviava.
+  //
+  // O `whitelist: true` do ValidationPipe global descarta o `id_medico` que o
+  // frontend continua a mandar, sem erro — por isso a troca é compatível.
 
   @IsInt({ message: 'A frequência semanal tem de ser um número inteiro.' })
   @Min(1, { message: 'A frequência semanal tem de ser pelo menos 1.' })

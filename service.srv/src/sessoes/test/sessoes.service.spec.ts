@@ -1,7 +1,8 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { getDataSourceToken, getRepositoryToken } from '@nestjs/typeorm';
 import { Test } from '@nestjs/testing';
 import { Exercicio } from '../../entities/exercicio.entity';
+import { Prescricao } from '../../entities/prescricao.entity';
 import { SessaoRealizada, SessaoStatus } from '../../entities/sessao-realizada.entity';
 import { Utilizador } from '../../entities/utilizador.entity';
 import { ConcluirExercicioDto } from '../dto/concluir-exercicio.dto';
@@ -62,6 +63,7 @@ describe('SessoesService', () => {
   let sessaoRepo: { findOne: jest.Mock; create: jest.Mock; save: jest.Mock };
   let exercicioRepo: { findOne: jest.Mock };
   let utilizadorRepo: { findOne: jest.Mock };
+  let prescricaoRepo: { findOne: jest.Mock };
   let manager: {
     create: jest.Mock;
     save: jest.Mock;
@@ -107,6 +109,10 @@ describe('SessoesService', () => {
           provide: getRepositoryToken(Utilizador),
           useValue: { findOne: jest.fn() },
         },
+        {
+          provide: getRepositoryToken(Prescricao),
+          useValue: { findOne: jest.fn(), createQueryBuilder: jest.fn() },
+        },
         { provide: getDataSourceToken(), useValue: dataSource },
       ],
     }).compile();
@@ -115,6 +121,14 @@ describe('SessoesService', () => {
     sessaoRepo = module.get(getRepositoryToken(SessaoRealizada));
     exercicioRepo = module.get(getRepositoryToken(Exercicio));
     utilizadorRepo = module.get(getRepositoryToken(Utilizador));
+    prescricaoRepo = module.get(getRepositoryToken(Prescricao));
+
+    // Por omissão o plano usado nos testes é um plano standard (sem paciente
+    // associado), que qualquer criança pode treinar.
+    prescricaoRepo.findOne.mockResolvedValue({
+      id_prescricao: 'prescricao-1',
+      id_paciente: null,
+    });
   });
 
   describe('iniciarExercicio', () => {
@@ -331,6 +345,97 @@ describe('SessoesService', () => {
       const result = await service.concluirExercicio('paciente-1', dto);
 
       expect(result.streakAtual).toBe(1);
+    });
+  });
+
+  /**
+   * Sem esta verificação, uma criança podia carimbar o seu treino com o plano
+   * de OUTRA criança (o id vinha do corpo do pedido e nunca era confrontado
+   * com o dono). Além de sujar o historial clínico dessa outra, a chave
+   * estrangeira `fk_sessoes_prescricao` passava a impedir para sempre que o
+   * corpo clínico eliminasse esse plano.
+   */
+  describe('plano associado ao treino', () => {
+    const prescricaoDe = (idDono: string | null) =>
+      ({
+        id_prescricao: 'prescricao-1',
+        id_paciente: idDono ? { id_user: idDono } : null,
+      }) as unknown as Prescricao;
+
+    /** Deixa o repositório pronto a criar uma sessão nova sem duplicados. */
+    const prepararSessaoNova = () => {
+      sessaoRepo.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null);
+      sessaoRepo.create.mockImplementation(
+        (data: Partial<SessaoRealizada>): SessaoRealizada =>
+          ({ id_sessao: 'nova', ...data }) as SessaoRealizada,
+      );
+      sessaoRepo.save.mockImplementation((entity: SessaoRealizada) =>
+        Promise.resolve(entity),
+      );
+    };
+
+    it('recusa iniciar um treino com o plano de outra criança', async () => {
+      exercicioRepo.findOne.mockResolvedValue(mockExercicio());
+      prescricaoRepo.findOne.mockResolvedValue(prescricaoDe('paciente-2'));
+
+      await expect(
+        service.iniciarExercicio('paciente-1', iniciarDto),
+      ).rejects.toThrow(BadRequestException);
+      expect(sessaoRepo.create).not.toHaveBeenCalled();
+    });
+
+    it('recusa concluir um treino com o plano de outra criança', async () => {
+      exercicioRepo.findOne.mockResolvedValue(mockExercicio());
+      sessaoRepo.findOne.mockResolvedValue(null);
+      prescricaoRepo.findOne.mockResolvedValue(prescricaoDe('paciente-2'));
+
+      await expect(
+        service.concluirExercicio('paciente-1', dto),
+      ).rejects.toThrow(BadRequestException);
+      expect(dataSource.transaction).not.toHaveBeenCalled();
+    });
+
+    it('recusa um plano que não existe, com a mesma mensagem, para não revelar que identificadores existem', async () => {
+      exercicioRepo.findOne.mockResolvedValue(mockExercicio());
+      prescricaoRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.iniciarExercicio('paciente-1', iniciarDto),
+      ).rejects.toThrow('Plano de treino inválido.');
+    });
+
+    it('aceita o plano da própria criança', async () => {
+      exercicioRepo.findOne.mockResolvedValue(mockExercicio());
+      prescricaoRepo.findOne.mockResolvedValue(prescricaoDe('paciente-1'));
+      prepararSessaoNova();
+
+      await expect(
+        service.iniciarExercicio('paciente-1', iniciarDto),
+      ).resolves.toMatchObject({ sessionId: 'nova' });
+    });
+
+    it('aceita um plano standard (sem paciente associado)', async () => {
+      exercicioRepo.findOne.mockResolvedValue(mockExercicio());
+      prescricaoRepo.findOne.mockResolvedValue(prescricaoDe(null));
+      prepararSessaoNova();
+
+      await expect(
+        service.iniciarExercicio('paciente-1', iniciarDto),
+      ).resolves.toMatchObject({ sessionId: 'nova' });
+    });
+
+    it('aceita um treino sem plano nenhum e nem sequer consulta a tabela', async () => {
+      exercicioRepo.findOne.mockResolvedValue(mockExercicio());
+      prepararSessaoNova();
+
+      await service.iniciarExercicio('paciente-1', {
+        id_exercicio: 'exercicio-1',
+        id_prescricao: '',
+      });
+
+      expect(prescricaoRepo.findOne).not.toHaveBeenCalled();
     });
   });
 });

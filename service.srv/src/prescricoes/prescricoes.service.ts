@@ -1,12 +1,24 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Prescricao } from '../entities/prescricao.entity';
 import { PrescricaoExercicio } from '../entities/prescricao-exercicio.entity';
+import { SessaoRealizada } from '../entities/sessao-realizada.entity';
 import { CreatePrescricaoDto } from './create-prescricao.dto';
 import { UpdatePrescricaoDto } from './update-prescricao.dto';
 import { cleanUuid } from '../utils/uuid.util';
 import { Utilizador } from '../entities/utilizador.entity';
+
+/** Violação de chave estrangeira no Postgres. */
+const CODIGO_FK_VIOLADA = '23503';
+
+export const MENSAGEM_PLANO_COM_TREINOS =
+  'O plano já tem treinos associados e não pode ser eliminado.';
 
 @Injectable()
 export class PrescricoesService {
@@ -15,11 +27,17 @@ export class PrescricoesService {
     private readonly prescricaoRepository: Repository<Prescricao>,
     @InjectRepository(PrescricaoExercicio)
     private readonly prescricaoExercicioRepository: Repository<PrescricaoExercicio>,
+    @InjectRepository(SessaoRealizada)
+    private readonly sessaoRepository: Repository<SessaoRealizada>,
   ) {}
 
-  async create(dados: CreatePrescricaoDto) {
+  /**
+   * `idMedico` vem do token de quem faz o pedido, não do corpo: é o clínico
+   * autenticado que assina a prescrição.
+   */
+  async create(dados: CreatePrescricaoDto, idMedico: string) {
     const cleanPacienteId = cleanUuid(dados.id_paciente);
-    const cleanMedicoId = cleanUuid(dados.id_medico);
+    const cleanMedicoId = cleanUuid(idMedico);
 
     if (cleanPacienteId) {
       await this.prescricaoRepository
@@ -136,6 +154,65 @@ export class PrescricoesService {
     prescricao.data_fim = new Date();
 
     await this.prescricaoRepository.save(prescricao);
+
+    return { id_prescricao: idPrescricao };
+  }
+
+  /**
+   * Elimina definitivamente um plano (E6). Substitui o único acesso de ESCRITA
+   * direta do frontend ao Supabase: um `.delete()` sobre `prescricoes` feito a
+   * partir do browser, cuja única barreira era o RLS.
+   *
+   * Um plano por onde já passaram treinos NÃO se apaga: esses registos são o
+   * histórico clínico da criança e ficariam órfãos ou apagados com ele. A
+   * verificação é explícita e não depende do `ON DELETE` da chave estrangeira
+   * (que o `docs/schema.sql` diz ser `NO ACTION`, mas esse ficheiro está
+   * atrasado face à base real). A violação de FK é apanhada à mesma, como rede
+   * de segurança para o caso de nascer um treino entre a verificação e o
+   * apagamento.
+   *
+   * Os exercícios da junção são apagados na mesma transação: a meio caminho
+   * ficaria um plano sem exercícios ou linhas de junção sem plano.
+   */
+  async remove(idPrescricao: string) {
+    const prescricao = await this.prescricaoRepository.findOne({
+      where: { id_prescricao: idPrescricao },
+    });
+
+    if (!prescricao) {
+      throw new NotFoundException('Plano não encontrado.');
+    }
+
+    const treinos = await this.sessaoRepository.count({
+      where: { id_prescricao: { id_prescricao: idPrescricao } },
+    });
+
+    if (treinos > 0) {
+      throw new ConflictException(MENSAGEM_PLANO_COM_TREINOS);
+    }
+
+    try {
+      await this.prescricaoRepository.manager.transaction(async (manager) => {
+        await manager.delete(PrescricaoExercicio, {
+          id_prescricao: idPrescricao,
+        });
+        const resultado = await manager.delete(Prescricao, {
+          id_prescricao: idPrescricao,
+        });
+        if (resultado.affected === 0) {
+          throw new NotFoundException('Plano não encontrado.');
+        }
+      });
+    } catch (erro) {
+      if (
+        typeof erro === 'object' &&
+        erro !== null &&
+        (erro as { code?: string }).code === CODIGO_FK_VIOLADA
+      ) {
+        throw new ConflictException(MENSAGEM_PLANO_COM_TREINOS);
+      }
+      throw erro;
+    }
 
     return { id_prescricao: idPrescricao };
   }
