@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
 interface BtnGlobalProps {
   to?: string;
-  onClick?: (e?: React.MouseEvent) => void;
+  onClick?: (e?: React.MouseEvent) => void | Promise<unknown>;
   children: React.ReactNode;
   className?: string;
   variant?: "primary" | "secondary" | "danger" | "raio";
@@ -21,6 +22,24 @@ const BtnGlobal = ({
   disabled,
   isLoading = false,
 }: BtnGlobalProps) => {
+  const [internalLoading, setInternalLoading] = useState(false);
+
+  const handleClick = async (e?: React.MouseEvent) => {
+    if (!onClick || disabled || isLoading || internalLoading) return;
+    try {
+      const res = onClick(e);
+      if (res && typeof (res as Promise<unknown>).then === "function") {
+        setInternalLoading(true);
+        await res;
+      }
+    } finally {
+      setInternalLoading(false);
+    }
+  };
+
+  const activeLoading = isLoading || internalLoading;
+  const activeDisabled = disabled || activeLoading;
+
   // Classes base focadas em feedback tátil rápido; alvo tátil mínimo de 48px (brandbook, cap. 08)
   const baseStyle = `inline-flex min-h-12 min-w-[96px] items-center justify-center whitespace-nowrap rounded-(--radius-vinheta) border-[3px] border-tinta text-sm font-bold shadow-vinheta transition-all duration-75 active:scale-95 active:shadow-none disabled:opacity-50 disabled:pointer-events-none select-none ${
     className.includes("p-") ? "" : "px-5 py-2.5"
@@ -42,7 +61,7 @@ const BtnGlobal = ({
 
   const renderContent = () => (
     <>
-      {isLoading && (
+      {activeLoading && (
         <svg
           className="mr-2 h-4 w-4 animate-spin text-current"
           viewBox="0 0 24 24"
@@ -67,7 +86,7 @@ const BtnGlobal = ({
     </>
   );
 
-  if (to && !disabled && !isLoading) {
+  if (to && !activeDisabled) {
     return (
       <Link to={to} className={combinedStyle}>
         {renderContent()}
@@ -77,10 +96,10 @@ const BtnGlobal = ({
 
   return (
     <button
-      onClick={onClick}
+      onClick={handleClick}
       className={combinedStyle}
       type={type}
-      disabled={disabled || isLoading}
+      disabled={activeDisabled}
     >
       {renderContent()}
     </button>

@@ -62,6 +62,10 @@ export class CreatePrescricaoDto {
   @IsString()
   condicao_clinica?: string | null;
 
+  @IsOptional()
+  @IsString()
+  nome?: string | null;
+
   // União de string simples ou objeto com duração: validada como lista não
   // vazia; a forma de cada item é tratada no serviço.
   @IsArray({ message: 'A lista de exercícios é inválida.' })

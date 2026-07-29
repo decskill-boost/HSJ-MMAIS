@@ -39,16 +39,6 @@ export class PrescricoesService {
     const cleanPacienteId = cleanUuid(dados.id_paciente);
     const cleanMedicoId = cleanUuid(idMedico);
 
-    if (cleanPacienteId) {
-      await this.prescricaoRepository
-        .createQueryBuilder()
-        .update(Prescricao)
-        .set({ ativo: false, data_fim: new Date() })
-        .where('id_paciente = :idPaciente', { idPaciente: cleanPacienteId })
-        .andWhere('ativo = true')
-        .execute();
-    }
-
     const prescricao = this.prescricaoRepository.create({
       id_paciente: cleanPacienteId ? { id_user: cleanPacienteId } : null,
       id_medico: cleanMedicoId
@@ -63,6 +53,7 @@ export class PrescricoesService {
       condicao_paciente: dados.condicao_paciente ?? 'A',
       dificuldade: dados.dificuldade ?? 'facil',
       condicao_clinica: dados.condicao_clinica ?? null,
+      nome: dados.nome ?? null,
     });
 
     const prescricaoGuardada = await this.prescricaoRepository.save(prescricao);
@@ -112,6 +103,7 @@ export class PrescricoesService {
     if (dados.condicao_paciente)
       prescricao.condicao_paciente = dados.condicao_paciente;
     prescricao.condicao_clinica = dados.condicao_clinica ?? null;
+    if (dados.nome !== undefined) prescricao.nome = dados.nome;
 
     await this.prescricaoRepository.save(prescricao);
 

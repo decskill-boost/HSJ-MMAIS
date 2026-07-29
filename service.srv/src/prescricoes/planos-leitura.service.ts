@@ -73,6 +73,7 @@ export class PlanosLeituraService {
         )
         .leftJoin(Exercicio, 'e', '"e"."id_exercicio" = "pe"."id_exercicio"')
         .select('"p"."id_prescricao"', 'id_prescricao')
+        .addSelect('"p"."nome"', 'nome')
         .addSelect('"p"."frequencia_semanal"', 'frequencia_semanal')
         .addSelect('"p"."notas_medicas"', 'notas_medicas')
         .addSelect('"p"."data_inicio"', 'data_inicio')
@@ -132,7 +133,7 @@ export class PlanosLeituraService {
       // por algum motivo existirem duas prescrições ativas, a criança continua
       // a ver apenas a mais recente.
       historico: planos
-        .filter((plano) => !estaAtivo(plano.linha))
+        .filter((_, idx) => idx !== indiceAtivo)
         .map(paraPlanoDoHistorico),
     };
   }
@@ -220,6 +221,9 @@ export class PlanosLeituraService {
       .addSelect('"p"."id_paciente"', 'id_paciente')
       .addSelect('"u"."nome"', 'nome_paciente')
       .addSelect('COUNT("pe"."id_exercicio")', 'total_exercicios')
+      .where('("p"."notas_medicas" IS NULL OR "p"."notas_medicas" != :notaCrianca)', {
+        notaCrianca: 'Plano criado pela própria criança',
+      })
       .groupBy('"p"."id_prescricao"')
       .addGroupBy('"u"."id_user"')
       .addGroupBy('"u"."nome"')

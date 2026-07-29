@@ -22,6 +22,13 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       transform: true,
+      exceptionFactory: (errors) => {
+        console.error("VALIDATION ERRORS:", JSON.stringify(errors, null, 2));
+        const messages = errors.map(
+          (error) => `${error.property} has wrong value ${error.value}, ${Object.values(error.constraints || {}).join(', ')}`
+        );
+        return new (require('@nestjs/common').BadRequestException)(messages);
+      },
     }),
   );
 

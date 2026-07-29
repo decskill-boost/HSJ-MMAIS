@@ -4,7 +4,7 @@ import LoadingSpinner from "../LoadingSpinner";
 import { planosService, type PlanoGerido } from "../../services/planosService";
 import ConfirmDialog from "../ui/ConfirmDialog";
 
-type Filtro = "todos" | "standard" | "prescritos" | "cancelados";
+type Filtro = "todos" | "standard" | "cancelados";
 
 const textoDificuldade = (d: string) =>
   d === "facil" ? "Fácil" : d === "medio" ? "Médio" : "Difícil";
@@ -45,8 +45,10 @@ const GestaoPlanos = () => {
   const visiveis = useMemo(() => {
     const termo = pesquisa.trim().toLowerCase();
     return planos.filter((p) => {
+      // Planos criados pelas crianças pertencem apenas ao seu próprio perfil/histórico
+      if (p.notas_medicas === "Plano criado pela própria criança") return false;
+
       if (filtro === "standard" && !(p.is_standard && p.ativo)) return false;
-      if (filtro === "prescritos" && !(!p.is_standard && p.ativo)) return false;
       if (filtro === "cancelados" && p.ativo) return false;
       if (filtro === "todos" && !p.ativo) return false;
       if (!termo) return true;
@@ -89,7 +91,6 @@ const GestaoPlanos = () => {
   const filtros: { chave: Filtro; label: string }[] = [
     { chave: "todos", label: "Ativos" },
     { chave: "standard", label: "Standard" },
-    { chave: "prescritos", label: "Prescritos" },
     { chave: "cancelados", label: "Cancelados" },
   ];
 
@@ -181,7 +182,7 @@ const GestaoPlanos = () => {
                           : "bg-cobalto text-papel"
                       }`}
                     >
-                      {p.is_standard ? "Standard" : "Prescrito"}
+                      {p.is_standard ? "Standard" : "Personalizado"}
                     </span>
                     {!p.ativo && (
                       <span className="rounded-full border-2 border-tinta bg-capa-escura px-2.5 py-0.5 text-xs font-bold text-papel">
@@ -190,9 +191,7 @@ const GestaoPlanos = () => {
                     )}
                   </div>
                   <h2 className="mt-2 truncate text-lg font-bold text-tinta">
-                    {p.is_standard
-                      ? "Modelo geral"
-                      : (p.nome_paciente ?? "Paciente")}
+                    {p.nome || (p.is_standard ? "Modelo Geral" : "Plano de Treino")}
                   </h2>
                 </div>
               </div>

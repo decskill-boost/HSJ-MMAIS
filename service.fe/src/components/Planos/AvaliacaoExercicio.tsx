@@ -95,7 +95,12 @@ const AvaliacaoExercicio = ({
   };
 
   const podeAvancar = () => {
-    if (step === 4) return bpmMedio !== "" && bpmMaximo !== "" && !erroBpmMedio && !erroBpmMaximo;
+    if (step === 4) {
+      if (!bpmMedio || !bpmMaximo) return false;
+      const media = parseInt(bpmMedio);
+      const max = parseInt(bpmMaximo);
+      return media >= 20 && max >= 20 && media <= 300 && max <= 300;
+    }
     if (step === 5) return problemas !== null;
     if (step === 6) return companhia !== null;
     return true;
@@ -123,17 +128,18 @@ const AvaliacaoExercicio = ({
         duracao: duracaoSegundos,
         diversao_1_a_5: diversao,
         esforco_1_a_10: esforco,
-        fc_media: parseInt(bpmMedio),
-        fc_maxima: parseInt(bpmMaximo),
+        fc_media: bpmMedio ? parseInt(bpmMedio) : undefined,
+        fc_maxima: bpmMaximo ? parseInt(bpmMaximo) : undefined,
         teve_problemas: problemas ?? false,
         participacao_familiares: companhia ?? false,
       });
       setXpGanho(resultado.xpGained);
       setConcluido(true);
-    } catch (err) {
+    } catch (err: any) {
       // A criança acabou o treino: se isto falha em silêncio, ela fica a olhar
       // para um botão que não faz nada e o treino perde-se.
       console.error(err);
+      console.log("ERRO API:", err.response?.data);
       setErroEnvio(
         "Não conseguimos guardar o teu treino. Vê a ligação e tenta outra vez.",
       );

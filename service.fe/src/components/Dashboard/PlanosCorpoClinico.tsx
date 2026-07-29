@@ -175,24 +175,14 @@ const PlanosCorpoClinico = () => {
                     {p.totalTreinos === 1 ? "treino" : "treinos"}
                   </span>
                 </td>
-                <td className="px-4 py-4">
-                  <div className="flex flex-wrap justify-center gap-2">
-                    <BtnGlobal
-                      onClick={() =>
-                        navigate(`/plano/criar?paciente=${p.id_user}`)
-                      }
-                    >
-                      Atribuir plano
-                    </BtnGlobal>
-                    <BtnGlobal
-                      variant="secondary"
-                      onClick={() =>
-                        navigate(`/dashboard/medico/pacientes/${p.id_user}`)
-                      }
-                    >
-                      Ver detalhe
-                    </BtnGlobal>
-                  </div>
+                <td className="px-4 py-4 text-center">
+                  <BtnGlobal
+                    onClick={() =>
+                      navigate(`/dashboard/medico/pacientes/${p.id_user}`)
+                    }
+                  >
+                    Ver detalhe
+                  </BtnGlobal>
                 </td>
               </tr>
             ))

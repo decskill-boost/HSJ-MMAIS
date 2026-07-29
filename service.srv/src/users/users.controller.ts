@@ -40,28 +40,28 @@ export class UsersController {
 
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.CORPO_CLINICO)
   findAll() {
     return this.usersService.findAll();
   }
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.CORPO_CLINICO)
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.createUser(createUserDto);
   }
 
   @Put(':id')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.CORPO_CLINICO)
   update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     return this.usersService.updateUser(id, updateUserDto);
   }
 
   @Delete(':id')
   @UseGuards(RolesGuard)
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.CORPO_CLINICO)
   remove(@Param('id') id: string) {
     return this.usersService.disableUser(id);
   }

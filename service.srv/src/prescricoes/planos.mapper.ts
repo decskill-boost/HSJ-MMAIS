@@ -20,6 +20,7 @@ import type {
  */
 export interface LinhaPlano {
   id_prescricao: string;
+  nome: string | null;
   frequencia_semanal: number | string | null;
   notas_medicas: string | null;
   data_inicio: Date | string | null;
@@ -116,6 +117,7 @@ export function paraPlanoDoPaciente(plano: PlanoAgrupado): PlanoDoPaciente {
   const { linha } = plano;
   return {
     id_plano: linha.id_prescricao,
+    nome: linha.nome ?? null,
     frequencia_semanal: paraNumero(linha.frequencia_semanal),
     notas_medicas: linha.notas_medicas ?? null,
     data_inicio: paraTimestampSemFuso(linha.data_inicio),
@@ -137,7 +139,11 @@ export function paraPlanoDoPaciente(plano: PlanoAgrupado): PlanoDoPaciente {
  * mantém-se presente (a null) para a forma da resposta não mudar.
  */
 export function paraPlanoDoHistorico(plano: PlanoAgrupado): PlanoDoPaciente {
-  return { ...paraPlanoDoPaciente(plano), notas_medicas: null };
+  const isMeusPlanos = plano.linha.notas_medicas === "Plano criado pela própria criança";
+  return { 
+    ...paraPlanoDoPaciente(plano), 
+    notas_medicas: isMeusPlanos ? plano.linha.notas_medicas : null 
+  };
 }
 
 export function paraPlanoStandard(plano: PlanoAgrupado): PlanoStandard {

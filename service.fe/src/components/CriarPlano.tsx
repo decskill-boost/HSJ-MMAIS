@@ -37,6 +37,7 @@ export const CriarPlano = () => {
   const [frequenciaSemanal, setFrequenciaSemanal] = useState(3);
   const [dataValidade, setDataValidade] = useState("");
   const [notasMedicas, setNotasMedicas] = useState("");
+  const [nomePlano, setNomePlano] = useState("");
 
   // Planos standard e classificação de intensidade e duração personalizada
   const [tipoPlano, setTipoPlano] = useState<"standard" | "personalizavel">("standard");
@@ -107,6 +108,7 @@ export const CriarPlano = () => {
         setDificuldade(p.dificuldade ?? "facil");
         setCondicaoPaciente(p.condicao_paciente ?? "A");
         setCondicaoClinica(p.condicao_clinica ?? "");
+        setNomePlano(p.nome ?? "");
         setTipoPlano(p.is_standard ? "standard" : "personalizavel");
         setSelecionados(p.exercicios.map((e) => e.id_exercicio));
         const duracoes: { [id: string]: number } = {};
@@ -196,6 +198,7 @@ export const CriarPlano = () => {
       if (idPlanoEditar) {
         // Editar um plano já criado (não muda o paciente nem o tipo)
         await planosService.atualizarPlano(idPlanoEditar, {
+          nome: nomePlano.trim() || null,
           frequencia_semanal: frequenciaSemanal,
           data_validade: dataValidade
             ? new Date(dataValidade).toISOString()
@@ -209,6 +212,7 @@ export const CriarPlano = () => {
         });
       } else {
         await planosService.criarPlano({
+          nome: nomePlano.trim() || null,
           // Com ?paciente= atribui-se a essa criança; sem ele cria-se um template.
           id_paciente: idPacienteAlvo,
           id_medico: user.idUser,
@@ -231,6 +235,7 @@ export const CriarPlano = () => {
       if (!idPlanoEditar) {
         setSelecionados([]);
         setNotasMedicas("");
+        setNomePlano("");
         setDuracoesCustomizadas({});
         setFrequenciaSemanal(3);
         setDataValidade("");
@@ -255,22 +260,11 @@ export const CriarPlano = () => {
     <div className="mx-auto w-full max-w-6xl px-6 py-8">
       <div className="mb-6">
         <h1 className="text-2xl font-extrabold tracking-tight text-tinta">
-          {idPlanoEditar
-            ? "Editar plano"
-            : idPacienteAlvo
-              ? "Atribuir plano"
-              : "Criar plano de exercícios"}
+          {idPlanoEditar ? "Editar plano" : "Criar plano de exercícios"}
         </h1>
-        {idPacienteAlvo ? (
-          <p className="mt-2 inline-flex items-center gap-2 rounded-full border-2 border-cobalto/30 bg-cobalto/10 px-3 py-1 text-sm font-semibold text-cobalto">
-            Para: {pacienteAlvo?.nome ?? "a carregar…"}
-          </p>
-        ) : (
-          <p className="mt-1 text-sm text-aco">
-            Monte templates de planos de treino gerais ou atribua planos
-            individuais com durações customizadas.
-          </p>
-        )}
+        <p className="mt-1 text-sm text-aco">
+          Monte modelos e templates de planos de treino gerais.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -477,6 +471,23 @@ export const CriarPlano = () => {
                     Personalizável (Especializado)
                   </label>
                 </div>
+              </div>
+
+              {/* Nome do Plano */}
+              <div>
+                <label className="block text-xs font-semibold text-aco" htmlFor="plano-nome">
+                  Nome do Plano
+                </label>
+                <input id="plano-nome"
+                  type="text"
+                  value={nomePlano}
+                  onChange={(e) => {
+                    setNomePlano(e.target.value);
+                    setGuardado(false);
+                  }}
+                  placeholder="Ex: Treino de Força (Opcional)"
+                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2.5 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:ring-2 focus:ring-cobalto/20"
+                />
               </div>
 
               {/* Condição Clínica (condicional) */}

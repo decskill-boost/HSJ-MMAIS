@@ -114,6 +114,7 @@ export class SessoesService {
 
     const idDono = prescricao?.id_paciente?.id_user ?? null;
     if (!prescricao || (idDono !== null && idDono !== idPaciente)) {
+      console.error("ERRO: Plano de treino inválido", { idPrescricao, idPaciente, idDono, prescricaoExiste: !!prescricao });
       throw new BadRequestException('Plano de treino inválido.');
     }
   }
@@ -196,6 +197,7 @@ export class SessoesService {
     const cleanSessaoId = cleanUuid(dto.id_sessao);
 
     if (!cleanPacienteId || !cleanExercicioId) {
+      console.error("ERRO: Paciente ou Exercício inválido", { idPaciente, cleanPacienteId, idExercicio: dto.id_exercicio, cleanExercicioId });
       throw new BadRequestException('Paciente ou Exercício inválido');
     }
 
@@ -220,7 +222,7 @@ export class SessoesService {
       },
     });
 
-    const xpGained = alreadyCompleted ? 0 : exercicio.recompensa_xp;
+    const xpGained = Math.min(Math.max(0, exercicio.recompensa_xp ?? 0), 500);
 
     return this.dataSource.transaction(async (manager) => {
       const sessaoIniciada = await manager.findOne(SessaoRealizada, {

@@ -342,11 +342,11 @@ const DashboardCorpoClinico = () => {
                     </div>
                     <button
                       onClick={() =>
-                        navigate(`/plano/criar?paciente=${p.id_user}`)
+                        navigate(`/dashboard/medico/pacientes/${p.id_user}`)
                       }
-                      className="shrink-0 rounded-xl border-2 border-tinta bg-cobalto px-3 py-1.5 text-xs font-bold text-papel transition hover:bg-cobalto-vivo active:scale-95"
+                      className="shrink-0 rounded-xl border-2 border-tinta bg-papel px-3 py-1.5 text-xs font-bold text-tinta transition hover:bg-papel active:scale-95"
                     >
-                      Atribuir plano
+                      Ver detalhe
                     </button>
                   </div>
                 ))

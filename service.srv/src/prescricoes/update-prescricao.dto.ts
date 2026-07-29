@@ -38,6 +38,10 @@ export class UpdatePrescricaoDto {
   @IsString()
   condicao_clinica?: string | null;
 
+  @IsOptional()
+  @IsString()
+  nome?: string | null;
+
   @IsArray({ message: 'A lista de exercícios é inválida.' })
   @ArrayNotEmpty({ message: 'O plano tem de ter pelo menos um exercício.' })
   exercicios: (string | { id_exercicio: string; duracao_segundos?: number })[];

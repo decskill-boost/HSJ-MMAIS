@@ -3,6 +3,7 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  Max,
   MaxLength,
   Min,
 } from 'class-validator';
@@ -35,6 +36,7 @@ export class CreateExercicioDto {
   @IsOptional()
   @IsInt({ message: 'A recompensa em XP tem de ser um número inteiro.' })
   @Min(0, { message: 'A recompensa em XP não pode ser negativa.' })
+  @Max(500, { message: 'A recompensa em XP não pode ultrapassar 500.' })
   recompensa_xp?: number;
 
   @IsOptional()
