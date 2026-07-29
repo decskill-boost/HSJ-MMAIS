@@ -11,7 +11,14 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const isClinico = user.tipo_utilizador === "corpo_clinico";
+  // `GET /users/me` devolve `role` e `urlFotoPerfil` (camelCase). Os nomes de
+  // coluna (`tipo_utilizador`, `url_foto_perfil`) são opcionais no tipo e vinham
+  // sempre `undefined` do backend: lidos sozinhos, isto dava sempre «não é
+  // clínico» e a fotografia nunca era desenhada, sem erro nenhum. Ficam como
+  // reserva para o perfil restaurado do storage de uma versão anterior.
+  const isClinico =
+    user.role === "corpo_clinico" || user.tipo_utilizador === "corpo_clinico";
+  const fotoPerfil = user.urlFotoPerfil ?? user.url_foto_perfil ?? null;
   const avatarColor = isClinico ? "bg-cobalto" : "bg-cobalto";
   const ringColor = isClinico
     ? "focus:ring-cobalto/30"
@@ -51,9 +58,9 @@ export const UserMenu = ({ user, onLogout }: UserMenuProps) => {
         aria-expanded={open}
         className={`flex h-10 w-10 items-center justify-center overflow-hidden rounded-full text-sm font-bold text-papel transition focus:ring-2 ${avatarColor} ${ringColor}`}
       >
-        {user.url_foto_perfil ? (
+        {fotoPerfil ? (
           <img
-            src={user.url_foto_perfil}
+            src={fotoPerfil}
             alt=""
             className="h-10 w-10 rounded-full object-cover"
           />

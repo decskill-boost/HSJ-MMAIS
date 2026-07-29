@@ -39,6 +39,7 @@ export interface LinhaPlano {
   ex_url_video: string | null;
   ex_repeticoes: number | string | null;
   ex_materiais_necessarios: string | null;
+  ex_descricao: string | null;
 }
 
 /** Linha da consulta agregada da lista de gestão (E4). */
@@ -78,6 +79,7 @@ const exercicioDaLinha = (linha: LinhaPlano): ExercicioDoPlano | null => {
     url_video: linha.ex_url_video ?? null,
     repeticoes: paraNumeroOuNulo(linha.ex_repeticoes),
     materiais_necessarios: linha.ex_materiais_necessarios ?? null,
+    descricao: linha.ex_descricao ?? null,
   };
 };
 

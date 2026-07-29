@@ -3,7 +3,10 @@ import { getDataSourceToken, getRepositoryToken } from '@nestjs/typeorm';
 import { Test } from '@nestjs/testing';
 import { Exercicio } from '../../entities/exercicio.entity';
 import { Prescricao } from '../../entities/prescricao.entity';
-import { SessaoRealizada, SessaoStatus } from '../../entities/sessao-realizada.entity';
+import {
+  SessaoRealizada,
+  SessaoStatus,
+} from '../../entities/sessao-realizada.entity';
 import { Utilizador } from '../../entities/utilizador.entity';
 import { ConcluirExercicioDto } from '../dto/concluir-exercicio.dto';
 import { IniciarExercicioDto } from '../dto/iniciar-exercicio.dto';
@@ -23,23 +26,24 @@ const mockExercicio = (overrides: Partial<Exercicio> = {}): Exercicio =>
     ...overrides,
   }) as Exercicio;
 
-const mockUser = (overrides: Partial<Utilizador> = {}): Utilizador =>
-  ({
-    id_user: 'paciente-1',
-    nome: 'Criança Teste',
-    email: 'paciente@example.com',
-    tipo_utilizador: 'paciente',
-    xp: 0,
-    nivel: 1,
-    streak_atual: 0,
-    streak_ultima_atividade: null,
-    data_registo: new Date(),
-    url_foto_perfil: null,
-    permissoesDirectas: [],
-    ...overrides,
-  }) as Utilizador;
+const mockUser = (overrides: Partial<Utilizador> = {}): Utilizador => ({
+  id_user: 'paciente-1',
+  nome: 'Criança Teste',
+  email: 'paciente@example.com',
+  tipo_utilizador: 'paciente',
+  xp: 0,
+  nivel: 1,
+  streak_atual: 0,
+  streak_ultima_atividade: null,
+  data_registo: new Date(),
+  url_foto_perfil: null,
+  permissoesDirectas: [],
+  ...overrides,
+});
 
-const mockSessao = (overrides: Partial<SessaoRealizada> = {}): SessaoRealizada =>
+const mockSessao = (
+  overrides: Partial<SessaoRealizada> = {},
+): SessaoRealizada =>
   ({
     id_sessao: 'sessao-iniciada',
     status: SessaoStatus.INICIADO,
@@ -62,7 +66,6 @@ describe('SessoesService', () => {
   let service: SessoesService;
   let sessaoRepo: { findOne: jest.Mock; create: jest.Mock; save: jest.Mock };
   let exercicioRepo: { findOne: jest.Mock };
-  let utilizadorRepo: { findOne: jest.Mock };
   let prescricaoRepo: { findOne: jest.Mock };
   let manager: {
     create: jest.Mock;
@@ -85,13 +88,18 @@ describe('SessoesService', () => {
 
   beforeEach(async () => {
     manager = {
-      create: jest.fn((_entity, data) => ({ id_sessao: 'sessao-1', ...data })),
-      save: jest.fn((entity) => Promise.resolve(entity)),
+      create: jest.fn((_entity: unknown, data: object) => ({
+        id_sessao: 'sessao-1',
+        ...data,
+      })),
+      save: jest.fn((entity: unknown) => Promise.resolve(entity)),
       findOne: jest.fn(),
       update: jest.fn().mockResolvedValue(undefined),
     };
     dataSource = {
-      transaction: jest.fn((cb) => cb(manager)),
+      transaction: jest.fn((cb: (gestor: typeof manager) => unknown) =>
+        cb(manager),
+      ),
     };
 
     const module = await Test.createTestingModule({
@@ -120,7 +128,6 @@ describe('SessoesService', () => {
     service = module.get(SessoesService);
     sessaoRepo = module.get(getRepositoryToken(SessaoRealizada));
     exercicioRepo = module.get(getRepositoryToken(Exercicio));
-    utilizadorRepo = module.get(getRepositoryToken(Utilizador));
     prescricaoRepo = module.get(getRepositoryToken(Prescricao));
 
     // Por omissão o plano usado nos testes é um plano standard (sem paciente
@@ -135,9 +142,9 @@ describe('SessoesService', () => {
     it('throws when the exercise does not exist or is inactive', async () => {
       exercicioRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.iniciarExercicio('paciente-1', iniciarDto)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.iniciarExercicio('paciente-1', iniciarDto),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('creates a new iniciado row when none exists yet today', async () => {
@@ -145,18 +152,27 @@ describe('SessoesService', () => {
       sessaoRepo.findOne
         .mockResolvedValueOnce(null) // no concluido today
         .mockResolvedValueOnce(null); // no iniciado today
-      sessaoRepo.create.mockImplementation((data) => ({ id_sessao: 'sessao-nova', ...data }));
+      sessaoRepo.create.mockImplementation((data: object) => ({
+        id_sessao: 'sessao-nova',
+        ...data,
+      }));
       sessaoRepo.save.mockImplementation((entity) => Promise.resolve(entity));
 
       const result = await service.iniciarExercicio('paciente-1', iniciarDto);
 
-      expect(result).toEqual({ sessionId: 'sessao-nova', alreadyCompletedToday: false });
+      expect(result).toEqual({
+        sessionId: 'sessao-nova',
+        alreadyCompletedToday: false,
+      });
       expect(sessaoRepo.create).toHaveBeenCalledWith(
-        expect.objectContaining({ status: SessaoStatus.INICIADO, concluido: false }),
+        expect.objectContaining({
+          status: SessaoStatus.INICIADO,
+          concluido: false,
+        }),
       );
     });
 
-    it('reuses today\'s iniciado row instead of creating a duplicate', async () => {
+    it("reuses today's iniciado row instead of creating a duplicate", async () => {
       exercicioRepo.findOne.mockResolvedValue(mockExercicio());
       sessaoRepo.findOne
         .mockResolvedValueOnce(null) // no concluido today
@@ -164,19 +180,28 @@ describe('SessoesService', () => {
 
       const result = await service.iniciarExercicio('paciente-1', iniciarDto);
 
-      expect(result).toEqual({ sessionId: 'sessao-existente', alreadyCompletedToday: false });
+      expect(result).toEqual({
+        sessionId: 'sessao-existente',
+        alreadyCompletedToday: false,
+      });
       expect(sessaoRepo.create).not.toHaveBeenCalled();
     });
 
     it('does not create a row when the exercise was already completed today', async () => {
       exercicioRepo.findOne.mockResolvedValue(mockExercicio());
       sessaoRepo.findOne.mockResolvedValueOnce(
-        mockSessao({ id_sessao: 'sessao-concluida', status: SessaoStatus.CONCLUIDO }),
+        mockSessao({
+          id_sessao: 'sessao-concluida',
+          status: SessaoStatus.CONCLUIDO,
+        }),
       );
 
       const result = await service.iniciarExercicio('paciente-1', iniciarDto);
 
-      expect(result).toEqual({ sessionId: 'sessao-concluida', alreadyCompletedToday: true });
+      expect(result).toEqual({
+        sessionId: 'sessao-concluida',
+        alreadyCompletedToday: true,
+      });
       expect(sessaoRepo.create).not.toHaveBeenCalled();
     });
   });
@@ -185,9 +210,9 @@ describe('SessoesService', () => {
     it('throws when the exercise does not exist or is inactive', async () => {
       exercicioRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.concluirExercicio('paciente-1', dto)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.concluirExercicio('paciente-1', dto),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('transitions an existing iniciado row to concluido instead of inserting a new one', async () => {
@@ -201,17 +226,27 @@ describe('SessoesService', () => {
       expect(manager.create).not.toHaveBeenCalled();
       expect(sessaoIniciada.status).toBe(SessaoStatus.CONCLUIDO);
       expect(sessaoIniciada.concluido).toBe(true);
-      expect(result).toMatchObject({ sessionId: 'sessao-iniciada', alreadyCompletedToday: false });
+      expect(result).toMatchObject({
+        sessionId: 'sessao-iniciada',
+        alreadyCompletedToday: false,
+      });
     });
 
-    it('always scopes the iniciado lookup to today, even when id_sessao is supplied, so a session left open from a previous day cannot be completed under today\'s XP with a stale date', async () => {
+    it("always scopes the iniciado lookup to today, even when id_sessao is supplied, so a session left open from a previous day cannot be completed under today's XP with a stale date", async () => {
       exercicioRepo.findOne.mockResolvedValue(mockExercicio());
       sessaoRepo.findOne.mockResolvedValue(null);
       mockManagerFindOne(null, mockUser({ xp: 90, nivel: 1 }));
 
-      await service.concluirExercicio('paciente-1', { ...dto, id_sessao: 'sessao-de-ontem' });
+      await service.concluirExercicio('paciente-1', {
+        ...dto,
+        id_sessao: 'sessao-de-ontem',
+      });
 
-      const chamadaSessao = manager.findOne.mock.calls.find(
+      const chamadas = manager.findOne.mock.calls as [
+        unknown,
+        { where: Record<string, unknown> },
+      ][];
+      const chamadaSessao = chamadas.find(
         ([entity]) => entity === SessaoRealizada,
       );
       expect(chamadaSessao).toBeDefined();
@@ -229,9 +264,16 @@ describe('SessoesService', () => {
 
       expect(manager.create).toHaveBeenCalledWith(
         SessaoRealizada,
-        expect.objectContaining({ status: SessaoStatus.CONCLUIDO, concluido: true }),
+        expect.objectContaining({
+          status: SessaoStatus.CONCLUIDO,
+          concluido: true,
+        }),
       );
-      expect(result).toMatchObject({ xpGained: 10, totalXp: 100, alreadyCompletedToday: false });
+      expect(result).toMatchObject({
+        xpGained: 10,
+        totalXp: 100,
+        alreadyCompletedToday: false,
+      });
     });
 
     it('flips stale iniciado rows from earlier days to falhado', async () => {
@@ -270,8 +312,13 @@ describe('SessoesService', () => {
       exercicioRepo.findOne.mockResolvedValue(mockExercicio());
       sessaoRepo.findOne.mockResolvedValue({
         id_sessao: 'sessao-existing',
-      } as SessaoRealizada);
-      const user = mockUser({ xp: 50, nivel: 1, streak_atual: 2, streak_ultima_atividade: new Date() });
+      });
+      const user = mockUser({
+        xp: 50,
+        nivel: 1,
+        streak_atual: 2,
+        streak_ultima_atividade: new Date(),
+      });
       mockManagerFindOne(null, user);
 
       const result = await service.concluirExercicio('paciente-1', dto);
@@ -288,7 +335,9 @@ describe('SessoesService', () => {
     });
 
     it('does not level up when the reward does not cross a threshold', async () => {
-      exercicioRepo.findOne.mockResolvedValue(mockExercicio({ recompensa_xp: 5 }));
+      exercicioRepo.findOne.mockResolvedValue(
+        mockExercicio({ recompensa_xp: 5 }),
+      );
       sessaoRepo.findOne.mockResolvedValue(null);
       mockManagerFindOne(null, mockUser({ xp: 10, nivel: 1 }));
 
@@ -303,11 +352,18 @@ describe('SessoesService', () => {
       // Simulates the second of two different exercises completed the same day: the per-exercise
       // dedupe check (sessaoRepo) finds nothing for THIS exercise, so it still reaches the
       // transaction branch and earns xp, but the streak was already updated earlier today.
-      exercicioRepo.findOne.mockResolvedValue(mockExercicio({ id_exercicio: 'exercicio-2' }));
+      exercicioRepo.findOne.mockResolvedValue(
+        mockExercicio({ id_exercicio: 'exercicio-2' }),
+      );
       sessaoRepo.findOne.mockResolvedValue(null);
       mockManagerFindOne(
         null,
-        mockUser({ xp: 10, nivel: 1, streak_atual: 1, streak_ultima_atividade: new Date() }),
+        mockUser({
+          xp: 10,
+          nivel: 1,
+          streak_atual: 1,
+          streak_ultima_atividade: new Date(),
+        }),
       );
 
       const result = await service.concluirExercicio('paciente-1', {
@@ -325,7 +381,12 @@ describe('SessoesService', () => {
       sessaoRepo.findOne.mockResolvedValue(null);
       mockManagerFindOne(
         null,
-        mockUser({ xp: 10, nivel: 1, streak_atual: 3, streak_ultima_atividade: yesterday }),
+        mockUser({
+          xp: 10,
+          nivel: 1,
+          streak_atual: 3,
+          streak_ultima_atividade: yesterday,
+        }),
       );
 
       const result = await service.concluirExercicio('paciente-1', dto);
@@ -339,7 +400,12 @@ describe('SessoesService', () => {
       sessaoRepo.findOne.mockResolvedValue(null);
       mockManagerFindOne(
         null,
-        mockUser({ xp: 10, nivel: 1, streak_atual: 10, streak_ultima_atividade: threeDaysAgo }),
+        mockUser({
+          xp: 10,
+          nivel: 1,
+          streak_atual: 10,
+          streak_ultima_atividade: threeDaysAgo,
+        }),
       );
 
       const result = await service.concluirExercicio('paciente-1', dto);

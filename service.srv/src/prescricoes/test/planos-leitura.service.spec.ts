@@ -92,6 +92,7 @@ const linha = (over: Partial<LinhaPlano>): LinhaPlano => ({
   ex_url_video: null,
   ex_repeticoes: null,
   ex_materiais_necessarios: null,
+  ex_descricao: null,
   ...over,
 });
 
@@ -148,6 +149,7 @@ describe('PlanosLeituraService', () => {
           ex_url_video: 'video.mp4',
           ex_repeticoes: 12,
           ex_materiais_necessarios: 'Bola',
+          ex_descricao: 'Pés à largura dos ombros.',
         }),
         linha({
           ex_id_exercicio: EXERCICIO_2,
@@ -169,6 +171,7 @@ describe('PlanosLeituraService', () => {
         url_video: 'video.mp4',
         repeticoes: 12,
         materiais_necessarios: 'Bola',
+        descricao: 'Pés à largura dos ombros.',
       });
     });
 

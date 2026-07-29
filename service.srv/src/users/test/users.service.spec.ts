@@ -14,31 +14,31 @@ import { Utilizador } from '../../entities/utilizador.entity';
 import { UserRole } from '../user-role.enum';
 import { UsersService } from '../users.service';
 
-const mockPermissao = (nome: Permission): Permissao =>
-  ({ id: `perm-${nome}`, nome }) as Permissao;
+const mockPermissao = (nome: Permission): Permissao => ({
+  id: `perm-${nome}`,
+  nome,
+});
 
-const mockPerfil = (role: UserRole, perms: Permission[]): Perfil =>
-  ({
-    id: `perfil-${role}`,
-    nome: role,
-    permissoes: perms.map(mockPermissao),
-  }) as Perfil;
+const mockPerfil = (role: UserRole, perms: Permission[]): Perfil => ({
+  id: `perfil-${role}`,
+  nome: role,
+  permissoes: perms.map(mockPermissao),
+});
 
-const mockUser = (overrides: Partial<Utilizador> = {}): Utilizador =>
-  ({
-    id_user: 'user-uuid',
-    nome: 'Dr. Test',
-    email: 'test@example.com',
-    tipo_utilizador: UserRole.CORPO_CLINICO,
-    xp: 0,
-    nivel: 1,
-    streak_atual: 0,
-    streak_ultima_atividade: null,
-    data_registo: new Date(),
-    url_foto_perfil: null,
-    permissoesDirectas: [],
-    ...overrides,
-  }) as Utilizador;
+const mockUser = (overrides: Partial<Utilizador> = {}): Utilizador => ({
+  id_user: 'user-uuid',
+  nome: 'Dr. Test',
+  email: 'test@example.com',
+  tipo_utilizador: UserRole.CORPO_CLINICO,
+  xp: 0,
+  nivel: 1,
+  streak_atual: 0,
+  streak_ultima_atividade: null,
+  data_registo: new Date(),
+  url_foto_perfil: null,
+  permissoesDirectas: [],
+  ...overrides,
+});
 
 // Stub do Supabase Auth admin. O serviço cria o cliente real no construtor,
 // por isso substituímos a instância depois de o módulo estar montado.

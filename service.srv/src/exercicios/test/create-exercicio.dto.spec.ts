@@ -21,7 +21,7 @@ const payloadReal = {
 
 describe('Criação de exercícios com o ValidationPipe global', () => {
   it('deixa passar o corpo que o frontend envia, campo a campo', async () => {
-    const saida = await pipe.transform(payloadReal, {
+    const saida: unknown = await pipe.transform(payloadReal, {
       type: 'body',
       metatype: CreateExercicioDto,
     });
@@ -55,7 +55,7 @@ describe('Criação de exercícios com o ValidationPipe global', () => {
    * duração, e ninguém via um erro.
    */
   it('a entidade sozinha não serve como tipo do @Body()', async () => {
-    const saida = await pipe.transform(payloadReal, {
+    const saida: unknown = await pipe.transform(payloadReal, {
       type: 'body',
       metatype: Exercicio,
     });

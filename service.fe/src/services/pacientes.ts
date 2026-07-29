@@ -14,6 +14,23 @@ export interface PacienteDetalhe extends Paciente {
 }
 
 /**
+ * Uma linha de `GET /api/pacientes` com o identificador no nome de coluna
+ * (`id_user`) que os ecrãs mais antigos já liam, e com os agregados que o
+ * servidor calcula — `adesaoPercentual`, `ultimoTreino` e
+ * `totalSessoesConcluidas`.
+ *
+ * Estende `Paciente` para continuar a servir quem só precisa do nome e do id.
+ * Existe porque `getPacientes()` estava a deitar fora três campos que já vinham
+ * na resposta: quem viesse a precisar deles recebia `undefined` sem que o
+ * compilador se queixasse.
+ */
+export interface PacienteListado extends Paciente {
+  adesaoPercentual: number | null;
+  ultimoTreino: string | null;
+  totalSessoesConcluidas: number;
+}
+
+/**
  * Uma linha de `GET /api/pacientes`, em camelCase.
  *
  * `ultimoTreino` e `totalSessoesConcluidas` são agregados no servidor. Antes o
@@ -87,13 +104,20 @@ export const pacientesService = {
   // O token não é passado à mão em nenhuma destas chamadas: o interceptor do
   // `apiClient` junta-o a todos os pedidos. Passá-lo aqui outra vez era só
   // duplicar a leitura da sessão a cada chamada.
-  async getPacientes(): Promise<Paciente[]> {
+  //
+  // Renomeia `idUser` para `id_user` — é o único ajuste de forma que faz aqui.
+  // Os agregados seguem intactos: descartá-los não poupava nada (vinham na
+  // mesma resposta) e só escondia dados de quem os pedisse a seguir.
+  async getPacientes(): Promise<PacienteListado[]> {
     try {
       const response = await apiClient.get<PacienteComAdesao[]>("/pacientes");
       return (response.data ?? []).map((p) => ({
         id_user: p.idUser,
         nome: p.nome,
         email: p.email,
+        adesaoPercentual: p.adesaoPercentual,
+        ultimoTreino: p.ultimoTreino,
+        totalSessoesConcluidas: p.totalSessoesConcluidas,
       }));
     } catch (erro) {
       throw erroDaApi(erro, "Não foi possível carregar os pacientes.");

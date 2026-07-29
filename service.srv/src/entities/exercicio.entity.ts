@@ -35,6 +35,6 @@ export class Exercicio {
   @Column({ type: 'varchar', length: 1, default: 'A', nullable: true })
   condicao_paciente: string;
 
-  @Column({ type: 'int', nullable: true })   
+  @Column({ type: 'int', nullable: true })
   repeticoes: number;
 }

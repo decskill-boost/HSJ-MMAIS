@@ -6,6 +6,7 @@ import {
   type PlanoAtivo,
   type ExercicioDoPlano,
 } from "../services/planosService";
+import { mensagemDeErro } from "../services/erroApi";
 import type { UserProfile } from "../types/user";
 import ExercicioPlayer from "./Planos/ExercicioPlayer";
 import ExercicioPreview from "./Planos/ExercicioPreview";
@@ -142,6 +143,7 @@ export const PlanosPaciente = () => {
   const { user } = useOutletContext<LayoutContext>();
   const [planos, setPlanos] = useState<PlanoAtivo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
   const [view, setView] = useState<View>("escolha");
   // A pré-visualização do plano tapa o ecrã todo; Escape volta à lista.
   useTeclaEscape(() => setView("plano-list"), view === "plano-preview");
@@ -162,21 +164,49 @@ export const PlanosPaciente = () => {
 
   useEffect(() => {
     if (!user?.idUser) return;
-    Promise.all([
+    // `allSettled` e não `all`: são dois pedidos independentes, e com `all`
+    // bastava o catálogo standard falhar (403 do guarda de papéis, 500, rede)
+    // para o `.then` nunca correr — a lista ficava vazia e a criança lia
+    // «ainda não há planos para ti» tendo uma prescrição ATIVA em vigor.
+    Promise.allSettled([
       planosService.getTodosPlanosPorPaciente(user.idUser),
       planosService.getPlanosStandard(),
     ])
-      .then(([{ ativo, historico }, standard]) => {
+      .then(([resultadoPessoais, resultadoStandard]) => {
         // Só planos vigentes chegam à criança: o `historico` traz prescrições
         // que o clínico já cancelou ou substituiu, e treinar por elas seria
         // seguir indicação clínica retirada. `ativo === true` é o mesmo critério
         // que o resto do código usa para decidir o que é plano em vigor.
-        const pessoais = [ativo, ...historico].filter(
-          (p): p is PlanoAtivo => p?.ativo === true,
-        );
+        const pessoais =
+          resultadoPessoais.status === "fulfilled"
+            ? [
+                resultadoPessoais.value.ativo,
+                ...resultadoPessoais.value.historico,
+              ].filter((p): p is PlanoAtivo => p?.ativo === true)
+            : [];
+        const standard =
+          resultadoStandard.status === "fulfilled" ? resultadoStandard.value : [];
+
         setPlanos([...pessoais, ...standard]);
+
+        // Uma lista incompleta tem de se ver. Sem isto a falha morria na
+        // consola e o ecrã ficava indistinguível de «ainda não te prescreveram
+        // nada» — que para quem tem um plano em vigor é informação errada.
+        if (resultadoPessoais.status === "rejected") {
+          console.error(resultadoPessoais.reason);
+          setErro(
+            mensagemDeErro(
+              resultadoPessoais.reason,
+              "Não foi possível carregar os teus planos. Verifica a ligação e tenta outra vez daqui a pouco.",
+            ),
+          );
+        } else if (resultadoStandard.status === "rejected") {
+          console.error(resultadoStandard.reason);
+          setErro(
+            "Não conseguimos carregar todos os planos — estes são os que dá para mostrar agora.",
+          );
+        }
       })
-      .catch(console.error)
       .finally(() => setLoading(false));
   }, [user?.idUser]);
 
@@ -547,6 +577,17 @@ export const PlanosPaciente = () => {
         <h1 className="text-2xl font-display tracking-tight text-tinta">Escolhe um plano 📋</h1>
         <p className="mt-1 text-sm text-aco">Toca num plano para o ver e começar!</p>
 
+        {/* A lista pode estar incompleta por falha de um dos pedidos: dizê-lo é
+            melhor do que deixar a criança a pensar que não tem plano nenhum. */}
+        {erro && (
+          <p
+            role="alert"
+            className="painel mt-4 border-capa bg-capa/10 p-4 text-sm font-bold text-capa-escura"
+          >
+            {erro}
+          </p>
+        )}
+
         {/* Filtro por condição — quadrados grandes, um toque escolhe */}
         <div className="mt-5">
           <p className="mb-2 text-xs font-bold uppercase tracking-wide text-aco">
@@ -583,7 +624,11 @@ export const PlanosPaciente = () => {
             </div>
             {filtroCondicao === "Todos" ? (
               <p className="text-aco">
-                Ainda não há planos para ti — mas o Capitão está a preparar-te um!
+                {/* Com uma leitura falhada não se pode afirmar que não há
+                    planos: pode haver e não terem chegado. */}
+                {erro
+                  ? "Não conseguimos ir buscar os teus planos agora. Tenta outra vez daqui a pouco!"
+                  : "Ainda não há planos para ti — mas o Capitão está a preparar-te um!"}
               </p>
             ) : (
               <>

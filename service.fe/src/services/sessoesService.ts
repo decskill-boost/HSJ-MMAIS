@@ -70,6 +70,19 @@ export interface SessaoHistorico {
   } | null;
 }
 
+/**
+ * Resposta de `GET /api/sessoes/estatisticas` — contagens agregadas de todo o
+ * hospital, em camelCase e sem qualquer identificador de criança.
+ *
+ * Vive aqui, ao lado da chamada, e não dentro do ecrã que a consome: era assim
+ * que a forma da resposta se afastava do que o servidor devolve sem ninguém
+ * reparar.
+ */
+export interface EstatisticasSessoes {
+  totalConcluidas: number;
+  concluidasUltimos7Dias: number;
+}
+
 export const sessoesService = {
   iniciarSessao: async (dados: IniciarSessao): Promise<IniciarSessaoResultado> => {
     const response = await apiClient.post<IniciarSessaoResultado>(
@@ -120,6 +133,24 @@ export const sessoesService = {
       }));
     } catch (erro) {
       throw erroDaApi(erro, "Erro ao carregar o histórico de treinos.");
+    }
+  },
+
+  /**
+   * Total de treinos concluídos e quantos nos últimos 7 dias.
+   *
+   * A fronteira dos 7 dias é calculada no servidor: antes saía do relógio do
+   * posto de trabalho, e um portátil com a hora errada dava contagens erradas
+   * ao clínico.
+   */
+  getEstatisticas: async (): Promise<EstatisticasSessoes> => {
+    try {
+      const response = await apiClient.get<EstatisticasSessoes>(
+        "/sessoes/estatisticas",
+      );
+      return response.data;
+    } catch (erro) {
+      throw erroDaApi(erro, "Não foi possível carregar as estatísticas.");
     }
   },
 };

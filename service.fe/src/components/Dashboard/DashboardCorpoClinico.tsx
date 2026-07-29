@@ -11,9 +11,9 @@ import {
 } from "../ui/Tabela";
 import type { UserProfile } from "../../types/user";
 import LoadingSpinner from "../LoadingSpinner";
-import { apiClient } from "../../services/apiClient";
 import { mensagemDeErro } from "../../services/erroApi";
 import { pacientesService } from "../../services/pacientes";
+import { sessoesService } from "../../services/sessoesService";
 
 interface LayoutContext {
   user: UserProfile | null;
@@ -27,12 +27,6 @@ interface PacienteComUltimoTreino {
   email: string;
   ultimoTreino: string;
   ultimoTreinoDate: Date | null;
-}
-
-/** Resposta de `GET /api/sessoes/estatisticas` (agregados do hospital). */
-interface EstatisticasSessoes {
-  totalConcluidas: number;
-  concluidasUltimos7Dias: number;
 }
 
 const DashboardCorpoClinico = () => {
@@ -80,14 +74,12 @@ const DashboardCorpoClinico = () => {
         //  - `GET /api/pacientes` traz o último treino de cada criança. Antes
         //    o browser descarregava as sessões do hospital inteiro, em páginas
         //    de mil, só para descobrir a data mais recente de cada uma.
-        //  - `GET /api/sessoes/estatisticas` traz os dois contadores. Antes
+        //  - `sessoesService.getEstatisticas()` traz os dois contadores. Antes
         //    eram dois `count` diretos à tabela e a fronteira dos 7 dias era
         //    calculada com o relógio do posto de trabalho.
         const [listaPacientes, estatisticas] = await Promise.all([
           pacientesService.getPacientesComAdesao(),
-          apiClient
-            .get<EstatisticasSessoes>("/sessoes/estatisticas")
-            .then((resposta) => resposta.data),
+          sessoesService.getEstatisticas(),
         ]);
 
         const formatarDataExibicao = (data: Date) => {

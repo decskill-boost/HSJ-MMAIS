@@ -7,7 +7,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 import { Perfil } from '../entities/perfil.entity';
 import { Recompensa } from '../entities/recompensa.entity';
 import { Utilizador } from '../entities/utilizador.entity';
@@ -17,7 +17,9 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
-  private readonly supabaseAdmin: SupabaseClient;
+  // O tipo vem do próprio `createClient` para não haver divergência nos
+  // parâmetros genéricos do SupabaseClient.
+  private readonly supabaseAdmin: ReturnType<typeof createClient>;
 
   constructor(
     @InjectRepository(Utilizador)
@@ -128,7 +130,6 @@ export class UsersService {
     if (error || !data.user?.id) {
       // Só o erro do Supabase: o `createUserDto` traz a palavra-passe em claro
       // e o `data` traz o utilizador todo. Nada disso entra nos registos.
-      // eslint-disable-next-line no-console
       console.error('Supabase admin.createUser falhou', {
         mensagem: error?.message,
         estado: error?.status,
@@ -149,7 +150,7 @@ export class UsersService {
     } as DeepPartial<Utilizador>;
 
     const savedUser = await this.utilizadorRepo.save(novoUtilizador);
-    return this.mapUtilizadorToProfile(savedUser as Utilizador);
+    return this.mapUtilizadorToProfile(savedUser);
   }
 
   async updateUser(id_user: string, updateUserDto: UpdateUserDto) {
@@ -201,7 +202,6 @@ export class UsersService {
 
     // Só a mensagem e o estado: a resposta do Supabase traz dados do
     // utilizador que não devem entrar nos registos.
-    // eslint-disable-next-line no-console
     console.error('Supabase admin.deleteUser falhou', {
       mensagem: deleteError.message,
       estado: deleteError.status,
@@ -215,7 +215,6 @@ export class UsersService {
       });
 
     if (banError) {
-      // eslint-disable-next-line no-console
       console.error('Supabase admin.updateUserById (ban) também falhou', {
         mensagem: banError.message,
         estado: banError.status,

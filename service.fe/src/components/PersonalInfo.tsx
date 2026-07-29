@@ -30,6 +30,12 @@ const getRoleLabel = (role?: string) => {
 export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
   const { user } = useOutletContext<LayoutContext>();
 
+  // Ver a nota no UserMenu: o backend devolve `urlFotoPerfil`/`role`, e os nomes
+  // de coluna vinham sempre `undefined` — a fotografia nunca chegava a ser
+  // desenhada e o compilador não se queixava, porque os campos são opcionais.
+  const fotoPerfil = user?.urlFotoPerfil ?? user?.url_foto_perfil ?? null;
+  const papel = user?.role ?? user?.tipo_utilizador;
+
   return (
     <div className="flex-1 bg-papel px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-2xl">
@@ -40,20 +46,16 @@ export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
           {/* Cabeçalho: Foto + Info Básica */}
           <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:text-left">
             <div className="flex-shrink-0">
-              {user?.url_foto_perfil ? (
+              {fotoPerfil ? (
                 <img
-                  src={user.url_foto_perfil}
+                  src={fotoPerfil}
                   alt=""
                   className="h-24 w-24 rounded-full border border-tinta/15 object-cover shadow-sm"
                 />
               ) : (
                 <div className="h-24 w-24 overflow-hidden rounded-full border-2 border-tinta bg-cobalto/10 shadow-sm">
                   <AvatarHeroi
-                    variante={
-                      user?.role === "paciente" || user?.tipo_utilizador === "paciente"
-                        ? "crianca"
-                        : "clinico"
-                    }
+                    variante={papel === "paciente" ? "crianca" : "clinico"}
                     className="h-full w-full"
                   />
                 </div>
@@ -62,7 +64,7 @@ export const PersonalInfo = ({ onBack }: PersonalInfoProps) => {
 
             <div className="flex flex-1 flex-col sm:items-start">
               <span className="mb-2 inline-flex items-center rounded-full border border-cobalto/25 bg-cobalto/10 px-2.5 py-0.5 text-xs font-semibold text-cobalto">
-                {getRoleLabel(user?.role || user?.tipo_utilizador)}
+                {getRoleLabel(papel)}
               </span>
               <h2 className="text-2xl font-extrabold tracking-tight text-tinta">
                 {user?.nome}

@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
 import { exerciciosService } from "../../services/exercicios";
 import type { Exercicio } from "../../services/exercicios";
-import type { ExercicioDoPlano } from "../../services/planosService";
+import {
+  dificuldadeParaNumero,
+  type ExercicioDoPlano,
+} from "../../services/planosService";
 import CapitaoMais from "../CapitaoMais";
 import LoadingSpinner from "../LoadingSpinner";
 import MiniaturaVideo from "../ui/MiniaturaVideo";
@@ -14,12 +17,13 @@ interface Props {
 type FiltroCondicao = "Todos" | "A" | "B" | "C";
 
 function mapExercicio(ex: Exercicio): ExercicioDoPlano {
-  const difMap: Record<string, number> = { facil: 1, medio: 5, dificil: 8 };
   return {
     id_exercicio: ex.id_exercicio,
     nome_exercicio: ex.nome_exercicio,
     duracao_segundos: ex.duracao_segundos,
-    dificuldade_clinica: difMap[ex.dificuldade_clinica] ?? 1,
+    // A escala é a mesma que o serviço dos planos aplica: a Biblioteca e um
+    // plano têm de mostrar o mesmo nível para o mesmo exercício.
+    dificuldade_clinica: dificuldadeParaNumero(ex.dificuldade_clinica),
     recompensa_xp: ex.recompensa_xp,
     url_video: ex.url_video ?? "",
     categoria: ex.categoria,

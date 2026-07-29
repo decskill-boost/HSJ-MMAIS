@@ -60,9 +60,16 @@ const HistoricoRecompensas = () => {
             .then((resposta) => resposta.data),
         ]);
 
-        setSessoes(historicoData);
-        setRecompensas(progresso.recompensas);
-        setXpTotal(progresso.xp);
+        // Reservas defensivas: uma resposta 200 com corpo inesperado (um proxy
+        // pelo meio, o fallback da SPA a devolver HTML) punha
+        // `recompensas.find()` a rebentar em pleno render — ecrã branco para a
+        // criança, e não a mensagem de erro preparada mais abaixo, porque o
+        // `catch` do pedido já não apanha um erro que acontece na renderização.
+        setSessoes(Array.isArray(historicoData) ? historicoData : []);
+        setRecompensas(
+          Array.isArray(progresso?.recompensas) ? progresso.recompensas : [],
+        );
+        setXpTotal(typeof progresso?.xp === "number" ? progresso.xp : 0);
       } catch (err) {
         // O axios lança onde o supabase-js devolvia { data, error }: sem isto
         // uma leitura falhada mostrava «0 XP» a uma criança que tem XP.

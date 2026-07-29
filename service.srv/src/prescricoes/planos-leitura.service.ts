@@ -97,6 +97,10 @@ export class PlanosLeituraService {
         .addSelect('"e"."url_video"', 'ex_url_video')
         .addSelect('"e"."repeticoes"', 'ex_repeticoes')
         .addSelect('"e"."materiais_necessarios"', 'ex_materiais_necessarios')
+        // As instruções escritas: em modo plano o leitor abre sem passar pela
+        // pré-visualização, e este é o único sítio onde uma criança que não
+        // ouça o vídeo consegue ler o que tem de fazer.
+        .addSelect('"e"."descricao"', 'ex_descricao')
         // Sem ordenação dos planos, "o mais recente" seria o que a base de dados
         // calhasse devolver primeiro.
         .orderBy('"p"."data_inicio"', 'DESC')

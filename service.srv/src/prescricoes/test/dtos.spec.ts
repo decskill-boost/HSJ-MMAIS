@@ -1,10 +1,10 @@
-import { plainToInstance } from 'class-transformer';
+import { ClassConstructor, plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import { CreatePrescricaoDto } from '../create-prescricao.dto';
 import { UpdatePrescricaoDto } from '../update-prescricao.dto';
 import { ConcluirExercicioDto } from '../../sessoes/dto/concluir-exercicio.dto';
 
-const erros = (cls: any, payload: unknown) =>
+const erros = (cls: ClassConstructor<object>, payload: unknown) =>
   validateSync(
     plainToInstance(cls, payload, { enableImplicitConversion: false }),
     {

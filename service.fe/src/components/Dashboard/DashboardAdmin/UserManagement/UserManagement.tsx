@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
+import { mensagemDeErro } from "../../../../services/erroApi";
 import {
   createUser,
   disableUser,
@@ -129,30 +130,11 @@ const UserManagement = () => {
       setView("list");
     } catch (err: unknown) {
       console.error(err);
-      let serverMessage = "Erro desconhecido";
-      if (err instanceof Error) {
-        serverMessage = err.message;
-      }
-      const apiErr = err as {
-        response?: { data?: { message?: string | string[] } | string };
-      };
-      if (apiErr?.response?.data) {
-        const data = apiErr.response.data;
-        if (typeof data === "string") {
-          serverMessage = data;
-        } else if (data && typeof data === "object" && "message" in data) {
-          // O ValidationPipe do NestJS devolve `message` como lista (uma
-          // entrada por regra falhada). Sem tratar a lista, o administrador
-          // via o "Request failed with status code 400" do axios em vez de
-          // "A palavra-passe tem de ter pelo menos 8 caracteres."
-          if (Array.isArray(data.message) && data.message.length > 0) {
-            serverMessage = data.message.join(" ");
-          } else if (typeof data.message === "string") {
-            serverMessage = data.message;
-          }
-        }
-      }
-      setError(serverMessage);
+      // Era aqui que vivia a última cópia local desta extração. `mensagemDeErro`
+      // faz o mesmo — incluindo a lista que o `ValidationPipe` do NestJS devolve
+      // em `message`, sem a qual o administrador via "Request failed with status
+      // code 400" em vez de "A palavra-passe tem de ter pelo menos 8 caracteres."
+      setError(mensagemDeErro(err, "Erro desconhecido"));
     } finally {
       setLoading(false);
     }

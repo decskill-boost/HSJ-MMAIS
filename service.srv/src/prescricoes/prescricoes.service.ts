@@ -50,8 +50,10 @@ export class PrescricoesService {
     }
 
     const prescricao = this.prescricaoRepository.create({
-      id_paciente: cleanPacienteId ? ({ id_user: cleanPacienteId } as Utilizador) : null,
-      id_medico: cleanMedicoId ? ({ id_user: cleanMedicoId } as Utilizador) : (null as unknown as Utilizador),
+      id_paciente: cleanPacienteId ? { id_user: cleanPacienteId } : null,
+      id_medico: cleanMedicoId
+        ? { id_user: cleanMedicoId }
+        : (null as unknown as Utilizador),
       frequencia_semanal: dados.frequencia_semanal,
       data_validade: dados.data_validade ? new Date(dados.data_validade) : null,
       data_fim: dados.data_validade ? new Date(dados.data_validade) : null,

@@ -15,6 +15,7 @@ export interface ExercicioDoPlano {
   url_video: string | null;
   repeticoes: number | null;
   materiais_necessarios: string | null;
+  descricao: string | null;
 }
 
 /** Plano tal como a criança o vê (E1). */

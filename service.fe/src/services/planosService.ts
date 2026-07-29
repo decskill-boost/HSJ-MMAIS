@@ -1,10 +1,19 @@
 import { apiClient } from "./apiClient";
 import { erroDaApi } from "./erroApi";
+import { exerciciosService } from "./exercicios";
 
 export interface ExercicioDoPlano {
   id_exercicio: string;
   nome_exercicio: string;
   duracao_segundos: number;
+  /**
+   * NÚMERO nos ecrãs, TEXTO na base de dados.
+   *
+   * A coluna é `varchar` ('facil' | 'medio' | 'dificil') e é assim que as rotas
+   * de planos a devolvem, mas os ecrãs comparam-na por limiares
+   * (`<= 3` fácil, `<= 6` médio). É esta camada que faz a conversão — ver
+   * `dificuldadeParaNumero`.
+   */
   dificuldade_clinica: number;
   recompensa_xp: number;
   url_video: string;
@@ -14,6 +23,39 @@ export interface ExercicioDoPlano {
   descricao?: string;
   repeticoes?: number;
 }
+
+/**
+ * Escala da dificuldade clínica, a mesma que a Biblioteca de Exercícios já
+ * usava. Vive aqui porque é aqui que entram os planos — ter duas cópias era o
+ * caminho para elas divergirem.
+ */
+const ESCALA_DIFICULDADE: Record<string, number> = {
+  facil: 1,
+  medio: 5,
+  dificil: 8,
+};
+
+/**
+ * Converte a dificuldade clínica para o número que os ecrãs comparam.
+ *
+ * Sem isto, o texto que vem do servidor cai nas comparações `'facil' <= 3`, que
+ * coagem para `NaN` e são sempre falsas: TODOS os exercícios de um plano
+ * apareciam rotulados «Difícil», com a cor de alarme, incluindo os fáceis. O
+ * TypeScript não apanhava nada porque o tipo declara `number`.
+ *
+ * Aceita já-números (a Biblioteca de Exercícios converte antes de chegar aqui)
+ * e desconhecidos caem em 1 — 'facil', que é o `DEFAULT` da coluna.
+ */
+export const dificuldadeParaNumero = (valor: unknown): number => {
+  if (typeof valor === "number" && Number.isFinite(valor)) return valor;
+
+  const texto = String(valor ?? "").trim().toLowerCase();
+  const daEscala = ESCALA_DIFICULDADE[texto];
+  if (daEscala !== undefined) return daEscala;
+
+  const numero = Number(texto);
+  return texto !== "" && Number.isFinite(numero) ? numero : 1;
+};
 
 export interface PlanoAtivo {
   id_plano: string;
@@ -80,6 +122,90 @@ export interface PlanoParaEdicao {
   exercicios: { id_exercicio: string; duracao_segundos: number | null }[];
 }
 
+/** Um plano tal como as rotas de leitura o devolvem: com lista de exercícios. */
+type ComExercicios = { exercicios: ExercicioDoPlano[] };
+
+/**
+ * Põe a resposta do servidor na forma que os ecrãs leem: dificuldade em número
+ * e `exercicios` garantidamente um array (uma resposta truncada punha
+ * `plano.exercicios.length` a rebentar em pleno render).
+ */
+const normalizarPlano = <T extends ComExercicios>(plano: T): T => ({
+  ...plano,
+  exercicios: (Array.isArray(plano.exercicios) ? plano.exercicios : []).map(
+    (ex) => ({
+      ...ex,
+      dificuldade_clinica: dificuldadeParaNumero(ex.dificuldade_clinica),
+    }),
+  ),
+});
+
+/**
+ * Catálogo de instruções, indexado por exercício.
+ *
+ * Enquanto estiver um pedido a caminho, quem chegar entretanto aproveita-o: o
+ * ecrã dos planos pede os planos pessoais e os standard ao mesmo tempo, e não
+ * vale a pena ir buscar o catálogo duas vezes. A referência é limpa no fim,
+ * por isso não é cache — não guarda respostas velhas entre visitas ao ecrã.
+ */
+let catalogoEmVoo: Promise<Map<string, string>> | null = null;
+
+const descricoesDoCatalogo = (): Promise<Map<string, string>> => {
+  catalogoEmVoo ??= exerciciosService
+    .getAll()
+    .then((lista) => {
+      const mapa = new Map<string, string>();
+      (Array.isArray(lista) ? lista : []).forEach((ex) => {
+        if (ex?.id_exercicio && ex.descricao) {
+          mapa.set(ex.id_exercicio, ex.descricao);
+        }
+      });
+      return mapa;
+    })
+    .finally(() => {
+      catalogoEmVoo = null;
+    });
+
+  return catalogoEmVoo;
+};
+
+/**
+ * Junta aos exercícios do plano as instruções escritas.
+ *
+ * As rotas de planos não trazem `descricao` — a consulta do servidor não a
+ * seleciona — mas a coluna existe e `GET /exercicios` devolve-a. Sem ela, o
+ * bloco «📋 Instruções» do leitor não é desenhado e a criança que faz um plano
+ * PRESCRITO fica sem o texto do que tem de fazer: em modo plano o leitor abre
+ * sem passar pela pré-visualização, e as instruções são a única alternativa
+ * para quem não ouve o vídeo (os vídeos ainda não têm legendas).
+ *
+ * Se o catálogo falhar, os planos seguem à mesma sem instruções — que é
+ * exatamente o que acontece hoje. Nunca faz falhar o carregamento do plano.
+ */
+const comInstrucoes = async <T extends ComExercicios>(
+  planos: T[],
+): Promise<T[]> => {
+  const faltaAlguma = planos.some((p) =>
+    p.exercicios.some((ex) => !ex.descricao),
+  );
+  if (!faltaAlguma) return planos;
+
+  try {
+    const descricoes = await descricoesDoCatalogo();
+    return planos.map((plano) => ({
+      ...plano,
+      exercicios: plano.exercicios.map((ex) =>
+        ex.descricao
+          ? ex
+          : { ...ex, descricao: descricoes.get(ex.id_exercicio) },
+      ),
+    }));
+  } catch (erro) {
+    console.error("Não foi possível ir buscar as instruções dos exercícios:", erro);
+    return planos;
+  }
+};
+
 export const planosService = {
   /**
    * Planos da PRÓPRIA criança.
@@ -100,9 +226,18 @@ export const planosService = {
         historico: PlanoAtivo[];
       }>("/prescricoes/meus");
 
+      const ativo = data?.ativo ? normalizarPlano(data.ativo) : null;
+      const historico = (
+        Array.isArray(data?.historico) ? data.historico : []
+      ).map(normalizarPlano);
+
+      // O ativo vai no mesmo lote que o histórico para o catálogo de
+      // instruções ser pedido uma só vez.
+      const planos = await comInstrucoes(ativo ? [ativo, ...historico] : historico);
+
       return {
-        ativo: data?.ativo ?? null,
-        historico: data?.historico ?? [],
+        ativo: ativo ? (planos[0] ?? null) : null,
+        historico: ativo ? planos.slice(1) : planos,
       };
     } catch (erro) {
       throw erroDaApi(erro, "Não foi possível carregar os teus planos.");
@@ -114,7 +249,9 @@ export const planosService = {
       const { data } = await apiClient.get<PlanoAtivo[]>(
         "/prescricoes/standard",
       );
-      return data ?? [];
+      return comInstrucoes(
+        (Array.isArray(data) ? data : []).map(normalizarPlano),
+      );
     } catch (erro) {
       throw erroDaApi(erro, "Não foi possível carregar os planos standard.");
     }
@@ -127,13 +264,18 @@ export const planosService = {
    * frontend, onde qualquer pessoa a podia trocar por um id de uma prescrição
    * real. Passou a ser uma constante do servidor, que exige ainda
    * `id_paciente IS NULL`.
+   *
+   * Aqui não se juntam as instruções escritas como nas rotas com sessão: esta
+   * página é anónima e `GET /exercicios` exige sessão. A pré-visualização
+   * esconde o bloco quando não há descrição, por isso o ecrã não parte — o
+   * treino de demonstração é que fica sem texto de apoio.
    */
   getPlanosPublicos: async (): Promise<PlanoPublico[]> => {
     try {
       const { data } = await apiClient.get<PlanoPublico[]>(
         "/prescricoes/publicos",
       );
-      return data ?? [];
+      return (Array.isArray(data) ? data : []).map(normalizarPlano);
     } catch (erro) {
       throw erroDaApi(erro, "Não foi possível carregar os planos.");
     }
