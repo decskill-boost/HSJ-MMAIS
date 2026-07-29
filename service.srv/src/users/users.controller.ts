@@ -29,6 +29,15 @@ export class UsersController {
     return this.usersService.findById(payload.sub);
   }
 
+  /**
+   * XP do próprio + catálogo de conquistas, num pedido.
+   * O id vem do token: não há forma de pedir o progresso de outra pessoa.
+   */
+  @Get('me/progresso')
+  getProgresso(@CurrentUser() payload: SupabaseJwtPayload) {
+    return this.usersService.getProgresso(payload.sub);
+  }
+
   @Get()
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)

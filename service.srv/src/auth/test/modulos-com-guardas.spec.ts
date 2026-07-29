@@ -10,6 +10,7 @@ import { Exercicio } from '../../entities/exercicio.entity';
 import { Perfil } from '../../entities/perfil.entity';
 import { Permissao } from '../../entities/permissao.entity';
 import { Prescricao } from '../../entities/prescricao.entity';
+import { Recompensa } from '../../entities/recompensa.entity';
 import { PrescricaoExercicio } from '../../entities/prescricao-exercicio.entity';
 import { SessaoRealizada } from '../../entities/sessao-realizada.entity';
 import { Utilizador } from '../../entities/utilizador.entity';
@@ -50,6 +51,7 @@ describe('Módulos que usam guardas conseguem arrancar', () => {
     Permissao,
     Prescricao,
     PrescricaoExercicio,
+    Recompensa,
     SessaoRealizada,
     Utilizador,
   ];

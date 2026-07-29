@@ -9,6 +9,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { Perfil } from '../entities/perfil.entity';
+import { Recompensa } from '../entities/recompensa.entity';
 import { Utilizador } from '../entities/utilizador.entity';
 import { getEffectiveStreak } from '../sessoes/streak.util';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -23,6 +24,8 @@ export class UsersService {
     private readonly utilizadorRepo: Repository<Utilizador>,
     @InjectRepository(Perfil)
     private readonly perfilRepo: Repository<Perfil>,
+    @InjectRepository(Recompensa)
+    private readonly recompensaRepo: Repository<Recompensa>,
     private readonly configService: ConfigService,
   ) {
     const supabaseUrl = this.configService.getOrThrow<string>('SUPABASE_URL');
@@ -60,6 +63,30 @@ export class UsersService {
       permissions,
       data_registo: user.data_registo,
     };
+  }
+
+  /**
+   * Progresso do próprio: o XP atual e o catálogo de conquistas.
+   *
+   * Substitui duas leituras que o browser fazia direto ao Supabase — o
+   * catálogo de `recompensas` e o `xp` da linha do utilizador. O id vem do
+   * token, nunca do cliente: ninguém pode pedir o progresso de outra criança.
+   */
+  async getProgresso(id_user: string) {
+    const utilizador = await this.utilizadorRepo.findOne({
+      where: { id_user },
+      select: { xp: true },
+    });
+
+    if (!utilizador) {
+      throw new NotFoundException('Utilizador não encontrado');
+    }
+
+    const recompensas = await this.recompensaRepo.find({
+      order: { xp_necessario: 'ASC' },
+    });
+
+    return { xp: utilizador.xp, recompensas };
   }
 
   async findById(id_user: string) {

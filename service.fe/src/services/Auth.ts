@@ -50,6 +50,20 @@ const traduzErroLogin = (erro: {
   );
 };
 
+/** Forma de `GET /api/users/me` (ver UsersService.mapUtilizadorToProfile). */
+interface PerfilDoBackend {
+  idUser: string;
+  nome: string;
+  email: string;
+  role: UserProfile["role"];
+  xp: number;
+  nivel: number;
+  streakAtual: number;
+  urlFotoPerfil: string | null;
+  permissions: UserProfile["permissions"];
+  data_registo: string;
+}
+
 export const authService = {
   async login({ email, password }: LoginCredentials) {
     registarDebug("[Auth] a tentar login no Supabase", { email });
@@ -85,32 +99,29 @@ export const authService = {
         );
       }
 
-      // Se quiseres podes até usar o perfil retornado pelo teu NestJS aqui,
-      // mas mantive a tua lógica de ir buscar ao Supabase para não quebrar os teus tipos.
-      const { data: profile, error: profileError } = await supabase
-        .from("utilizadores")
-        .select("*")
-        .eq("id_user", authData.user.id)
-        .single();
-
-      if (profileError) throw new Error(profileError.message);
+      // O perfil vem do backend, que já era chamado aqui e cuja resposta era
+      // deitada fora para se fazer um `select("*")` sobre `utilizadores` a
+      // seguir. Além de poupar a viagem, o backend traz duas coisas que a
+      // consulta direta não trazia: as permissões calculadas (o cliente punha
+      // sempre lista vazia) e o streak já ajustado à inatividade.
+      const perfil = (await backendResponse.json()) as PerfilDoBackend;
 
       const normalizedProfile: UserProfile = {
-        idUser: profile.id_user,
-        nome: profile.nome,
-        email: profile.email,
-        role: profile.tipo_utilizador,
-        xp: profile.xp,
-        nivel: profile.nivel,
-        streakAtual: profile.streak_atual,
-        urlFotoPerfil: profile.url_foto_perfil ?? null,
-        permissions: [],
-        entityId: profile.entity_id,
-        id_user: profile.id_user,
-        tipo_utilizador: profile.tipo_utilizador,
-        streak_atual: profile.streak_atual,
-        data_registo: profile.data_registo,
-        url_foto_perfil: profile.url_foto_perfil ?? null,
+        idUser: perfil.idUser,
+        nome: perfil.nome,
+        email: perfil.email,
+        role: perfil.role,
+        xp: perfil.xp,
+        nivel: perfil.nivel,
+        streakAtual: perfil.streakAtual,
+        urlFotoPerfil: perfil.urlFotoPerfil ?? null,
+        permissions: perfil.permissions ?? [],
+        // Campos em snake_case mantidos porque há ecrãs que ainda os leem.
+        id_user: perfil.idUser,
+        tipo_utilizador: perfil.role,
+        streak_atual: perfil.streakAtual,
+        data_registo: perfil.data_registo,
+        url_foto_perfil: perfil.urlFotoPerfil ?? null,
       };
 
       persistAuthState({

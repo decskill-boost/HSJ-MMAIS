@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
-import { supabase } from "../../services/supabaseClient";
+import { apiClient } from "../../services/apiClient";
+import { mensagemDeErro } from "../../services/erroApi";
 import {
   sessoesService,
   type SessaoHistorico,
@@ -48,24 +49,29 @@ const HistoricoRecompensas = () => {
     const fetchTudo = async () => {
       try {
         setErro(null);
-        const [historicoData, recompensasData, xpData] = await Promise.all([
+        // O XP e o catálogo de conquistas vêm num só pedido, e o id vem do
+        // token: ninguém consegue pedir o progresso de outra criança.
+        const [historicoData, progresso] = await Promise.all([
           sessoesService.getHistorico(user.idUser),
-          supabase.from("recompensas").select("*").order("xp_necessario"),
-          supabase.from("utilizadores").select("xp").eq("id_user", user.idUser).single(),
+          apiClient
+            .get<{ xp: number; recompensas: Recompensa[] }>(
+              "/users/me/progresso",
+            )
+            .then((resposta) => resposta.data),
         ]);
 
-        // O supabase-js não lança em falha de consulta: devolve { data: null, error }.
-        // Sem isto, uma leitura falhada mostrava «0 XP» a uma criança que tem XP.
-        if (recompensasData.error) throw new Error(recompensasData.error.message);
-        if (xpData.error) throw new Error(xpData.error.message);
-
         setSessoes(historicoData);
-        setRecompensas(recompensasData.data ?? []);
-        setXpTotal(xpData.data?.xp ?? 0);
+        setRecompensas(progresso.recompensas);
+        setXpTotal(progresso.xp);
       } catch (err) {
+        // O axios lança onde o supabase-js devolvia { data, error }: sem isto
+        // uma leitura falhada mostrava «0 XP» a uma criança que tem XP.
         console.error(err);
         setErro(
-          "Não foi possível carregar o teu progresso. Verifica a ligação e tenta outra vez daqui a pouco.",
+          mensagemDeErro(
+            err,
+            "Não foi possível carregar o teu progresso. Verifica a ligação e tenta outra vez daqui a pouco.",
+          ),
         );
       } finally {
         setLoading(false);

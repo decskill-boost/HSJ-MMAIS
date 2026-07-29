@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { Permission } from '../permission.enum';
 import { Perfil } from '../perfil.entity';
 import { Permissao } from '../permissao.entity';
+import { Recompensa } from '../../entities/recompensa.entity';
 import { Utilizador } from '../../entities/utilizador.entity';
 import { UserRole } from '../user-role.enum';
 import { UsersService } from '../users.service';
@@ -87,6 +88,10 @@ describe('UsersService', () => {
         {
           provide: getRepositoryToken(Perfil),
           useValue: { findOne: jest.fn() },
+        },
+        {
+          provide: getRepositoryToken(Recompensa),
+          useValue: { find: jest.fn() },
         },
         {
           provide: ConfigService,
