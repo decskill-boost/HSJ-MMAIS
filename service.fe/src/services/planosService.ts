@@ -1,6 +1,5 @@
-import { supabase } from "./supabaseClient";
 import { apiClient } from "./apiClient";
-import { pacientesService } from "./pacientes";
+import { erroDaApi } from "./erroApi";
 
 export interface ExercicioDoPlano {
   id_exercicio: string;
@@ -31,10 +30,17 @@ export interface PlanoAtivo {
   exercicios: ExercicioDoPlano[];
 }
 
-export interface PlanoPorPaciente {
-  id_paciente: string;
-  nome: string;
-  planos: PlanoAtivo[];
+/**
+ * O que `GET /api/prescricoes/publicos` devolve na página "Experimentar", que
+ * é servida SEM sessão iniciada: só o id do plano e os exercícios.
+ *
+ * É deliberadamente mais pobre do que `PlanoAtivo` — nem notas médicas, nem
+ * datas, nem identificador de criança atravessam uma rota anónima. O ecrã só
+ * lê estes dois campos, por isso nada muda no que se vê.
+ */
+export interface PlanoPublico {
+  id_plano: string;
+  exercicios: ExercicioDoPlano[];
 }
 
 /** Resumo de um plano para o corpo clínico gerir (listar/editar/cancelar). */
@@ -53,451 +59,116 @@ export interface PlanoGerido {
   total_exercicios: number;
 }
 
-const isPlanoAtivo = (prescricao: { ativo?: boolean | null }): boolean =>
-  prescricao.ativo === true;
-
-interface PrescricaoDb {
+/** Um plano tal como o ecrã de edição o pré-preenche. */
+export interface PlanoParaEdicao {
   id_prescricao: string;
   frequencia_semanal: number;
   notas_medicas: string | null;
-  data_inicio: string | null;
   data_validade: string | null;
-  data_fim: string | null;
-  ativo: boolean | null;
-  id_paciente: string;
-  dificuldade: string | null;
-  condicao_paciente: string | null;
+  ativo: boolean;
+  dificuldade: string;
+  condicao_paciente: string;
   condicao_clinica: string | null;
-  is_standard: boolean | null;
+  is_standard: boolean;
+  id_paciente: string | null;
+  /**
+   * `duracao_segundos` é a duração ESPECÍFICA desta prescrição e pode ser
+   * `null` — ao contrário das restantes rotas de leitura, aqui não é
+   * substituída pela duração do catálogo: o ecrã usa o `null` para saber que a
+   * duração não foi personalizada.
+   */
+  exercicios: { id_exercicio: string; duracao_segundos: number | null }[];
 }
 
-const COLUNAS_PRESCRICAO =
-  "id_prescricao, frequencia_semanal, notas_medicas, data_inicio, data_validade, data_fim, ativo, id_paciente, dificuldade, condicao_paciente, condicao_clinica, is_standard";
-
-const mapPrescricaoParaPlano = (prescricao: PrescricaoDb): PlanoAtivo => ({
-  id_plano: prescricao.id_prescricao,
-  frequencia_semanal: prescricao.frequencia_semanal,
-  notas_medicas: prescricao.notas_medicas ?? null,
-  data_inicio: prescricao.data_inicio ?? null,
-  data_validade: prescricao.data_validade ?? null,
-  data_fim: prescricao.data_fim ?? null,
-  ativo: isPlanoAtivo(prescricao),
-  dificuldade: prescricao.dificuldade ?? "facil",
-  condicao_paciente: prescricao.condicao_paciente ?? "A",
-  condicao_clinica: prescricao.condicao_clinica ?? null,
-  is_standard: prescricao.is_standard ?? false,
-  exercicios: [],
-});
-
-const doMaisRecenteParaOMaisAntigo = (a: PlanoAtivo, b: PlanoAtivo) =>
-  new Date(b.data_inicio ?? 0).getTime() -
-  new Date(a.data_inicio ?? 0).getTime();
-
-const fetchPlanosPorPacientes = async (): Promise<PlanoPorPaciente[]> => {
-  const pacientes = await pacientesService.getPacientes();
-  const pacienteIds = pacientes.map((paciente) => paciente.id_user);
-  if (pacienteIds.length === 0) return [];
-
-  const { data: prescricoes, error } = await supabase
-    .from("prescricoes")
-    .select(COLUNAS_PRESCRICAO)
-    .in("id_paciente", pacienteIds)
-    .order("data_inicio", { ascending: false });
-
-  if (error) throw new Error(error.message);
-
-  const planosPorPaciente = new Map<string, PrescricaoDb[]>();
-  (prescricoes as unknown as PrescricaoDb[] ?? []).forEach((prescricao) => {
-    const pacienteId = prescricao.id_paciente;
-    const lista = planosPorPaciente.get(pacienteId) ?? [];
-    lista.push(prescricao);
-    planosPorPaciente.set(pacienteId, lista);
-  });
-
-  return pacientes.map((paciente) => {
-    const prescricoesDoPaciente = planosPorPaciente.get(paciente.id_user) ?? [];
-    const planos = prescricoesDoPaciente
-      .map(mapPrescricaoParaPlano)
-      .sort(doMaisRecenteParaOMaisAntigo);
-
-    return {
-      id_paciente: paciente.id_user,
-      nome: paciente.nome,
-      planos,
-    };
-  });
-};
-
-/**
- * Planos de um único paciente. A filtragem por `id_paciente` é feita no
- * servidor: trazer as prescrições de todo o hospital para depois escolher uma
- * no browser fazia passar pela rede dados clínicos de outras crianças sem
- * necessidade nenhuma.
- */
-const fetchPlanosDeUmPaciente = async (
-  idPaciente: string,
-): Promise<PlanoPorPaciente | null> => {
-  // Só a linha desta criança: pedir a lista inteira de pacientes ao backend
-  // (que calcula a adesão de toda a coorte) para tirar de lá um nome era
-  // varrer o hospital a cada abertura do detalhe. `maybeSingle` mantém o
-  // comportamento de antes — id que não é de nenhum paciente devolve `null` e
-  // o ecrã continua a mostrar "Paciente não encontrado".
-  const { data: paciente, error: errPaciente } = await supabase
-    .from("utilizadores")
-    .select("id_user, nome")
-    .eq("id_user", idPaciente)
-    .eq("tipo_utilizador", "paciente")
-    .maybeSingle();
-
-  if (errPaciente) throw new Error(errPaciente.message);
-  if (!paciente) return null;
-
-  const { data: prescricoes, error } = await supabase
-    .from("prescricoes")
-    .select(COLUNAS_PRESCRICAO)
-    .eq("id_paciente", idPaciente)
-    .order("data_inicio", { ascending: false });
-
-  if (error) throw new Error(error.message);
-
-  return {
-    id_paciente: paciente.id_user,
-    nome: paciente.nome,
-    planos: ((prescricoes as unknown as PrescricaoDb[]) ?? [])
-      .map(mapPrescricaoParaPlano)
-      .sort(doMaisRecenteParaOMaisAntigo),
-  };
-};
-
 export const planosService = {
+  /**
+   * Planos da PRÓPRIA criança.
+   *
+   * `GET /api/prescricoes/meus` tira o paciente do `sub` do token verificado —
+   * não há caminho, query nem corpo por onde pedir os planos de outra criança.
+   * O `idPaciente` fica na assinatura porque é quem está autenticado e serve de
+   * guarda: sem utilizador não há nada a pedir.
+   */
   getTodosPlanosPorPaciente: async (
     idPaciente: string,
   ): Promise<{ ativo: PlanoAtivo | null; historico: PlanoAtivo[] }> => {
-    const { data: prescricoes, error: errP } = await supabase
-      .from("prescricoes")
-      .select(
-        "id_prescricao, frequencia_semanal, notas_medicas, data_inicio, data_validade, data_fim, ativo, dificuldade, condicao_paciente",
-      )
-      .eq("id_paciente", idPaciente);
+    if (!idPaciente) return { ativo: null, historico: [] };
 
-    if (errP) throw new Error(errP.message);
-    if (!prescricoes || prescricoes.length === 0)
-      return { ativo: null, historico: [] };
+    try {
+      const { data } = await apiClient.get<{
+        ativo: PlanoAtivo | null;
+        historico: PlanoAtivo[];
+      }>("/prescricoes/meus");
 
-    const ids = prescricoes.map((p) => p.id_prescricao);
-    const { data: peData, error: errPE } = await supabase
-      .from("prescricoes_exercicios")
-      .select("id_prescricao, id_exercicio, duracao_segundos")
-      .in("id_prescricao", ids);
-
-    if (errPE) throw new Error(errPE.message);
-    if (!peData || peData.length === 0) {
-      const ativos = prescricoes.filter(isPlanoAtivo);
-      const inativos = prescricoes.filter((p) => !isPlanoAtivo(p));
-      // O campo `ativo` tem de vir preenchido também por este caminho: quem
-      // consome (PlanosPaciente) filtra por `ativo === true` para não pôr a
-      // criança a treinar por uma prescrição já cancelada. Sem ele, o plano em
-      // vigor tinha `ativo: undefined` e desaparecia do ecrã dela.
       return {
-        ativo: ativos[0]
-          ? {
-              id_plano: ativos[0].id_prescricao,
-              frequencia_semanal: ativos[0].frequencia_semanal,
-              notas_medicas: ativos[0].notas_medicas,
-              ativo: true,
-              dificuldade: ativos[0].dificuldade ?? "facil",
-              condicao_paciente: ativos[0].condicao_paciente ?? "A",
-              exercicios: [],
-            }
-          : null,
-        historico: inativos.map((p) => ({
-          id_plano: p.id_prescricao,
-          frequencia_semanal: p.frequencia_semanal,
-          notas_medicas: p.notas_medicas,
-          ativo: false,
-          dificuldade: p.dificuldade ?? "facil",
-          condicao_paciente: p.condicao_paciente ?? "A",
-          exercicios: [],
-        })),
+        ativo: data?.ativo ?? null,
+        historico: data?.historico ?? [],
       };
+    } catch (erro) {
+      throw erroDaApi(erro, "Não foi possível carregar os teus planos.");
     }
-
-    const exercicioIds = [...new Set(peData.map((pe) => pe.id_exercicio))];
-    const { data: exerciciosData, error: errE } = await supabase
-      .from("exercicios")
-      .select(
-        "id_exercicio, nome_exercicio, duracao_segundos, dificuldade_clinica, recompensa_xp, url_video, repeticoes, materiais_necessarios",
-      )
-      .in("id_exercicio", exercicioIds);
-
-    if (errE) throw new Error(errE.message);
-
-    interface PrescricaoInfo {
-      id_prescricao: string;
-      frequencia_semanal: number;
-      notas_medicas: string | null;
-      data_inicio?: string | null;
-      data_validade?: string | null;
-      data_fim?: string | null;
-      ativo?: boolean | null;
-      dificuldade?: string | null;
-      condicao_paciente?: string | null;
-    }
-
-    const mapPlano = (p: PrescricaoInfo): PlanoAtivo => ({
-      id_plano: p.id_prescricao,
-      frequencia_semanal: p.frequencia_semanal,
-      notas_medicas: p.notas_medicas,
-      data_inicio: p.data_inicio,
-      data_validade: p.data_validade,
-      data_fim: p.data_fim,
-      ativo: isPlanoAtivo(p),
-      dificuldade: p.dificuldade ?? "facil",
-      condicao_paciente: p.condicao_paciente ?? "A",
-      exercicios: peData
-        .filter((pe) => pe.id_prescricao === p.id_prescricao)
-        .map((pe) => {
-          const e = (exerciciosData ?? []).find(
-            (ex) => ex.id_exercicio === pe.id_exercicio,
-          );
-          if (!e) return null;
-          return {
-            ...e,
-            duracao_segundos: pe.duracao_segundos ?? e.duracao_segundos,
-          };
-        })
-        .filter(Boolean) as ExercicioDoPlano[],
-    });
-
-    const ativos = prescricoes.filter(isPlanoAtivo).map(mapPlano);
-    const historico = prescricoes.filter((p) => !isPlanoAtivo(p)).map(mapPlano);
-
-    return { ativo: ativos[0] ?? null, historico };
   },
 
   getPlanosStandard: async (): Promise<PlanoAtivo[]> => {
-    const { data: prescricoes, error: errP } = await supabase
-      .from("prescricoes")
-      .select(
-        "id_prescricao, frequencia_semanal, notas_medicas, data_inicio, data_validade, data_fim, ativo, dificuldade, condicao_paciente, condicao_clinica, is_standard",
-      )
-      .is("id_paciente", null)
-      .eq("ativo", true);
-
-    if (errP) throw new Error(errP.message);
-    if (!prescricoes || prescricoes.length === 0) return [];
-
-    const ids = prescricoes.map((p) => p.id_prescricao);
-    const { data: peData, error: errPE } = await supabase
-      .from("prescricoes_exercicios")
-      .select("id_prescricao, id_exercicio, duracao_segundos")
-      .in("id_prescricao", ids);
-
-    if (errPE) throw new Error(errPE.message);
-    if (!peData || peData.length === 0) {
-      return prescricoes.map((p) => ({
-        id_plano: p.id_prescricao,
-        frequencia_semanal: p.frequencia_semanal,
-        notas_medicas: p.notas_medicas,
-        dificuldade: p.dificuldade ?? "facil",
-        condicao_paciente: p.condicao_paciente ?? "A",
-        condicao_clinica: p.condicao_clinica ?? null,
-        is_standard: p.is_standard,
-        exercicios: [],
-      }));
+    try {
+      const { data } = await apiClient.get<PlanoAtivo[]>(
+        "/prescricoes/standard",
+      );
+      return data ?? [];
+    } catch (erro) {
+      throw erroDaApi(erro, "Não foi possível carregar os planos standard.");
     }
-
-    const exercicioIds = [...new Set(peData.map((pe) => pe.id_exercicio))];
-    const { data: exerciciosData, error: errE } = await supabase
-      .from("exercicios")
-      .select(
-        "id_exercicio, nome_exercicio, duracao_segundos, dificuldade_clinica, recompensa_xp, url_video, repeticoes, materiais_necessarios",
-      )
-      .in("id_exercicio", exercicioIds);
-
-    if (errE) throw new Error(errE.message);
-
-    return prescricoes.map((p) => ({
-      id_plano: p.id_prescricao,
-      frequencia_semanal: p.frequencia_semanal,
-      notas_medicas: p.notas_medicas,
-      data_inicio: p.data_inicio,
-      data_validade: p.data_validade,
-      data_fim: p.data_fim,
-      ativo: p.ativo === true,
-      dificuldade: p.dificuldade ?? "facil",
-      condicao_paciente: p.condicao_paciente ?? "A",
-      condicao_clinica: p.condicao_clinica ?? null,
-      is_standard: p.is_standard,
-      exercicios: peData
-        .filter((pe) => pe.id_prescricao === p.id_prescricao)
-        .map((pe) => {
-          const e = (exerciciosData ?? []).find(
-            (ex) => ex.id_exercicio === pe.id_exercicio,
-          );
-          if (!e) return null;
-          return {
-            ...e,
-            duracao_segundos: pe.duracao_segundos ?? e.duracao_segundos,
-          };
-        })
-        .filter(Boolean) as ExercicioDoPlano[],
-    }));
   },
 
-  getPlanosPublicos: async (): Promise<PlanoAtivo[]> => {
-    const IDS_PLANOS_PUBLICOS = [
-      "050a0dc5-f3bf-48c2-ab0d-8558b10f0daf",
-      "2f22e589-e54e-497f-9ac3-d85953a8ce73",
-    ];
-
-    const { data: prescricoes, error: errP } = await supabase
-      .from("prescricoes")
-      .select(
-        "id_prescricao, frequencia_semanal, notas_medicas, data_inicio, data_validade, data_fim, ativo, dificuldade, condicao_paciente, condicao_clinica, is_standard",
-      )
-      .in("id_prescricao", IDS_PLANOS_PUBLICOS)
-      .eq("ativo", true);
-
-    if (errP) throw new Error(errP.message);
-    if (!prescricoes || prescricoes.length === 0) return [];
-
-    const ids = prescricoes.map((p) => p.id_prescricao);
-    const { data: peData, error: errPE } = await supabase
-      .from("prescricoes_exercicios")
-      .select("id_prescricao, id_exercicio, duracao_segundos")
-      .in("id_prescricao", ids);
-
-    if (errPE) throw new Error(errPE.message);
-
-    const exercicioIds = [...new Set((peData ?? []).map((pe) => pe.id_exercicio))];
-    const { data: exerciciosData, error: errE } =
-      exercicioIds.length > 0
-        ? await supabase
-            .from("exercicios")
-            .select(
-              "id_exercicio, nome_exercicio, duracao_segundos, dificuldade_clinica, recompensa_xp, url_video, repeticoes, materiais_necessarios",
-            )
-            .in("id_exercicio", exercicioIds)
-        : { data: [], error: null };
-
-    if (errE) throw new Error(errE.message);
-
-    return prescricoes.map((p) => ({
-      id_plano: p.id_prescricao,
-      frequencia_semanal: p.frequencia_semanal,
-      notas_medicas: p.notas_medicas,
-      data_inicio: p.data_inicio,
-      data_validade: p.data_validade,
-      data_fim: p.data_fim,
-      ativo: p.ativo === true,
-      dificuldade: p.dificuldade ?? "facil",
-      condicao_paciente: p.condicao_paciente ?? "A",
-      condicao_clinica: p.condicao_clinica ?? null,
-      is_standard: p.is_standard,
-      exercicios: (peData ?? [])
-        .filter((pe) => pe.id_prescricao === p.id_prescricao)
-        .map((pe) => {
-          const e = (exerciciosData ?? []).find(
-            (ex) => ex.id_exercicio === pe.id_exercicio,
-          );
-          if (!e) return null;
-          return {
-            ...e,
-            duracao_segundos: pe.duracao_segundos ?? e.duracao_segundos,
-          };
-        })
-        .filter(Boolean) as ExercicioDoPlano[],
-    }));
+  /**
+   * Planos de demonstração da página "Experimentar".
+   *
+   * A lista de ids deixou de estar aqui: era uma constante no pacote do
+   * frontend, onde qualquer pessoa a podia trocar por um id de uma prescrição
+   * real. Passou a ser uma constante do servidor, que exige ainda
+   * `id_paciente IS NULL`.
+   */
+  getPlanosPublicos: async (): Promise<PlanoPublico[]> => {
+    try {
+      const { data } = await apiClient.get<PlanoPublico[]>(
+        "/prescricoes/publicos",
+      );
+      return data ?? [];
+    } catch (erro) {
+      throw erroDaApi(erro, "Não foi possível carregar os planos.");
+    }
   },
-
-  getPlanosPorPacientes: fetchPlanosPorPacientes,
-
-  getPlanosPorPaciente: fetchPlanosDeUmPaciente,
 
   /**
    * Todos os planos criados (templates standard e prescritos), ativos ou
-   * cancelados, para o corpo clínico gerir. Traz o nome do paciente quando o
-   * plano é individual.
+   * cancelados, para o corpo clínico gerir. O nome do paciente e a contagem de
+   * exercícios vêm já agregados do servidor — antes eram três consultas e a
+   * lista inteira de pacientes pedida só para extrair um nome.
    */
   getTodosOsPlanos: async (): Promise<PlanoGerido[]> => {
-    const { data: prescricoes, error: errP } = await supabase
-      .from("prescricoes")
-      .select(
-        "id_prescricao, frequencia_semanal, notas_medicas, data_inicio, data_validade, ativo, dificuldade, condicao_paciente, is_standard, id_paciente",
-      )
-      .order("data_inicio", { ascending: false });
-
-    if (errP) throw new Error(errP.message);
-    if (!prescricoes || prescricoes.length === 0) return [];
-
-    const ids = prescricoes.map((p) => p.id_prescricao);
-    // Sem isto, uma falha a ler os exercícios fazia todos os cartões anunciar
-    // "0 exercícios", como se os planos estivessem vazios. O ecrã que chama
-    // (GestaoPlanos) já apanha o erro e mostra a mensagem de falha.
-    const { data: peData, error: errPE } = await supabase
-      .from("prescricoes_exercicios")
-      .select("id_prescricao, id_exercicio")
-      .in("id_prescricao", ids);
-    if (errPE) throw new Error(errPE.message);
-
-    // Os nomes vêm pelo backend: o RLS de `utilizadores` não deixa o clínico
-    // lê-los diretamente, e sem isto os planos prescritos apareciam sem nome.
-    const nomes = new Map<string, string>();
-    if (prescricoes.some((p) => p.id_paciente)) {
-      try {
-        const lista = await pacientesService.getPacientes();
-        lista.forEach((p) => nomes.set(p.id_user, p.nome));
-      } catch {
-        // sem nomes, os cartões continuam a mostrar o resto da informação
-      }
+    try {
+      const { data } = await apiClient.get<PlanoGerido[]>("/prescricoes");
+      return data ?? [];
+    } catch (erro) {
+      throw erroDaApi(erro, "Não foi possível carregar os planos.");
     }
-
-    return prescricoes.map((p) => ({
-      id_plano: p.id_prescricao,
-      frequencia_semanal: p.frequencia_semanal,
-      notas_medicas: p.notas_medicas ?? null,
-      data_inicio: p.data_inicio ?? null,
-      data_validade: p.data_validade ?? null,
-      ativo: p.ativo === true,
-      dificuldade: p.dificuldade ?? "facil",
-      condicao_paciente: p.condicao_paciente ?? "A",
-      is_standard: p.is_standard === true,
-      id_paciente: p.id_paciente ?? null,
-      nome_paciente: p.id_paciente ? (nomes.get(p.id_paciente) ?? null) : null,
-      total_exercicios: (peData ?? []).filter(
-        (pe) => pe.id_prescricao === p.id_prescricao,
-      ).length,
-    }));
   },
 
   /** Um plano com os seus exercícios, para pré-preencher o ecrã de edição. */
-  getPlanoParaEdicao: async (idPrescricao: string) => {
-    const { data: p, error } = await supabase
-      .from("prescricoes")
-      .select(
-        "id_prescricao, frequencia_semanal, notas_medicas, data_validade, ativo, dificuldade, condicao_paciente, condicao_clinica, is_standard, id_paciente",
-      )
-      .eq("id_prescricao", idPrescricao)
-      .single();
-    if (error) throw new Error(error.message);
-
-    // O erro tem de rebentar aqui: ignorá-lo abria o ecrã de edição sem
-    // exercícios nenhuns e, ao guardar, apagava os que a criança tinha
-    // prescritos.
-    const { data: pe, error: errPE } = await supabase
-      .from("prescricoes_exercicios")
-      .select("id_exercicio, duracao_segundos")
-      .eq("id_prescricao", idPrescricao);
-    if (errPE) throw new Error(errPE.message);
-
-    return {
-      ...p,
-      exercicios: (pe ?? []).map((x) => ({
-        id_exercicio: x.id_exercicio as string,
-        duracao_segundos: x.duracao_segundos as number | null,
-      })),
-    };
+  getPlanoParaEdicao: async (
+    idPrescricao: string,
+  ): Promise<PlanoParaEdicao> => {
+    try {
+      const { data } = await apiClient.get<PlanoParaEdicao>(
+        `/prescricoes/${idPrescricao}`,
+      );
+      // Ou vem completo, ou rebenta: abrir o editor com a lista de exercícios
+      // vazia por causa de uma resposta truncada fazia com que guardar apagasse
+      // os exercícios que a criança tinha prescritos.
+      return { ...data, exercicios: data?.exercicios ?? [] };
+    } catch (erro) {
+      throw erroDaApi(erro, "Não foi possível carregar o plano.");
+    }
   },
 
   /**
@@ -518,19 +189,37 @@ export const planosService = {
       exercicios: { id_exercicio: string; duracao_segundos?: number }[];
     },
   ): Promise<void> => {
-    await apiClient.put(`/prescricoes/${idPrescricao}`, dados);
+    try {
+      await apiClient.put(`/prescricoes/${idPrescricao}`, dados);
+    } catch (erro) {
+      throw erroDaApi(erro, "Não foi possível guardar as alterações.");
+    }
   },
 
   cancelPlano: async (idPrescricao: string): Promise<void> => {
-    await apiClient.patch(`/prescricoes/${idPrescricao}/cancel`);
+    try {
+      await apiClient.patch(`/prescricoes/${idPrescricao}/cancel`);
+    } catch (erro) {
+      throw erroDaApi(erro, "Não foi possível cancelar.");
+    }
   },
 
+  /**
+   * Elimina um plano.
+   *
+   * O servidor devolve 409 com a explicação quando o plano já tem treinos
+   * associados; `erroDaApi` traz essa mensagem para a `message` do `Error`,
+   * que é o que a GestaoPlanos mostra.
+   */
   eliminarPlano: async (idPrescricao: string): Promise<void> => {
-    const { error } = await supabase
-      .from("prescricoes")
-      .delete()
-      .eq("id_prescricao", idPrescricao);
-    if (error) throw new Error(error.message);
+    try {
+      await apiClient.delete(`/prescricoes/${idPrescricao}`);
+    } catch (erro) {
+      throw erroDaApi(
+        erro,
+        "Não foi possível eliminar. O plano pode já ter treinos associados.",
+      );
+    }
   },
 
   criarPlano: async (dados: {
@@ -545,6 +234,10 @@ export const planosService = {
     condicao_clinica?: string | null;
     exercicios: (string | { id_exercicio: string; duracao_segundos?: number })[];
   }): Promise<void> => {
-    await apiClient.post("/prescricoes", dados);
+    try {
+      await apiClient.post("/prescricoes", dados);
+    } catch (erro) {
+      throw erroDaApi(erro, "Não foi possível criar o plano.");
+    }
   },
 };

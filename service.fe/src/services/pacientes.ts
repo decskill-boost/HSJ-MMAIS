@@ -1,5 +1,5 @@
 import { apiClient } from "./apiClient";
-import { supabase } from "./supabaseClient";
+import { erroDaApi } from "./erroApi";
 
 export interface Paciente {
   id_user: string;
@@ -13,11 +13,23 @@ export interface PacienteDetalhe extends Paciente {
   streak_atual: number;
 }
 
+/**
+ * Uma linha de `GET /api/pacientes`, em camelCase.
+ *
+ * `ultimoTreino` e `totalSessoesConcluidas` são agregados no servidor. Antes o
+ * browser descarregava as sessões do hospital inteiro, em páginas de mil, só
+ * para descobrir a data mais recente e contar os treinos de cada criança.
+ *
+ * `ultimoTreino` é hora de parede (timestamp SEM fuso), no mesmo formato que o
+ * PostgREST devolvia, e continua a ser lido como hora local.
+ */
 export interface PacienteComAdesao {
   idUser: string;
   nome: string;
   email: string;
   adesaoPercentual: number | null;
+  ultimoTreino: string | null;
+  totalSessoesConcluidas: number;
 }
 
 export type SessaoStatus = "iniciado" | "concluido" | "falhado";
@@ -54,68 +66,84 @@ export interface HistoricoResposta {
   resumoSemanal: ResumoSemanal[];
 }
 
-async function getAccessToken(): Promise<string> {
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session?.access_token) {
-    throw new Error("Sessão inválida. Por favor, faça login novamente.");
-  }
-
-  return session.access_token;
+/**
+ * Forma que `GET /api/pacientes/:id` devolve — em camelCase, ao contrário dos
+ * nomes das colunas que o PostgREST expunha. É convertida para
+ * `PacienteDetalhe` para o cabeçalho do perfil continuar a ler os mesmos
+ * campos que lia antes.
+ */
+interface PacientePerfilResposta {
+  idUser: string;
+  nome: string;
+  email: string;
+  nivel: number;
+  xp: number;
+  streakAtual: number;
 }
 
 export const pacientesService = {
-  // Busca todos os utilizadores que são pacientes
+  // Busca todos os utilizadores que são pacientes.
+  //
+  // O token não é passado à mão em nenhuma destas chamadas: o interceptor do
+  // `apiClient` junta-o a todos os pedidos. Passá-lo aqui outra vez era só
+  // duplicar a leitura da sessão a cada chamada.
   async getPacientes(): Promise<Paciente[]> {
-    const token = await getAccessToken();
-    const response = await apiClient.get<PacienteComAdesao[]>("/pacientes", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data.map((p) => ({
-      id_user: p.idUser,
-      nome: p.nome,
-      email: p.email,
-    }));
-  },
-
-  // Busca os dados básicos de um paciente para o cabeçalho do perfil
-  async getPacienteById(id: string): Promise<PacienteDetalhe> {
-    const { data, error } = await supabase
-      .from("utilizadores")
-      .select("id_user, nome, email, nivel, xp, streak_atual")
-      .eq("id_user", id)
-      .eq("tipo_utilizador", "paciente")
-      .single();
-
-    if (error) {
-      console.error("Erro ao carregar paciente:", error.message);
-      throw new Error(error.message);
+    try {
+      const response = await apiClient.get<PacienteComAdesao[]>("/pacientes");
+      return (response.data ?? []).map((p) => ({
+        id_user: p.idUser,
+        nome: p.nome,
+        email: p.email,
+      }));
+    } catch (erro) {
+      throw erroDaApi(erro, "Não foi possível carregar os pacientes.");
     }
-
-    return data;
   },
 
-  // Lista de pacientes com percentagem de adesão — via API, protegido por role
+  // Busca os dados básicos de um paciente para o cabeçalho do perfil — via
+  // API, protegido por papel. A restrição a `tipo_utilizador = 'paciente'`
+  // que a consulta direta tinha passou a ser imposta no servidor.
+  async getPacienteById(id: string): Promise<PacienteDetalhe> {
+    try {
+      const response = await apiClient.get<PacientePerfilResposta>(
+        `/pacientes/${id}`,
+      );
+      const perfil = response.data;
+
+      return {
+        id_user: perfil.idUser,
+        nome: perfil.nome,
+        email: perfil.email,
+        nivel: perfil.nivel,
+        xp: perfil.xp,
+        streak_atual: perfil.streakAtual,
+      };
+    } catch (erro) {
+      throw erroDaApi(erro, "Erro ao carregar paciente.");
+    }
+  },
+
+  // Lista de pacientes com adesão, último treino e total de treinos — via API,
+  // protegido por papel.
   async getPacientesComAdesao(): Promise<PacienteComAdesao[]> {
-    const token = await getAccessToken();
-    const response = await apiClient.get<PacienteComAdesao[]>("/pacientes", {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return response.data;
+    try {
+      const response = await apiClient.get<PacienteComAdesao[]>("/pacientes");
+      return response.data ?? [];
+    } catch (erro) {
+      throw erroDaApi(erro, "Não foi possível carregar os pacientes.");
+    }
   },
 
   // Histórico de assiduidade (concluído/falhado/ignorado) — via API, protegido por role
   async getHistorico(id: string, from?: string, to?: string): Promise<HistoricoResposta> {
-    const token = await getAccessToken();
-    const response = await apiClient.get<HistoricoResposta>(
-      `/pacientes/${id}/historico`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { from, to },
-      },
-    );
-    return response.data;
+    try {
+      const response = await apiClient.get<HistoricoResposta>(
+        `/pacientes/${id}/historico`,
+        { params: { from, to } },
+      );
+      return response.data;
+    } catch (erro) {
+      throw erroDaApi(erro, "Não foi possível carregar o histórico.");
+    }
   },
 };

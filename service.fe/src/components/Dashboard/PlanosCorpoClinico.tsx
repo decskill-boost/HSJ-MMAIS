@@ -11,7 +11,6 @@ import {
   Th,
 } from "../ui/Tabela";
 import { pacientesService } from "../../services/pacientes";
-import { supabase } from "../../services/supabaseClient";
 
 interface PacienteAcompanhado {
   id_user: string;
@@ -34,35 +33,24 @@ const PlanosCorpoClinico = () => {
         setLoading(true);
         setErro(null);
 
-        // Obter todos os pacientes
-        const listaPacientes = await pacientesService.getPacientes();
+        // Pacientes e treinos concluídos num só pedido: a contagem por criança
+        // é agregada no servidor, em vez de se varrer aqui a tabela inteira de
+        // sessões.
+        const listaPacientes = await pacientesService.getPacientesComAdesao();
 
-        // Obter todas as sessões realizadas com status 'concluido'
-        const { data: sessoes, error: errSessoes } = await supabase
-          .from("sessoes_realizadas")
-          .select("id_paciente")
-          .eq("status", "concluido");
+        const pacientesMapeados: PacienteAcompanhado[] = listaPacientes.map(
+          (p) => ({
+            id_user: p.idUser,
+            nome: p.nome,
+            email: p.email,
+            totalTreinos: p.totalSessoesConcluidas ?? 0,
+          }),
+        );
 
-        if (errSessoes) throw new Error(errSessoes.message);
-
-        // Mapear contagem de treinos concluídos por paciente
-        const sessoesContador = new Map<string, number>();
-        let totalTreinos = 0;
-
-        if (sessoes) {
-          sessoes.forEach((s) => {
-            if (s.id_paciente) {
-              const atual = sessoesContador.get(s.id_paciente) ?? 0;
-              sessoesContador.set(s.id_paciente, atual + 1);
-              totalTreinos++;
-            }
-          });
-        }
-
-        const pacientesMapeados = listaPacientes.map((p) => ({
-          ...p,
-          totalTreinos: sessoesContador.get(p.id_user) ?? 0,
-        }));
+        const totalTreinos = pacientesMapeados.reduce(
+          (soma, p) => soma + p.totalTreinos,
+          0,
+        );
 
         setPacientes(pacientesMapeados);
         setTotalTreinosGerais(totalTreinos);

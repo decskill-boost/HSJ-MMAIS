@@ -1,23 +1,16 @@
 import { useState, useEffect } from "react";
 import { useOutletContext } from "react-router-dom";
 import { supabase } from "../../services/supabaseClient";
-import { sessoesService } from "../../services/sessoesService";
+import {
+  sessoesService,
+  type SessaoHistorico,
+} from "../../services/sessoesService";
 import type { UserProfile } from "../../types/user";
 import CapitaoMais from "../CapitaoMais";
 import LoadingSpinner from "../LoadingSpinner";
 
 interface LayoutContext {
   user: UserProfile | null;
-}
-
-interface Sessao {
-  id_sessao: string;
-  data_hora: string;
-  duracao: number;
-  exercicios: {
-    nome_exercicio: string;
-    recompensa_xp: number;
-  } | null;
 }
 
 interface Recompensa {
@@ -43,7 +36,7 @@ const formatData = (iso: string) => {
 const HistoricoRecompensas = () => {
   const { user } = useOutletContext<LayoutContext>();
   const [tab, setTab] = useState<"historico" | "recompensas">("historico");
-  const [sessoes, setSessoes] = useState<Sessao[]>([]);
+  const [sessoes, setSessoes] = useState<SessaoHistorico[]>([]);
   const [recompensas, setRecompensas] = useState<Recompensa[]>([]);
   const [xpTotal, setXpTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -66,7 +59,7 @@ const HistoricoRecompensas = () => {
         if (recompensasData.error) throw new Error(recompensasData.error.message);
         if (xpData.error) throw new Error(xpData.error.message);
 
-        setSessoes(historicoData as unknown as Sessao[]);
+        setSessoes(historicoData);
         setRecompensas(recompensasData.data ?? []);
         setXpTotal(xpData.data?.xp ?? 0);
       } catch (err) {
@@ -184,7 +177,7 @@ const HistoricoRecompensas = () => {
                       {s.exercicios?.nome_exercicio ?? "Exercício"}
                     </p>
                     <p className="text-xs text-aco">
-                      {formatData(s.data_hora)} · {formatDuracao(s.duracao)}
+                      {formatData(s.data_hora)} · {formatDuracao(s.duracao ?? 0)}
                     </p>
                   </div>
                 </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import {
   planosService,
-  type PlanoAtivo,
+  type PlanoPublico,
   type ExercicioDoPlano,
 } from "../services/planosService";
 import ExercicioPlayer from "./Planos/ExercicioPlayer";
@@ -12,7 +12,9 @@ import CapitaoMais from "./CapitaoMais";
 type View = "list" | "preview" | "playing";
 
 export const ExperimentarPlanos = () => {
-  const [planos, setPlanos] = useState<PlanoAtivo[]>([]);
+  // Esta página é servida sem sessão: a rota anónima devolve só o id do plano
+  // e os exercícios — que é exatamente o que os cartões mostram.
+  const [planos, setPlanos] = useState<PlanoPublico[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
   const [view, setView] = useState<View>("list");

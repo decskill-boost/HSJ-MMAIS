@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useOutletContext } from "react-router-dom";
 import type { UserProfile } from "../../types/user";
-import { supabase } from "../../services/supabaseClient";
+import { apiClient } from "../../services/apiClient";
 import CapitaoMais from "../CapitaoMais";
 
 interface LayoutContext {
@@ -21,16 +21,23 @@ const formatarDataSessao = (dataString?: string | null) => {
   });
 };
 
+/**
+ * Uma linha de `GET /sessoes/minhas`.
+ *
+ * O endpoint devolve o exercício já ACHATADO (`nome_exercicio`,
+ * `recompensa_xp`), onde o PostgREST embutia um objeto `exercicios`. Só se
+ * declaram aqui os campos que este cartão mostra — a resposta traz também
+ * `duracao` e `esforco_1_a_10`, que este ecrã nunca usou.
+ *
+ * A `data_hora` continua a chegar como hora de parede, sem sufixo de fuso,
+ * tal como o PostgREST a devolvia: o `new Date(...)` do browser lê-a como
+ * hora local e a data mostrada não desliza.
+ */
 interface UltimaSessao {
   id_sessao: string;
   data_hora: string;
-  duracao: number;
-  esforco_1_a_10: number | null;
-  status: string;
-  exercicios: {
-    nome_exercicio: string;
-    recompensa_xp: number;
-  } | null;
+  nome_exercicio: string | null;
+  recompensa_xp: number | null;
 }
 
 const DashboardPaciente = () => {
@@ -47,31 +54,18 @@ const DashboardPaciente = () => {
 
     async function carregarUltimaSessao() {
       try {
-        const { data, error } = await supabase
-          .from("sessoes_realizadas")
-          .select(
-            `
-            id_sessao,
-            data_hora,
-            duracao,
-            esforco_1_a_10,
-            status,
-            exercicios (
-              nome_exercicio,
-              recompensa_xp
-            )
-          `,
-          )
-          .eq("id_paciente", idUser)
-          .eq("status", "concluido")
-          .order("data_hora", { ascending: false })
-          .limit(1)
-          .maybeSingle();
+        // Devolve apenas as sessões CONCLUÍDAS de quem faz o pedido — o id do
+        // paciente vem do token, não daqui — já ordenadas da mais recente para
+        // a mais antiga. `limite=1` porque só se mostra a última.
+        const { data } = await apiClient.get<UltimaSessao[]>(
+          "/sessoes/minhas",
+          { params: { limite: 1 } },
+        );
 
-        if (!error && data) {
-          setUltimaSessao(data as unknown as UltimaSessao);
-        }
+        setUltimaSessao(Array.isArray(data) ? (data[0] ?? null) : null);
       } catch (err) {
+        // Este cartão nunca teve mensagem de erro própria: se a última sessão
+        // não vier, mantém-se o estado «ainda não treinaste», como antes.
         console.error("Erro ao obter última sessão:", err);
       } finally {
         setLoadingUltimaSessao(false);
@@ -166,7 +160,7 @@ const DashboardPaciente = () => {
                   <span className="text-3xl">🏅</span>
                   <div>
                     <p className="font-bold text-tinta">
-                      {ultimaSessao.exercicios?.nome_exercicio ?? "Treino"}
+                      {ultimaSessao.nome_exercicio ?? "Treino"}
                     </p>
                     <p className="mt-0.5 text-xs text-aco">
                       {formatarDataSessao(ultimaSessao.data_hora)}
@@ -174,7 +168,7 @@ const DashboardPaciente = () => {
                   </div>
                 </div>
                 <span className="shrink-0 rounded-full border-2 border-tinta bg-raio px-3 py-1 text-sm font-bold text-tinta">
-                  +{ultimaSessao.exercicios?.recompensa_xp ?? 10} XP
+                  +{ultimaSessao.recompensa_xp ?? 10} XP
                 </span>
               </div>
             ) : (

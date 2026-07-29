@@ -1,9 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import {
-  planosService,
-  type PlanoPorPaciente,
-} from "../../services/planosService";
 import BtnGlobal from "../BtnGlobal";
 import EstadoVazio from "../ui/EstadoVazio";
 import Modal from "../ui/Modal";
@@ -14,13 +10,20 @@ import {
   Tabela,
   Th,
 } from "../ui/Tabela";
-import { supabase } from "../../services/supabaseClient";
+import { apiClient } from "../../services/apiClient";
+import { mensagemDeErro } from "../../services/erroApi";
 import LoadingSpinner from "../LoadingSpinner";
 import {
   pacientesService,
   type PacienteDetalhe as PacienteInfo,
 } from "../../services/pacientes";
 
+/**
+ * Uma sessão concluída, tal como `GET /api/pacientes/:id/sessoes` a devolve.
+ * As chaves mantêm-se em `snake_case` (é a forma que o backend serializa) mas o
+ * nome do exercício vem agora achatado em `nome_exercicio`, em vez do
+ * `exercicios: { nome_exercicio }` que o PostgREST embutia.
+ */
 interface SessaoRealizadaInfo {
   id_sessao: string;
   data_hora: string;
@@ -30,9 +33,7 @@ interface SessaoRealizadaInfo {
   fc_maxima: number | null;
   teve_problemas: boolean | null;
   duracao: number | null;
-  exercicios: {
-    nome_exercicio: string;
-  } | null;
+  nome_exercicio: string | null;
 }
 
 const RECOMPENSAS = [
@@ -172,7 +173,6 @@ const renderAlertas = (
 const PacienteDetalhe = () => {
   const { pacienteId } = useParams<{ pacienteId: string }>();
   const navigate = useNavigate();
-  const [paciente, setPaciente] = useState<PlanoPorPaciente | null>(null);
   const [pacienteInfo, setPacienteInfo] = useState<PacienteInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
@@ -192,49 +192,23 @@ const PacienteDetalhe = () => {
       // treinos de uma criança no ecrã de outra.
       setSessoes([]);
 
-      const [dados, info] = await Promise.all([
-        planosService.getPlanosPorPaciente(pacienteId),
+      // O filtro por sessões concluídas e a ordenação (mais recente primeiro)
+      // passaram para o servidor: as sessões 'iniciado' e 'falhado' não são
+      // treinos feitos e inflacionavam a contagem e as médias que o corpo
+      // clínico lê para decidir.
+      const [info, respostaSessoes] = await Promise.all([
         pacientesService.getPacienteById(pacienteId),
+        apiClient.get<SessaoRealizadaInfo[]>(
+          `/pacientes/${pacienteId}/sessoes`,
+        ),
       ]);
 
-      setPaciente(dados);
       setPacienteInfo(info);
-
-      const { data: sessoesDados, error: errSessao } = await supabase
-        .from("sessoes_realizadas")
-        .select(
-          `
-          id_sessao, 
-          data_hora, 
-          esforco_1_a_10, 
-          diversao_1_a_5, 
-          fc_media, 
-          fc_maxima, 
-          teve_problemas, 
-          duracao,
-          exercicios (
-            nome_exercicio
-          )
-        `,
-        )
-        .eq("id_paciente", pacienteId)
-        // Só sessões concluídas, como no resto da aplicação: as sessões
-        // 'iniciado' e 'falhado' não são treinos feitos e inflacionavam a
-        // contagem e as médias que o corpo clínico lê para decidir.
-        .eq("status", "concluido")
-        .order("data_hora", { ascending: false });
-
-      if (errSessao) {
-        // Mostrar a falha em vez de uma tabela vazia: um histórico que não
-        // carregou não pode passar por "esta criança ainda não treinou".
-        setErro(errSessao.message);
-      } else {
-        setSessoes((sessoesDados as unknown as SessaoRealizadaInfo[]) ?? []);
-      }
+      setSessoes(respostaSessoes.data ?? []);
     } catch (err) {
-      setErro(
-        err instanceof Error ? err.message : "Erro ao carregar o paciente.",
-      );
+      // Mostrar a falha em vez de uma tabela vazia: um histórico que não
+      // carregou não pode passar por "esta criança ainda não treinou".
+      setErro(mensagemDeErro(err, "Erro ao carregar o paciente."));
     } finally {
       setLoading(false);
     }
@@ -288,7 +262,7 @@ const PacienteDetalhe = () => {
     );
   }
 
-  if (!paciente) {
+  if (!pacienteInfo) {
     return (
       <div className="mx-auto w-full max-w-6xl px-4 py-10">
         <div className="rounded-2xl bg-papel p-6 shadow-sm">
@@ -309,7 +283,7 @@ const PacienteDetalhe = () => {
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight text-tinta">
-            {paciente.nome}
+            {pacienteInfo.nome}
           </h1>
           <p className="mt-1 text-sm text-aco">
             Acompanhamento e histórico de treinos deste paciente.
@@ -401,7 +375,7 @@ const PacienteDetalhe = () => {
             ) : (
               sessoesPaginadas.map((sessao: SessaoRealizadaInfo) => {
                 const nomeExercicio =
-                  sessao.exercicios?.nome_exercicio ?? "Exercício Geral";
+                  sessao.nome_exercicio ?? "Exercício Geral";
                 return (
                   <tr
                     key={sessao.id_sessao}
@@ -571,8 +545,7 @@ const PacienteDetalhe = () => {
                     Exercício
                   </p>
                   <p className="mt-1 text-sm font-bold text-tinta">
-                    {sessaoDetalhada.exercicios?.nome_exercicio ??
-                      "Exercício Geral"}
+                    {sessaoDetalhada.nome_exercicio ?? "Exercício Geral"}
                   </p>
                 </div>
                 <div className="rounded-2xl bg-papel p-4 border border-tinta/10">
