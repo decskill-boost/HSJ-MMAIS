@@ -34,6 +34,7 @@ const GestaoPlanos = lazy(
   () => import("../components/Dashboard/GestaoPlanos"),
 );
 const PlanosPaciente = lazy(() => import("../components/PlanosPaciente"));
+const CriarPlanoPaciente = lazy(() => import("../components/CriarPlanoPaciente"));
 const HistoricoRecompensas = lazy(
   () => import("../components/Pacientes/HistoricoRecompensas"),
 );
@@ -65,12 +66,6 @@ export const router = createBrowserRouter([
           { path: "exercicios", element: <ExerciciosPage /> },
           { path: "plano/criar", element: <CriarPlano /> },
           { path: "dashboard/medico/planos", element: <GestaoPlanos /> },
-        ],
-      },
-
-      {
-        element: <ProtectedRoute role={UserRole.ADMIN} />,
-        children: [
           { path: "dashboard/admin", element: <DashboardAdmin /> },
         ],
       },
@@ -81,6 +76,7 @@ export const router = createBrowserRouter([
           { path: "dashboard/paciente", element: <DashboardPaciente /> },
           { path: "paciente/planos", element: <PlanosPaciente /> },
           { path: "paciente/historico", element: <HistoricoRecompensas /> },
+          { path: "paciente/plano/criar", element: <CriarPlanoPaciente /> },
         ],
       },
 

@@ -22,9 +22,7 @@ const IconeTrofeu = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const linksAdmin: SidebarLink[] = [
-  { to: "/dashboard/admin", label: "Gestão de Utilizadores", Icon: IconePlano, end: true },
-];
+// Removido linksAdmin pois agora a gestão de utilizadores fica no corpo clínico
 
 const linksMedico: SidebarLink[] = [
   { to: "/dashboard/medico", label: "Início", Icon: IconeInicio, end: true },
@@ -32,11 +30,12 @@ const linksMedico: SidebarLink[] = [
   { to: "/exercicios", label: "Biblioteca de Exercícios", Icon: IconeBiblioteca },
   { to: "/dashboard/medico/planos", label: "Planos criados", Icon: IconePlanos },
   { to: "/plano/criar", label: "Criar Plano", Icon: IconePlano },
+  { to: "/dashboard/admin", label: "Gestão de Utilizadores", Icon: IconePlano },
 ];
 
 const linksPaciente: SidebarLink[] = [
   { to: "/dashboard/paciente", label: "Início", Icon: IconeInicio, end: true },
-  { to: "/paciente/planos", label: "Ver Planos", Icon: IconePlanos },
+  { to: "/paciente/planos", label: "Meus Planos", Icon: IconePlanos },
   { to: "/paciente/historico", label: "Histórico & Prémios", Icon: IconeTrofeu },
 ];
 
@@ -52,13 +51,11 @@ export const Layout = () => {
   const isPaciente = user?.role === "paciente";
   const isAdmin = user?.role === "admin";
 
-  const linksDoUtilizador = isAdmin
-    ? linksAdmin
-    : isClinico
-      ? linksMedico
-      : isPaciente
-        ? linksPaciente
-        : null;
+  const linksDoUtilizador = isClinico || isAdmin
+    ? linksMedico
+    : isPaciente
+      ? linksPaciente
+      : null;
 
   const mostrarSidebar =
     linksDoUtilizador && !paginasSemSidebar.includes(location.pathname);

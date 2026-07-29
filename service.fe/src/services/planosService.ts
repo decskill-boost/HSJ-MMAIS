@@ -59,6 +59,7 @@ export const dificuldadeParaNumero = (valor: unknown): number => {
 
 export interface PlanoAtivo {
   id_plano: string;
+  nome?: string | null;
   frequencia_semanal: number;
   notas_medicas?: string | null;
   data_inicio?: string | null;
@@ -88,6 +89,7 @@ export interface PlanoPublico {
 /** Resumo de um plano para o corpo clínico gerir (listar/editar/cancelar). */
 export interface PlanoGerido {
   id_plano: string;
+  nome: string | null;
   frequencia_semanal: number;
   notas_medicas: string | null;
   data_inicio: string | null;
@@ -104,6 +106,7 @@ export interface PlanoGerido {
 /** Um plano tal como o ecrã de edição o pré-preenche. */
 export interface PlanoParaEdicao {
   id_prescricao: string;
+  nome: string | null;
   frequencia_semanal: number;
   notas_medicas: string | null;
   data_validade: string | null;
@@ -322,6 +325,7 @@ export const planosService = {
   atualizarPlano: async (
     idPrescricao: string,
     dados: {
+      nome?: string | null;
       frequencia_semanal: number;
       data_validade: string | null;
       notas_medicas: string;
@@ -370,14 +374,16 @@ export const planosService = {
     frequencia_semanal: number;
     data_validade: string | null;
     notas_medicas: string;
+    nome?: string | null;
     is_standard?: boolean;
     dificuldade?: string;
     condicao_paciente?: string;
     condicao_clinica?: string | null;
     exercicios: (string | { id_exercicio: string; duracao_segundos?: number })[];
-  }): Promise<void> => {
+  }): Promise<{ id_prescricao: string }> => {
     try {
-      await apiClient.post("/prescricoes", dados);
+      const response = await apiClient.post<{ id_prescricao: string }>("/prescricoes", dados);
+      return response.data;
     } catch (erro) {
       throw erroDaApi(erro, "Não foi possível criar o plano.");
     }

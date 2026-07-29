@@ -21,6 +21,7 @@ export interface ExercicioDoPlano {
 /** Plano tal como a criança o vê (E1). */
 export interface PlanoDoPaciente {
   id_plano: string;
+  nome: string | null;
   frequencia_semanal: number;
   notas_medicas: string | null;
   data_inicio: string | null;

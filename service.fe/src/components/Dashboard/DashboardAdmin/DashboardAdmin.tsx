@@ -4,7 +4,7 @@ import UserManagement from "./UserManagement/UserManagement";
 const DashboardAdmin = () => {
   const { user } = useUser();
   // Nome tal como está registado — não cortar no primeiro espaço.
-  const displayName = user?.nome?.trim() || "Admin";
+  const displayName = user?.nome?.trim() || "Gestor";
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-8">
@@ -12,7 +12,7 @@ const DashboardAdmin = () => {
           O banner escuro anterior era linguagem da Academia. */}
       <div className="mb-6 rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-6 shadow-vinheta sm:p-8">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-cobalto">
-          Painel do Admin
+          Painel de Gestão
         </p>
         <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-tinta sm:text-4xl">
           Olá, {displayName}

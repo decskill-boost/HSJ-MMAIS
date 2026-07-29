@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useTeclaEscape } from "../hooks/useTeclaEscape";
 
@@ -82,8 +83,20 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ links, isOpen, onClose }: SidebarProps) => {
+  const [isNavigating, setIsNavigating] = useState(false);
+
   // A gaveta tapava o ecrã em mobile e só fechava com um toque no fundo.
   useTeclaEscape(() => onClose?.(), Boolean(isOpen));
+
+  const handleLinkClick = (e: React.MouseEvent) => {
+    if (isNavigating) {
+      e.preventDefault();
+      return;
+    }
+    setIsNavigating(true);
+    setTimeout(() => setIsNavigating(false), 400);
+    onClose?.();
+  };
 
   return (
     <>
@@ -97,14 +110,6 @@ export const Sidebar = ({ links, isOpen, onClose }: SidebarProps) => {
       )}
 
       {/* Sidebar - flutuante em mobile, fixa/estática em desktop */}
-      {/*
-        Em mobile, a gaveta fechada é apenas empurrada para fora do ecrã: sem
-        `invisible` as ligações continuariam na ordem de tabulação e na árvore de
-        acessibilidade (WCAG 2.4.3/2.4.7). A transição inclui `visibility` para
-        que a animação de fecho continue visível — só passa a hidden no fim.
-        `md:visible` garante que a partir do breakpoint md a barra volta a ser
-        focável, já que aí está sempre visível mesmo com `isOpen` a falso.
-      */}
       <aside
         className={`fixed inset-y-0 left-0 top-[68px] z-40 w-60 transform overflow-y-auto border-r border-tinta/15 bg-papel-claro transition-[transform,visibility] duration-300 ease-in-out md:static md:block md:translate-x-0 md:visible ${
           isOpen ? "translate-x-0" : "-translate-x-full invisible"
@@ -116,9 +121,11 @@ export const Sidebar = ({ links, isOpen, onClose }: SidebarProps) => {
               key={to}
               to={to}
               end={end}
-              onClick={onClose} // Fecha o menu ao clicar num link (bom para mobile)
+              onClick={handleLinkClick}
               className={({ isActive }) =>
                 `flex items-center gap-3 rounded-xl border-2 px-3 py-2.5 text-sm font-bold transition ${
+                  isNavigating ? "pointer-events-none opacity-60" : ""
+                } ${
                   isActive
                     ? "border-tinta bg-cobalto/10 text-cobalto shadow-[2px_2px_0_#141F3C]"
                     : "border-transparent text-aco hover:bg-papel hover:text-tinta"

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import { useTeclaEscape } from "../hooks/useTeclaEscape";
 import {
   planosService,
@@ -54,10 +54,7 @@ const infoDificuldade = (d?: string) => {
   }
 };
 
-// A/B/C é a condição atribuída ao plano. Mostra-se a letra tal como está,
-// que é o mesmo vocabulário do ecrã do corpo clínico («Condição: Nível A»).
-// Traduzir para «ritmo» dava-lhe um significado que ela não tem.
-const CONDICOES = ["Todos", "A", "B", "C"] as const;
+const CONDICOES = ["Todos", "Nível A", "Nível B", "Nível C", "Meus Planos"] as const;
 
 // Classe de entrada em cascata (evita entrada-pop-1 inexistente)
 const cascata = (idx: number) => `entrada-pop${["", "-2", "-3", "-4"][idx % 4]}`;
@@ -140,14 +137,18 @@ const CapaPlano = ({ url }: { url?: string }) => {
 };
 
 export const PlanosPaciente = () => {
+  const navigate = useNavigate();
   const { user } = useOutletContext<LayoutContext>();
   const [planos, setPlanos] = useState<PlanoAtivo[]>([]);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
-  const [view, setView] = useState<View>("escolha");
+  const location = useLocation();
+  const stateView = location.state?.view as View | undefined;
+  const [view, setView] = useState<View>(stateView ?? "escolha");
   // A pré-visualização do plano tapa o ecrã todo; Escape volta à lista.
   useTeclaEscape(() => setView("plano-list"), view === "plano-preview");
   const [filtroCondicao, setFiltroCondicao] = useState<string>("Todos");
+  const [subFiltroMeus, setSubFiltroMeus] = useState<"ativos" | "historico">("ativos");
 
   // Fluxo exercício individual
   const [exercicioSelecionado, setExercicioSelecionado] =
@@ -182,7 +183,7 @@ export const PlanosPaciente = () => {
             ? [
                 resultadoPessoais.value.ativo,
                 ...resultadoPessoais.value.historico,
-              ].filter((p): p is PlanoAtivo => p?.ativo === true)
+              ].filter((p): p is PlanoAtivo => p !== null)
             : [];
         const standard =
           resultadoStandard.status === "fulfilled" ? resultadoStandard.value : [];
@@ -217,6 +218,19 @@ export const PlanosPaciente = () => {
     }
   }, [previewIndex, view]);
 
+  // Se vier com uma indicação para começar um plano acabado de criar
+  useEffect(() => {
+    const startPlanoId = location.state?.startPlanoId;
+    if (startPlanoId && planos.length > 0) {
+      const planoParaIniciar = planos.find(p => p.id_plano === startPlanoId);
+      if (planoParaIniciar) {
+        // Limpar o state para não fazer trigger novamente num re-render
+        navigate(".", { replace: true, state: {} });
+        abrirPreviewPlano(planoParaIniciar);
+      }
+    }
+  }, [location.state, planos, navigate]);
+
   const abrirPreviewPlano = (plano: PlanoAtivo) => {
     setPlanoEmCurso(plano);
     setPreviewIndex(0);
@@ -230,12 +244,30 @@ export const PlanosPaciente = () => {
     setView("plano-playing");
   };
 
-  const avancarPlano = () => {
+  const avancarPlano = async () => {
     if (!planoEmCurso) return;
     const proximo = exercicioIndex + 1;
     if (proximo < planoEmCurso.exercicios.length) {
       setExercicioIndex(proximo);
     } else {
+      // Se for um plano de "Meus Planos" (não standard ou criado pela criança), arquiva ao concluir
+      if (!planoEmCurso.is_standard || planoEmCurso.notas_medicas === "Plano criado pela própria criança") {
+        try {
+          await planosService.cancelPlano(planoEmCurso.id_plano);
+          if (user?.idUser) {
+            const [resultadoPessoais, resultadoStandard] = await Promise.all([
+              planosService.getTodosPlanosPorPaciente(user.idUser).catch(() => null),
+              planosService.getPlanosStandard().catch(() => [])
+            ]);
+            if (resultadoPessoais) {
+              const pessoais = [resultadoPessoais.ativo, ...resultadoPessoais.historico].filter((p): p is PlanoAtivo => p !== null);
+              setPlanos([...pessoais, ...resultadoStandard]);
+            }
+          }
+        } catch (e) {
+          console.error("Erro ao arquivar plano", e);
+        }
+      }
       setView("plano-concluido");
     }
   };
@@ -331,7 +363,7 @@ export const PlanosPaciente = () => {
               Espreita o teu plano
             </h2>
             <span className="text-xs font-bold text-aco">
-              Treino {previewIndex + 1} de {total}
+              Exercício {previewIndex + 1} de {total}
             </span>
           </div>
           <div className="w-16" />
@@ -384,7 +416,7 @@ export const PlanosPaciente = () => {
           {todosMarcados && (
             <div className="absolute left-1/2 top-4 -translate-x-1/2 rounded-full border-2 border-tinta bg-papel-claro px-4 py-1.5 shadow-vinheta">
               <p className="text-xs font-bold text-tinta">
-                Treino {previewIndex + 1} de {total}
+                Exercício {previewIndex + 1} de {total}
               </p>
             </div>
           )}
@@ -529,25 +561,36 @@ export const PlanosPaciente = () => {
         </h1>
         <p className="mt-2 text-center text-aco">Escolhe como queres treinar!</p>
 
-        <div className="mt-10 grid gap-5 sm:grid-cols-2">
+        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           <button
             onClick={() => setView("plano-list")}
             className="entrada-pop flex flex-col items-center gap-4 rounded-(--radius-vinheta) border-[3px] border-tinta bg-cobalto/10 p-8 text-center shadow-vinheta transition hover:bg-cobalto/20 hover:-translate-y-0.5 active:scale-95"
           >
             <span className="text-6xl">📋</span>
             <div>
-              <p className="text-xl font-display text-cobalto">Fazer um plano</p>
+              <p className="text-xl font-display text-cobalto">Meus Planos</p>
               <p className="mt-1 text-sm text-aco">Faz todos os exercícios do plano em sequência</p>
             </div>
           </button>
 
           <button
-            onClick={() => setView("list")}
+            onClick={() => navigate("/paciente/plano/criar")}
             className="entrada-pop-2 flex flex-col items-center gap-4 rounded-(--radius-vinheta) border-[3px] border-tinta bg-raio/20 p-8 text-center shadow-vinheta transition hover:bg-raio/30 hover:-translate-y-0.5 active:scale-95"
+          >
+            <span className="text-6xl">✍️</span>
+            <div>
+              <p className="text-xl font-display text-tinta">Criar Plano</p>
+              <p className="mt-1 text-sm text-aco">Cria o teu próprio plano de treinos</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setView("list")}
+            className="entrada-pop-3 flex flex-col items-center gap-4 rounded-(--radius-vinheta) border-[3px] border-tinta bg-turbo/20 p-8 text-center shadow-vinheta transition hover:bg-turbo/30 hover:-translate-y-0.5 active:scale-95"
           >
             <span className="text-6xl">⚡</span>
             <div>
-              <p className="text-xl font-display text-tinta">Fazer um exercício</p>
+              <p className="text-xl font-display text-tinta">Explorar Exercícios</p>
               <p className="mt-1 text-sm text-aco">Escolhe um exercício específico para fazer</p>
             </div>
           </button>
@@ -559,12 +602,25 @@ export const PlanosPaciente = () => {
   // ─── plano-list ────────────────────────────────────────────────────────────
   if (view === "plano-list") {
     const comExercicios = planos.filter((p) => p.exercicios.length > 0);
-    const planosVisiveis =
-      filtroCondicao === "Todos"
-        ? comExercicios
-        : comExercicios.filter(
-            (p) => (p.condicao_paciente ?? "A") === filtroCondicao,
-          );
+    const planosVisiveis = comExercicios.filter((p) => {
+      if (filtroCondicao === "Meus Planos") {
+        if (p.notas_medicas !== "Plano criado pela própria criança") return false;
+        
+        if (subFiltroMeus === "ativos") {
+          return p.ativo !== false;
+        } else {
+          return p.ativo === false;
+        }
+      }
+      
+      // Para as outras abas, só mostramos os que não estão no histórico
+      if (p.ativo === false) return false;
+
+      if (filtroCondicao === "Todos") return true;
+      
+      const nivel = `Nível ${p.condicao_paciente ?? "A"}`;
+      return nivel === filtroCondicao;
+    });
 
     return (
       <div className="mx-auto w-full max-w-5xl px-4 py-10">
@@ -601,18 +657,55 @@ export const PlanosPaciente = () => {
                   key={op}
                   type="button"
                   aria-pressed={ativo}
-                  onClick={() => setFiltroCondicao(op)}
+                  onClick={() => {
+                    setFiltroCondicao(op);
+                    if (op === "Meus Planos") setSubFiltroMeus("ativos");
+                  }}
                   className={`flex h-16 items-center justify-center rounded-(--radius-vinheta) border-[3px] border-tinta px-5 font-display text-xl tracking-wide shadow-vinheta transition active:scale-95 active:shadow-none ${
                     ativo
                       ? "bg-cobalto text-papel"
                       : "bg-papel-claro text-tinta hover:bg-papel"
                   }`}
                 >
-                  {op === "Todos" ? op : `Nível ${op}`}
+                  {op}
                 </button>
               );
             })}
           </div>
+
+          {filtroCondicao === "Meus Planos" && (
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 pt-4 border-t-2 border-tinta/10">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setSubFiltroMeus("ativos")}
+                  className={`rounded-full px-5 py-2 font-bold transition-colors ${
+                    subFiltroMeus === "ativos"
+                      ? "bg-turbo text-tinta"
+                      : "bg-papel-claro text-aco hover:bg-papel hover:text-tinta"
+                  }`}
+                >
+                  Ativos
+                </button>
+                <button
+                  onClick={() => setSubFiltroMeus("historico")}
+                  className={`rounded-full px-5 py-2 font-bold transition-colors ${
+                    subFiltroMeus === "historico"
+                      ? "bg-turbo text-tinta"
+                      : "bg-papel-claro text-aco hover:bg-papel hover:text-tinta"
+                  }`}
+                >
+                  Histórico
+                </button>
+              </div>
+
+              <button
+                onClick={() => navigate("/paciente/plano/criar")}
+                className="flex items-center gap-1.5 rounded-full border-2 border-tinta bg-cobalto px-5 py-2 font-bold text-papel shadow-sm transition hover:bg-cobalto-vivo active:scale-95"
+              >
+                <span>+</span> Criar Plano
+              </button>
+            </div>
+          )}
         </div>
 
         {loading ? (
@@ -666,7 +759,7 @@ export const PlanosPaciente = () => {
                         {dif.label}
                       </span>
                       <span className="absolute right-2 top-2 rounded-full border-2 border-tinta bg-cobalto px-2.5 py-0.5 text-xs font-bold text-papel">
-                        {exs.length} {exs.length === 1 ? "treino" : "treinos"}
+                        {exs.length} {exs.length === 1 ? "exercício" : "exercícios"}
                       </span>
                       {/* ícone de play grande ao centro */}
                       <span className="absolute left-1/2 top-1/2 flex h-16 w-16 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[3px] border-tinta bg-raio text-2xl text-tinta shadow-vinheta transition group-hover:scale-110">
@@ -677,7 +770,7 @@ export const PlanosPaciente = () => {
                     {/* Corpo */}
                     <div className="flex flex-grow flex-col p-4">
                       <h3 className="font-display text-xl tracking-wide text-tinta">
-                        Plano {dif.label}
+                        {plano.nome ? plano.nome : `Plano ${dif.label}`}
                       </h3>
                       <p className="mt-0.5 line-clamp-1 text-xs text-aco">
                         {exs.map((e) => e.nome_exercicio).join(" · ")}
@@ -699,7 +792,7 @@ export const PlanosPaciente = () => {
                       </div>
 
                       <span className="mt-4 flex items-center justify-center gap-2 rounded-(--radius-vinheta) border-[3px] border-tinta bg-cobalto py-3 font-display text-base tracking-wide text-papel shadow-vinheta transition group-hover:bg-cobalto-vivo">
-                        Começar ▶
+                        {subFiltroMeus === "historico" || plano.ativo === false ? "Repetir 🔄" : "Começar ▶"}
                       </span>
                     </div>
                   </button>

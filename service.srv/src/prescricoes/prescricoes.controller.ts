@@ -26,7 +26,7 @@ import { UpdatePrescricaoDto } from './update-prescricao.dto';
  */
 @Controller('prescricoes')
 @UseGuards(SupabaseAuthGuard, RolesGuard)
-@Roles(UserRole.CORPO_CLINICO)
+@Roles(UserRole.CORPO_CLINICO, UserRole.PACIENTE)
 export class PrescricoesController {
   constructor(private readonly prescricoesService: PrescricoesService) {}
 

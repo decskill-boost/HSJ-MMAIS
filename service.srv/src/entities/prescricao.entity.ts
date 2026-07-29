@@ -50,4 +50,7 @@ export class Prescricao {
 
   @Column({ type: 'timestamp', nullable: true })
   data_fim: Date | null;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  nome: string | null;
 }

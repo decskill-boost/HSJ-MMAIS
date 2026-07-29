@@ -34,6 +34,10 @@ interface SessaoRealizadaInfo {
   teve_problemas: boolean | null;
   duracao: number | null;
   nome_exercicio: string | null;
+  id_prescricao?: string | null;
+  nome_plano?: string | null;
+  total_exercicios_plano?: number | null;
+  exercicios_plano?: { id_exercicio: string; nome_exercicio: string; duracao_segundos?: number }[];
 }
 
 const RECOMPENSAS = [
@@ -290,13 +294,6 @@ const PacienteDetalhe = () => {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {/* Atribuir sem ter de voltar à lista — era o passo em falta */}
-          <button
-            onClick={() => navigate(`/plano/criar?paciente=${pacienteId}`)}
-            className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-cobalto px-5 py-2.5 text-sm font-bold text-papel shadow-vinheta transition hover:bg-cobalto-vivo active:scale-95 active:shadow-none"
-          >
-            Atribuir plano
-          </button>
           <button
             onClick={() => navigate("/dashboard/medico/pacientes")}
             className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel px-5 py-2.5 text-sm font-bold text-tinta shadow-vinheta transition hover:bg-papel active:scale-95 active:shadow-none"
@@ -342,6 +339,8 @@ const PacienteDetalhe = () => {
         </article>
       </div>
 
+
+
       {/* Histórico de Treinos / Sessões */}
       <div className="mt-8 painel overflow-hidden">
         <div className="p-6 border-b border-tinta/10">
@@ -357,7 +356,7 @@ const PacienteDetalhe = () => {
           <CabecaTabela>
             <tr>
               <Th>Data e hora</Th>
-              <Th>Exercício</Th>
+              <Th>Plano</Th>
               <Th>Duração</Th>
               <Th className="text-center">Esforço</Th>
               <Th className="text-center">Alertas</Th>
@@ -374,8 +373,6 @@ const PacienteDetalhe = () => {
               </LinhaMensagem>
             ) : (
               sessoesPaginadas.map((sessao: SessaoRealizadaInfo) => {
-                const nomeExercicio =
-                  sessao.nome_exercicio ?? "Exercício Geral";
                 return (
                   <tr
                     key={sessao.id_sessao}
@@ -385,7 +382,17 @@ const PacienteDetalhe = () => {
                       {formatarDataHora(sessao.data_hora)}
                     </td>
                     <td className="px-4 py-4 font-bold text-tinta">
-                      {nomeExercicio}
+                      <div>{sessao.nome_plano || sessao.nome_exercicio || "Plano de Treino"}</div>
+                      {sessao.total_exercicios_plano ? (
+                        <div className="text-xs font-semibold text-cobalto mt-0.5">
+                          ({sessao.total_exercicios_plano}{" "}
+                          {sessao.total_exercicios_plano === 1 ? "exercício" : "exercícios"})
+                        </div>
+                      ) : (
+                        <div className="text-xs font-medium text-aco mt-0.5">
+                          (1 exercício)
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-4 font-medium text-tinta">
                       {formatarDuracaoSessao(sessao.duracao)}
@@ -604,6 +611,24 @@ const PacienteDetalhe = () => {
                 </p>
                 <div>{renderAlertas(sessaoDetalhada.teve_problemas, true)}</div>
               </div>
+
+              {sessaoDetalhada.exercicios_plano && sessaoDetalhada.exercicios_plano.length > 0 && (
+                <div className="rounded-2xl bg-papel p-4 border border-tinta/10">
+                  <p className="text-xs font-bold uppercase tracking-wider text-aco mb-2">
+                    Exercícios do Plano ({sessaoDetalhada.exercicios_plano.length})
+                  </p>
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                    {sessaoDetalhada.exercicios_plano.map((ex, idx) => (
+                      <div key={ex.id_exercicio || idx} className="flex items-center justify-between text-xs rounded-xl bg-papel-claro px-3 py-2 border border-tinta/10">
+                        <span className="font-bold text-tinta">{idx + 1}. {ex.nome_exercicio}</span>
+                        {ex.duracao_segundos ? (
+                          <span className="text-aco font-medium">{formatarDuracaoSessao(ex.duracao_segundos)}</span>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="mt-6 flex justify-end">

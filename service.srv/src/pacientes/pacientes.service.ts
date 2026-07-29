@@ -13,6 +13,7 @@ import {
   Repository,
 } from 'typeorm';
 import { Prescricao } from '../entities/prescricao.entity';
+import { PrescricaoExercicio } from '../entities/prescricao-exercicio.entity';
 import {
   SessaoRealizada,
   SessaoStatus,
@@ -65,6 +66,10 @@ export interface SessaoConcluidaResumo {
   fc_maxima: number | null;
   teve_problemas: boolean;
   nome_exercicio: string;
+  id_prescricao?: string | null;
+  nome_plano?: string | null;
+  total_exercicios_plano?: number | null;
+  exercicios_plano?: { id_exercicio: string; nome_exercicio: string; duracao_segundos?: number }[];
 }
 
 interface AgregadoSessoes {
@@ -85,6 +90,8 @@ export class PacientesService {
     private readonly prescricaoRepo: Repository<Prescricao>,
     @InjectRepository(SessaoRealizada)
     private readonly sessaoRepo: Repository<SessaoRealizada>,
+    @InjectRepository(PrescricaoExercicio)
+    private readonly prescricaoExercicioRepo: Repository<PrescricaoExercicio>,
   ) {}
 
   private defaultRange(): { from: string; to: string } {
@@ -260,23 +267,124 @@ export class PacientesService {
         id_paciente: { id_user: idPaciente },
         status: SessaoStatus.CONCLUIDO,
       },
-      relations: { id_exercicio: true },
+      relations: {
+        id_exercicio: true,
+        id_prescricao: true,
+      },
       order: { data_hora: 'DESC' },
     });
 
-    return sessoes.map((s) => ({
-      id_sessao: s.id_sessao,
-      data_hora: toTimestampSemFuso(s.data_hora),
-      duracao: s.duracao ?? null,
-      esforco_1_a_10: s.esforco_1_a_10 ?? null,
-      diversao_1_a_5: s.diversao_1_a_5 ?? null,
-      fc_media: s.fc_media ?? null,
-      fc_maxima: s.fc_maxima ?? null,
-      teve_problemas: s.teve_problemas ?? false,
-      // O exercício pode ter sido removido do catálogo depois do treino; a
-      // sessão continua a ser um treino feito e não pode desaparecer da lista.
-      nome_exercicio: s.id_exercicio?.nome_exercicio ?? 'Exercício',
-    }));
+    const idsPrescricao = Array.from(
+      new Set(
+        sessoes
+          .map((s) => s.id_prescricao?.id_prescricao)
+          .filter((id): id is string => !!id),
+      ),
+    );
+
+    const exerciciosPorPrescricao = new Map<
+      string,
+      { id_exercicio: string; nome_exercicio: string; duracao_segundos?: number }[]
+    >();
+
+    if (idsPrescricao.length > 0) {
+      const peLinhas = await this.prescricaoExercicioRepo.find({
+        where: { id_prescricao: In(idsPrescricao) },
+        relations: { exercicio: true },
+      });
+
+      for (const pe of peLinhas) {
+        const idP = pe.id_prescricao;
+        if (!idP) continue;
+        const lista = exerciciosPorPrescricao.get(idP) ?? [];
+        lista.push({
+          id_exercicio: pe.id_exercicio ?? pe.exercicio?.id_exercicio ?? '',
+          nome_exercicio: pe.exercicio?.nome_exercicio ?? 'Exercício',
+          duracao_segundos: pe.duracao_segundos ?? pe.exercicio?.duracao_segundos ?? 0,
+        });
+        exerciciosPorPrescricao.set(idP, lista);
+      }
+    }
+
+    // Agrupar sessões da mesma execução de plano feitas na mesma data
+    const grupos = new Map<string, SessaoRealizada[]>();
+
+    for (const s of sessoes) {
+      const idPresc = s.id_prescricao?.id_prescricao;
+      const chave = idPresc
+        ? `${idPresc}_${toLisbonDateKey(s.data_hora)}`
+        : `solo_${s.id_sessao}`;
+
+      const lista = grupos.get(chave) ?? [];
+      lista.push(s);
+      grupos.set(chave, lista);
+    }
+
+    const resultado: SessaoConcluidaResumo[] = [];
+
+    for (const listaSessoes of grupos.values()) {
+      const principal = listaSessoes[0];
+      const prescricao = principal.id_prescricao;
+
+      const duracaoTotal = listaSessoes.reduce(
+        (acc, item) => acc + (item.duracao ?? 0),
+        0,
+      );
+
+      const esforcos = listaSessoes
+        .map((item) => item.esforco_1_a_10)
+        .filter((e): e is number => e !== null && e !== undefined);
+      const esforcoMedio =
+        esforcos.length > 0
+          ? Math.round(esforcos.reduce((a, b) => a + b, 0) / esforcos.length)
+          : null;
+
+      const diversoes = listaSessoes
+        .map((item) => item.diversao_1_a_5)
+        .filter((d): d is number => d !== null && d !== undefined);
+      const diversaoMedia =
+        diversoes.length > 0
+          ? Math.round(diversoes.reduce((a, b) => a + b, 0) / diversoes.length)
+          : null;
+
+      const fcsMedias = listaSessoes
+        .map((item) => item.fc_media)
+        .filter((f): f is number => f !== null && f !== undefined && f > 0);
+      const fcMedia =
+        fcsMedias.length > 0
+          ? Math.round(fcsMedias.reduce((a, b) => a + b, 0) / fcsMedias.length)
+          : null;
+
+      const fcsMaximas = listaSessoes
+        .map((item) => item.fc_maxima)
+        .filter((f): f is number => f !== null && f !== undefined && f > 0);
+      const fcMaxima = fcsMaximas.length > 0 ? Math.max(...fcsMaximas) : null;
+
+      const teveProblemas = listaSessoes.some((item) => item.teve_problemas);
+
+      const exerciciosPlano = prescricao
+        ? exerciciosPorPrescricao.get(prescricao.id_prescricao) ?? []
+        : [];
+
+      resultado.push({
+        id_sessao: principal.id_sessao,
+        data_hora: toTimestampSemFuso(principal.data_hora),
+        duracao: duracaoTotal > 0 ? duracaoTotal : principal.duracao ?? null,
+        esforco_1_a_10: esforcoMedio,
+        diversao_1_a_5: diversaoMedia,
+        fc_media: fcMedia,
+        fc_maxima: fcMaxima,
+        teve_problemas: teveProblemas,
+        nome_exercicio: prescricao?.nome || principal.id_exercicio?.nome_exercicio || 'Exercício',
+        id_prescricao: prescricao?.id_prescricao ?? null,
+        nome_plano: prescricao?.nome ?? null,
+        total_exercicios_plano:
+          exerciciosPlano.length > 0 ? exerciciosPlano.length : null,
+        exercicios_plano: exerciciosPlano,
+      });
+    }
+
+    return resultado;
   }
 
   /**
