@@ -77,7 +77,12 @@ export class UsersService {
   async getProgresso(id_user: string) {
     const utilizador = await this.utilizadorRepo.findOne({
       where: { id_user },
-      select: { xp: true },
+      // A chave primária TEM de vir no select. `Utilizador` tem uma relação
+      // muitos-para-muitos (permissoesDirectas) e, nesse caso, o TypeORM gera
+      // uma subconsulta DISTINCT que ordena por `id_user`; sem ela no select,
+      // o Postgres recusa com «column distinctAlias.Utilizador_id_user does
+      // not exist». Só aparece contra a base de dados real.
+      select: { id_user: true, xp: true },
     });
 
     if (!utilizador) {
