@@ -1,5 +1,5 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Repository, Equal } from 'typeorm';
 import { Prescricao } from '../../entities/prescricao.entity';
 import { PrescricaoExercicio } from '../../entities/prescricao-exercicio.entity';
 import { SessaoRealizada } from '../../entities/sessao-realizada.entity';
@@ -92,7 +92,7 @@ describe('PrescricoesService.remove (E6)', () => {
     await servico.remove(PLANO).catch(() => undefined);
 
     expect(contarTreinos).toHaveBeenCalledWith({
-      where: { id_prescricao: { id_prescricao: PLANO } },
+      where: { id_prescricao: Equal(PLANO) },
     });
   });
 
