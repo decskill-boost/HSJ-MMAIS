@@ -32,6 +32,7 @@ export interface LinhaPlano {
   condicao_clinica: string | null;
   is_standard: boolean | null;
   id_paciente: string | null;
+  id_medico: string | null;
   ex_id_exercicio: string | null;
   ex_nome_exercicio: string | null;
   ex_duracao_segundos: number | string | null;
@@ -46,6 +47,7 @@ export interface LinhaPlano {
 /** Linha da consulta agregada da lista de gestão (E4). */
 export interface LinhaPlanoGerido {
   id_prescricao: string;
+  nome: string | null;
   frequencia_semanal: number | string | null;
   notas_medicas: string | null;
   data_inicio: Date | string | null;
@@ -55,6 +57,7 @@ export interface LinhaPlanoGerido {
   condicao_paciente: string | null;
   is_standard: boolean | null;
   id_paciente: string | null;
+  id_medico: string | null;
   nome_paciente: string | null;
   total_exercicios: number | string | null;
 }
@@ -113,6 +116,19 @@ export function agruparPlanos(linhas: LinhaPlano[]): PlanoAgrupado[] {
 export const estaAtivo = (linha: { ativo: boolean | null }): boolean =>
   linha.ativo === true;
 
+/**
+ * Foi a criança que montou este plano?
+ *
+ * O autor (`id_medico`) é o próprio dono (`id_paciente`) — é o que acontece
+ * quando o `POST /prescricoes` chega com um token de criança, porque ambos os
+ * campos saem do `sub` do token. Um plano standard não tem dono e nunca conta.
+ */
+export const criadoPeloPaciente = (linha: {
+  id_paciente: string | null;
+  id_medico: string | null;
+}): boolean =>
+  linha.id_paciente !== null && linha.id_paciente === linha.id_medico;
+
 export function paraPlanoDoPaciente(plano: PlanoAgrupado): PlanoDoPaciente {
   const { linha } = plano;
   return {
@@ -126,6 +142,7 @@ export function paraPlanoDoPaciente(plano: PlanoAgrupado): PlanoDoPaciente {
     ativo: estaAtivo(linha),
     dificuldade: linha.dificuldade ?? 'facil',
     condicao_paciente: linha.condicao_paciente ?? 'A',
+    criado_pelo_paciente: criadoPeloPaciente(linha),
     exercicios: plano.exercicios,
   };
 }
@@ -139,11 +156,7 @@ export function paraPlanoDoPaciente(plano: PlanoAgrupado): PlanoDoPaciente {
  * mantém-se presente (a null) para a forma da resposta não mudar.
  */
 export function paraPlanoDoHistorico(plano: PlanoAgrupado): PlanoDoPaciente {
-  const isMeusPlanos = plano.linha.notas_medicas === "Plano criado pela própria criança";
-  return { 
-    ...paraPlanoDoPaciente(plano), 
-    notas_medicas: isMeusPlanos ? plano.linha.notas_medicas : null 
-  };
+  return { ...paraPlanoDoPaciente(plano), notas_medicas: null };
 }
 
 export function paraPlanoStandard(plano: PlanoAgrupado): PlanoStandard {
@@ -157,6 +170,7 @@ export function paraPlanoStandard(plano: PlanoAgrupado): PlanoStandard {
 export function paraPlanoGerido(linha: LinhaPlanoGerido): PlanoGerido {
   return {
     id_plano: linha.id_prescricao,
+    nome: linha.nome ?? null,
     frequencia_semanal: paraNumero(linha.frequencia_semanal),
     notas_medicas: linha.notas_medicas ?? null,
     data_inicio: paraTimestampSemFuso(linha.data_inicio),

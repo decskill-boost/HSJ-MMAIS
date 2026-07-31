@@ -85,6 +85,9 @@ export class PlanosLeituraService {
         .addSelect('"p"."condicao_clinica"', 'condicao_clinica')
         .addSelect('"p"."is_standard"', 'is_standard')
         .addSelect('"p"."id_paciente"', 'id_paciente')
+        // Serve para saber quem montou o plano: se o autor é o próprio
+        // paciente, foi a criança. Ver `criadoPeloPaciente` no mapper.
+        .addSelect('"p"."id_medico"', 'id_medico')
         .addSelect('"e"."id_exercicio"', 'ex_id_exercicio')
         .addSelect('"e"."nome_exercicio"', 'ex_nome_exercicio')
         // A duração da prescrição manda sobre a do catálogo; sem valor próprio
@@ -210,6 +213,9 @@ export class PlanosLeituraService {
         '"pe"."id_prescricao" = "p"."id_prescricao"',
       )
       .select('"p"."id_prescricao"', 'id_prescricao')
+      // O nome faltava aqui: a lista de gestão mostrava sempre o texto de
+      // reserva («Modelo Geral») porque o nome nunca chegava a sair da base.
+      .addSelect('"p"."nome"', 'nome')
       .addSelect('"p"."frequencia_semanal"', 'frequencia_semanal')
       .addSelect('"p"."notas_medicas"', 'notas_medicas')
       .addSelect('"p"."data_inicio"', 'data_inicio')
@@ -219,11 +225,16 @@ export class PlanosLeituraService {
       .addSelect('"p"."condicao_paciente"', 'condicao_paciente')
       .addSelect('"p"."is_standard"', 'is_standard')
       .addSelect('"p"."id_paciente"', 'id_paciente')
+      .addSelect('"p"."id_medico"', 'id_medico')
       .addSelect('"u"."nome"', 'nome_paciente')
       .addSelect('COUNT("pe"."id_exercicio")', 'total_exercicios')
-      .where('("p"."notas_medicas" IS NULL OR "p"."notas_medicas" != :notaCrianca)', {
-        notaCrianca: 'Plano criado pela própria criança',
-      })
+      // Os planos que as crianças montam para si próprias não são atos
+      // clínicos e não entram na lista de gestão. O critério é o autor ser o
+      // próprio paciente — e não o texto das notas, que qualquer edição
+      // desfazia.
+      .where(
+        '("p"."id_paciente" IS NULL OR "p"."id_medico" <> "p"."id_paciente")',
+      )
       .groupBy('"p"."id_prescricao"')
       .addGroupBy('"u"."id_user"')
       .addGroupBy('"u"."nome"')
@@ -250,6 +261,10 @@ export class PlanosLeituraService {
         '"pe"."id_prescricao" = "p"."id_prescricao"',
       )
       .select('"p"."id_prescricao"', 'id_prescricao')
+      // Sem isto, o ecrã de edição abria sempre com o nome vazio e ao guardar
+      // gravava `nome: null` — editar a frequência de um plano apagava-lhe o
+      // nome sem ninguém dar por isso.
+      .addSelect('"p"."nome"', 'nome')
       .addSelect('"p"."frequencia_semanal"', 'frequencia_semanal')
       .addSelect('"p"."notas_medicas"', 'notas_medicas')
       .addSelect('"p"."data_validade"', 'data_validade')
@@ -266,6 +281,7 @@ export class PlanosLeituraService {
       .where('"p"."id_prescricao" = :idPrescricao', { idPrescricao })
       .getRawMany<{
         id_prescricao: string;
+        nome: string | null;
         frequencia_semanal: number | string | null;
         notas_medicas: string | null;
         data_validade: Date | string | null;
@@ -294,6 +310,7 @@ export class PlanosLeituraService {
 
     return {
       id_prescricao: cabecalho.id_prescricao,
+      nome: cabecalho.nome ?? null,
       frequencia_semanal: paraNumero(cabecalho.frequencia_semanal),
       notas_medicas: cabecalho.notas_medicas ?? null,
       data_validade: paraTimestampSemFuso(cabecalho.data_validade),

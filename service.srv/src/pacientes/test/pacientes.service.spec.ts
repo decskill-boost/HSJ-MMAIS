@@ -2,6 +2,7 @@ import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Test } from '@nestjs/testing';
 import { Prescricao } from '../../entities/prescricao.entity';
+import { PrescricaoExercicio } from '../../entities/prescricao-exercicio.entity';
 import {
   SessaoRealizada,
   SessaoStatus,
@@ -65,6 +66,13 @@ describe('PacientesService', () => {
             find: jest.fn(),
             createQueryBuilder: jest.fn(() => mockQueryBuilder()),
           },
+        },
+        // O serviço passou a juntar os exercícios de cada plano ao histórico
+        // (PR #76). Sem este repositório o Nest não o consegue construir e
+        // TODOS os testes deste ficheiro rebentam antes de chegar às asserções.
+        {
+          provide: getRepositoryToken(PrescricaoExercicio),
+          useValue: { find: jest.fn().mockResolvedValue([]) },
         },
       ],
     }).compile();

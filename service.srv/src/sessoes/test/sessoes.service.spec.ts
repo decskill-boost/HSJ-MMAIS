@@ -308,7 +308,15 @@ describe('SessoesService', () => {
       expect(manager.save).toHaveBeenCalledTimes(2);
     });
 
-    it('does not award xp twice for the same exercise on the same day', async () => {
+    /**
+     * REGRA MUDADA (PR #76): repetir o mesmo exercício no mesmo dia volta a dar
+     * XP. Antes dava zero, e era isso que fazia o XP parecer «parado» a quem
+     * repetia um treino.
+     *
+     * O `alreadyCompletedToday` continua a sair a true — é o que o ecrã usa
+     * para não voltar a festejar a mesma conquista.
+     */
+    it('volta a dar xp quando o mesmo exercício é repetido no mesmo dia', async () => {
       exercicioRepo.findOne.mockResolvedValue(mockExercicio());
       sessaoRepo.findOne.mockResolvedValue({
         id_sessao: 'sessao-existing',
@@ -324,14 +332,31 @@ describe('SessoesService', () => {
       const result = await service.concluirExercicio('paciente-1', dto);
 
       expect(result).toMatchObject({
-        xpGained: 0,
-        totalXp: 50,
+        xpGained: 10,
+        totalXp: 60,
         level: 1,
         leveledUp: false,
         streakAtual: 2,
         alreadyCompletedToday: true,
       });
       expect(manager.save).toHaveBeenCalled();
+    });
+
+    /**
+     * O limite existe para um exercício mal configurado no catálogo não
+     * conseguir atirar o nível da criança para o infinito com um só treino.
+     */
+    it('limita a recompensa a 500 XP por treino', async () => {
+      exercicioRepo.findOne.mockResolvedValue(
+        mockExercicio({ recompensa_xp: 100000 }),
+      );
+      sessaoRepo.findOne.mockResolvedValue(null);
+      mockManagerFindOne(null, mockUser({ xp: 0, nivel: 1 }));
+
+      const result = await service.concluirExercicio('paciente-1', dto);
+
+      expect(result.xpGained).toBe(500);
+      expect(result.totalXp).toBe(500);
     });
 
     it('does not level up when the reward does not cross a threshold', async () => {

@@ -13,6 +13,7 @@ import { CreatePrescricaoDto } from './create-prescricao.dto';
 import { UpdatePrescricaoDto } from './update-prescricao.dto';
 import { cleanUuid } from '../utils/uuid.util';
 import { Utilizador } from '../entities/utilizador.entity';
+import { UserRole } from '../users/user-role.enum';
 
 /** Violação de chave estrangeira no Postgres. */
 const CODIGO_FK_VIOLADA = '23503';
@@ -32,12 +33,24 @@ export class PrescricoesService {
   ) {}
 
   /**
-   * `idMedico` vem do token de quem faz o pedido, não do corpo: é o clínico
+   * `idAutor` vem do token de quem faz o pedido, não do corpo: é quem está
    * autenticado que assina a prescrição.
+   *
+   * Quando quem cria é uma criança, o plano é obrigatoriamente PARA ELA e
+   * nunca standard, independentemente do que venha no pedido. Sem isto, o
+   * `id_paciente` do corpo deixava-a criar planos em nome de outra criança e o
+   * `is_standard` deixava-a pôr um plano seu no catálogo que toda a gente vê.
    */
-  async create(dados: CreatePrescricaoDto, idMedico: string) {
-    const cleanPacienteId = cleanUuid(dados.id_paciente);
-    const cleanMedicoId = cleanUuid(idMedico);
+  async create(
+    dados: CreatePrescricaoDto,
+    idAutor: string,
+    roleAutor?: UserRole,
+  ) {
+    const criadoPelaCrianca = roleAutor === UserRole.PACIENTE;
+    const cleanPacienteId = criadoPelaCrianca
+      ? cleanUuid(idAutor)
+      : cleanUuid(dados.id_paciente);
+    const cleanMedicoId = cleanUuid(idAutor);
 
     const prescricao = this.prescricaoRepository.create({
       id_paciente: cleanPacienteId ? { id_user: cleanPacienteId } : null,
@@ -49,7 +62,7 @@ export class PrescricoesService {
       data_fim: dados.data_validade ? new Date(dados.data_validade) : null,
       notas_medicas: dados.notas_medicas ?? undefined,
       ativo: true,
-      is_standard: dados.is_standard ?? false,
+      is_standard: criadoPelaCrianca ? false : (dados.is_standard ?? false),
       condicao_paciente: dados.condicao_paciente ?? 'A',
       dificuldade: dados.dificuldade ?? 'facil',
       condicao_clinica: dados.condicao_clinica ?? null,
@@ -131,13 +144,34 @@ export class PrescricoesService {
     return { id_prescricao: idPrescricao };
   }
 
-  async cancel(idPrescricao: string) {
+  /**
+   * Arquiva um plano.
+   *
+   * Para o corpo clínico, qualquer plano. Para uma criança, só os que ela
+   * própria montou — dona E autora (`id_paciente` = `id_medico` = ela). Um
+   * plano prescrito pelo médico não sai de vigor porque a criança o terminou
+   * uma vez: a frequência semanal existe justamente para ser repetido.
+   *
+   * Quando o plano não é dela, a resposta é 404 e não 403: uma criança não fica
+   * a saber que aquele id existe.
+   */
+  async cancel(idPrescricao: string, idAutor?: string, roleAutor?: UserRole) {
     const prescricao = await this.prescricaoRepository.findOne({
       where: { id_prescricao: idPrescricao },
+      relations: { id_paciente: true, id_medico: true },
     });
 
     if (!prescricao) {
       throw new NotFoundException('Prescrição não encontrada.');
+    }
+
+    if (roleAutor === UserRole.PACIENTE) {
+      const idDono = prescricao.id_paciente?.id_user ?? null;
+      const idAutorDoPlano = prescricao.id_medico?.id_user ?? null;
+      const eDela = !!idAutor && idDono === idAutor && idAutorDoPlano === idAutor;
+      if (!eDela) {
+        throw new NotFoundException('Prescrição não encontrada.');
+      }
     }
 
     if (!prescricao.ativo && prescricao.data_fim) {

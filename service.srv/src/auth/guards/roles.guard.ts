@@ -41,6 +41,10 @@ export class RolesGuard implements CanActivate {
     // em qualquer claim customizada que pudesse vir do token.
     const user = await this.usersService.findById(userId);
 
+    // Fica no pedido para os controladores não terem de repetir esta consulta
+    // quando precisam de distinguir quem está a pedir (ver @CurrentRole()).
+    request.roleUtilizador = user.role as UserRole;
+
     const hasRequiredRole = requiredRoles.some(
       (role) => role === (user.role as UserRole),
     );

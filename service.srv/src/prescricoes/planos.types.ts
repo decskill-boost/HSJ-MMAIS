@@ -30,6 +30,15 @@ export interface PlanoDoPaciente {
   ativo: boolean;
   dificuldade: string;
   condicao_paciente: string;
+  /**
+   * O plano foi montado pela própria criança (e não prescrito por um clínico).
+   *
+   * Sai calculado do servidor — autor igual a dono — para os ecrãs não terem de
+   * adivinhar. Antes o critério era `notas_medicas === 'Plano criado pela
+   * própria criança'`, repetido em quatro sítios e desfeito por qualquer edição
+   * dessas notas.
+   */
+  criado_pelo_paciente: boolean;
   exercicios: ExercicioDoPlano[];
 }
 
@@ -56,6 +65,7 @@ export interface PlanoPublico {
 /** Linha da lista de gestão do corpo clínico (E4). */
 export interface PlanoGerido {
   id_plano: string;
+  nome: string | null;
   frequencia_semanal: number;
   notas_medicas: string | null;
   data_inicio: string | null;
@@ -72,6 +82,7 @@ export interface PlanoGerido {
 /** Plano a abrir no ecrã de edição (E5). */
 export interface PlanoParaEdicao {
   id_prescricao: string;
+  nome: string | null;
   frequencia_semanal: number;
   notas_medicas: string | null;
   data_validade: string | null;
