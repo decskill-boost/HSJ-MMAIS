@@ -4,13 +4,10 @@ import LoadingSpinner from "../LoadingSpinner";
 import { planosService, type PlanoGerido } from "../../services/planosService";
 import ConfirmDialog from "../ui/ConfirmDialog";
 
-type Filtro = "todos" | "standard" | "cancelados";
+type Filtro = "todos" | "standard" | "personalizaveis";
 
 const textoDificuldade = (d: string) =>
   d === "facil" ? "Fácil" : d === "medio" ? "Médio" : "Difícil";
-
-const formatarData = (d?: string | null) =>
-  d ? new Date(d).toLocaleDateString("pt-PT") : "—";
 
 const GestaoPlanos = () => {
   const navigate = useNavigate();
@@ -50,7 +47,7 @@ const GestaoPlanos = () => {
       // o próprio dono. Filtrar aqui pelo texto das notas era frágil — bastava
       // alguém editá-las para os planos todos reaparecerem ao corpo clínico.
       if (filtro === "standard" && !(p.is_standard && p.ativo)) return false;
-      if (filtro === "cancelados" && p.ativo) return false;
+      if (filtro === "personalizaveis" && !(!p.is_standard && p.ativo)) return false;
       if (filtro === "todos" && !p.ativo) return false;
       if (!termo) return true;
       return (
@@ -93,7 +90,7 @@ const GestaoPlanos = () => {
   const filtros: { chave: Filtro; label: string }[] = [
     { chave: "todos", label: "Ativos" },
     { chave: "standard", label: "Standard" },
-    { chave: "cancelados", label: "Cancelados" },
+    { chave: "personalizaveis", label: "Personalizáveis" },
   ];
 
   return (
@@ -220,9 +217,6 @@ const GestaoPlanos = () => {
                 </span>
                 <span className="rounded-full border border-tinta/15 bg-papel px-2 py-1 font-semibold text-aco">
                   {p.frequencia_semanal}x/semana
-                </span>
-                <span className="rounded-full border border-tinta/15 bg-papel px-2 py-1 font-semibold text-aco">
-                  Validade: {formatarData(p.data_validade)}
                 </span>
               </div>
 
