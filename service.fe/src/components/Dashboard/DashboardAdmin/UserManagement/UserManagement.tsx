@@ -15,6 +15,7 @@ type UserFormData = {
   nome: string;
   email: string;
   password: string;
+  confirmPassword: string;
   tipo_utilizador: UserRole;
 };
 
@@ -27,6 +28,7 @@ const initialForm: UserFormData = {
   nome: "",
   email: "",
   password: "",
+  confirmPassword: "",
   tipo_utilizador: UserRole.PACIENTE,
 };
 
@@ -70,10 +72,20 @@ const UserManagement = () => {
         nome: selectedUser.nome,
         email: selectedUser.email,
         password: "",
+        confirmPassword: "",
         tipo_utilizador: selectedUser.role,
       });
     }
   }, [selectedUser]);
+
+  const handleFormChange = (
+    updater: UserFormData | ((prev: UserFormData) => UserFormData),
+  ) => {
+    setForm(updater);
+    if (error) {
+      setError(null);
+    }
+  };
 
   // `manterMensagem` limpa o formulário sem apagar a confirmação de sucesso
   // acabada de escrever: sem isto, o reset a seguir a gravar deitava a mensagem
@@ -91,14 +103,25 @@ const UserManagement = () => {
     nome: string;
     email: string;
     password?: string;
+    confirmPassword?: string;
     tipo_utilizador: UserRole;
   }) => {
     if (
-      !payload.nome ||
-      !payload.email ||
+      !payload.nome.trim() ||
+      !payload.email.trim() ||
       (!editingUserId && !payload.password)
     ) {
       setError("Preencha todos os campos obrigatórios.");
+      return;
+    }
+
+    if (!editingUserId && payload.password !== payload.confirmPassword) {
+      setError("As palavras-passe não coincidem.");
+      return;
+    }
+
+    if (!editingUserId && payload.password && payload.password.length < 8) {
+      setError("A palavra-passe tem de ter pelo menos 8 caracteres.");
       return;
     }
 
@@ -146,6 +169,7 @@ const UserManagement = () => {
       nome: user.nome,
       email: user.email,
       password: "",
+      confirmPassword: "",
       tipo_utilizador: user.role,
     });
     setError(null);
@@ -188,7 +212,7 @@ const UserManagement = () => {
     return (
       <UserForm
         form={form}
-        setForm={setForm}
+        setForm={handleFormChange}
         editingUserId={editingUserId}
         onSubmit={handleSubmit}
         onCancel={() => {

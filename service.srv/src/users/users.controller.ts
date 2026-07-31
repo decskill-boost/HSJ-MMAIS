@@ -7,6 +7,7 @@ import {
   Post,
   Put,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
 import { SupabaseAuthGuard } from '../auth/supabase-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -62,7 +63,15 @@ export class UsersController {
   @Delete(':id')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.CORPO_CLINICO)
-  remove(@Param('id') id: string) {
+  remove(
+    @Param('id') id: string,
+    @CurrentUser() payload: SupabaseJwtPayload,
+  ) {
+    if (payload?.sub === id) {
+      throw new BadRequestException(
+        'Não é possível apagar a sua própria conta de utilizador.',
+      );
+    }
     return this.usersService.disableUser(id);
   }
 

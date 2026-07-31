@@ -35,7 +35,6 @@ export const CriarPlano = () => {
 
   const [selecionados, setSelecionados] = useState<string[]>([]);
   const [frequenciaSemanal, setFrequenciaSemanal] = useState(3);
-  const [dataValidade, setDataValidade] = useState("");
   const [notasMedicas, setNotasMedicas] = useState("");
   const [nomePlano, setNomePlano] = useState("");
 
@@ -102,9 +101,6 @@ export const CriarPlano = () => {
       .then((p) => {
         setFrequenciaSemanal(p.frequencia_semanal ?? 3);
         setNotasMedicas(p.notas_medicas ?? "");
-        setDataValidade(
-          p.data_validade ? String(p.data_validade).slice(0, 10) : "",
-        );
         setDificuldade(p.dificuldade ?? "facil");
         setCondicaoPaciente(p.condicao_paciente ?? "A");
         setCondicaoClinica(p.condicao_clinica ?? "");
@@ -200,9 +196,7 @@ export const CriarPlano = () => {
         await planosService.atualizarPlano(idPlanoEditar, {
           nome: nomePlano.trim() || null,
           frequencia_semanal: frequenciaSemanal,
-          data_validade: dataValidade
-            ? new Date(dataValidade).toISOString()
-            : null,
+          data_validade: null,
           notas_medicas: notasMedicas,
           dificuldade: dificuldade,
           condicao_paciente: condicaoPaciente,
@@ -217,9 +211,7 @@ export const CriarPlano = () => {
           id_paciente: idPacienteAlvo,
           id_medico: user.idUser,
           frequencia_semanal: frequenciaSemanal,
-          data_validade: dataValidade
-            ? new Date(dataValidade).toISOString()
-            : null,
+          data_validade: null,
           notas_medicas: notasMedicas,
           is_standard: idPacienteAlvo ? false : tipoPlano === "standard",
           dificuldade: dificuldade,
@@ -238,7 +230,6 @@ export const CriarPlano = () => {
         setNomePlano("");
         setDuracoesCustomizadas({});
         setFrequenciaSemanal(3);
-        setDataValidade("");
         setDificuldade("facil");
         setCondicaoPaciente("A");
         setTipoPlano("standard");
@@ -552,22 +543,6 @@ export const CriarPlano = () => {
                   value={frequenciaSemanal}
                   onChange={(e) => {
                     setFrequenciaSemanal(Number(e.target.value));
-                    setGuardado(false);
-                  }}
-                  className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2.5 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:ring-2 focus:ring-cobalto/20"
-                />
-              </div>
-
-              {/* Data Validade */}
-              <div>
-                <label className="block text-xs font-semibold text-aco" htmlFor="plano-data-de-validade">
-                  Data de validade
-                </label>
-                <input id="plano-data-de-validade"
-                  type="date"
-                  value={dataValidade}
-                  onChange={(e) => {
-                    setDataValidade(e.target.value);
                     setGuardado(false);
                   }}
                   className="mt-1 w-full rounded-xl border border-tinta/15 bg-papel px-3 py-2.5 text-xs text-tinta focus:border-cobalto focus:bg-papel-claro focus:ring-2 focus:ring-cobalto/20"
