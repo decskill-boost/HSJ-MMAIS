@@ -5,7 +5,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, Equal } from 'typeorm';
 import { Prescricao } from '../entities/prescricao.entity';
 import { PrescricaoExercicio } from '../entities/prescricao-exercicio.entity';
 import { SessaoRealizada } from '../entities/sessao-realizada.entity';
@@ -212,7 +212,7 @@ export class PrescricoesService {
     }
 
     const treinos = await this.sessaoRepository.count({
-      where: { id_prescricao: { id_prescricao: idPrescricao } },
+      where: { id_prescricao: Equal(idPrescricao) },
     });
 
     if (treinos > 0) {
