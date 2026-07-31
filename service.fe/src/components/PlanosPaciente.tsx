@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import { useTeclaEscape } from "../hooks/useTeclaEscape";
 import {
@@ -218,26 +218,30 @@ export const PlanosPaciente = () => {
     }
   }, [previewIndex, view]);
 
-  // Se vier com uma indicação para começar um plano acabado de criar
-  useEffect(() => {
-    const startPlanoId = location.state?.startPlanoId;
-    if (startPlanoId && planos.length > 0) {
-      const planoParaIniciar = planos.find(p => p.id_plano === startPlanoId);
-      if (planoParaIniciar) {
-        // Limpar o state para não fazer trigger novamente num re-render
-        navigate(".", { replace: true, state: {} });
-        abrirPreviewPlano(planoParaIniciar);
-      }
-    }
-  }, [location.state, planos, navigate]);
-
-  const abrirPreviewPlano = (plano: PlanoAtivo) => {
+  const abrirPreviewPlano = useCallback((plano: PlanoAtivo) => {
     setPlanoEmCurso(plano);
     setPreviewIndex(0);
     setExercicioIndex(0);
     setMateriaisPlanoChecked([]);
     setView("plano-preview");
-  };
+  }, []);
+
+  // Chegou-se aqui logo a seguir a criar um plano: abre-o já.
+  //
+  // Declarado DEPOIS de `abrirPreviewPlano` de propósito. Estava antes, e só
+  // funcionava por o efeito correr depois da renderização — bastava alguém
+  // chamá-lo durante o render para rebentar com um ReferenceError.
+  useEffect(() => {
+    const startPlanoId = location.state?.startPlanoId;
+    if (startPlanoId && planos.length > 0) {
+      const planoParaIniciar = planos.find((p) => p.id_plano === startPlanoId);
+      if (planoParaIniciar) {
+        // Limpar o state para não voltar a disparar numa nova renderização
+        navigate(".", { replace: true, state: {} });
+        abrirPreviewPlano(planoParaIniciar);
+      }
+    }
+  }, [location.state, planos, navigate, abrirPreviewPlano]);
 
   const iniciarPlano = () => {
     setExercicioIndex(0);
@@ -250,8 +254,12 @@ export const PlanosPaciente = () => {
     if (proximo < planoEmCurso.exercicios.length) {
       setExercicioIndex(proximo);
     } else {
-      // Se for um plano de "Meus Planos" (não standard ou criado pela criança), arquiva ao concluir
-      if (!planoEmCurso.is_standard || planoEmCurso.notas_medicas === "Plano criado pela própria criança") {
+      // Só os planos que a própria criança montou é que saem dos ativos ao
+      // serem concluídos. Um plano PRESCRITO não é standard, e por isso a
+      // condição anterior (`!is_standard`) arquivava-o também: a criança
+      // terminava o treino uma vez e a prescrição do médico ficava cancelada,
+      // apesar de ter uma frequência semanal para cumprir.
+      if (planoEmCurso.criado_pelo_paciente) {
         try {
           await planosService.cancelPlano(planoEmCurso.id_plano);
           if (user?.idUser) {
@@ -604,7 +612,7 @@ export const PlanosPaciente = () => {
     const comExercicios = planos.filter((p) => p.exercicios.length > 0);
     const planosVisiveis = comExercicios.filter((p) => {
       if (filtroCondicao === "Meus Planos") {
-        if (p.notas_medicas !== "Plano criado pela própria criança") return false;
+        if (!p.criado_pelo_paciente) return false;
         
         if (subFiltroMeus === "ativos") {
           return p.ativo !== false;
@@ -776,7 +784,12 @@ export const PlanosPaciente = () => {
                         {exs.map((e) => e.nome_exercicio).join(" · ")}
                       </p>
 
-                      {plano.notas_medicas && (
+                      {/* Só as notas de quem prescreve. Os planos que a
+                          própria criança montou chegaram a ser gravados com
+                          «Plano criado pela própria criança» neste campo, e
+                          essas linhas continuam na base — apareciam no cartão
+                          com ar de indicação médica. */}
+                      {plano.notas_medicas && !plano.criado_pelo_paciente && (
                         <p className="mt-2 line-clamp-2 rounded-xl border border-tinta/15 bg-papel p-2 text-xs italic text-aco">
                           {plano.notas_medicas}
                         </p>

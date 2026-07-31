@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import type { ExercicioDoPlano } from "../../services/planosService";
 import AvaliacaoExercicio from "./AvaliacaoExercicio";
 import { sessoesService } from "../../services/sessoesService";
+import { useUser } from "../../contexts/UserContext";
 import CapitaoMais from "../CapitaoMais";
 import { useTeclaEscape } from "../../hooks/useTeclaEscape";
 
@@ -34,6 +35,7 @@ const ExercicioPlayer = ({
   onVoltar,
   onConcluir,
 }: Props) => {
+  const { atualizarProgresso } = useUser();
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [isStarted, setIsStarted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -51,10 +53,17 @@ const ExercicioPlayer = ({
       // regista-se a sessão para a adesão contar, mas sem esforço nem diversão.
       // Antes gravava 5 e 3 fixos — valores que ela nunca deu e que o corpo
       // clínico lia como auto-relato verdadeiro.
-      await sessoesService.registarSessao({
+      const resultado = await sessoesService.registarSessao({
         id_exercicio: exercicio.id_exercicio,
         id_prescricao: idPrescricao,
         duracao: timeElapsed,
+      });
+      // Cada exercício do plano dá XP; o perfil em memória tem de acompanhar,
+      // senão o total só aparece no próximo carregamento da página.
+      atualizarProgresso({
+        totalXp: resultado.totalXp,
+        level: resultado.level,
+        streakAtual: resultado.streakAtual,
       });
     } catch (err) {
       console.error("Erro ao guardar progresso do exercício intermédio:", err);

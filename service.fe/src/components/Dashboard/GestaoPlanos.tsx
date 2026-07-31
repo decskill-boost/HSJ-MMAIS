@@ -45,14 +45,16 @@ const GestaoPlanos = () => {
   const visiveis = useMemo(() => {
     const termo = pesquisa.trim().toLowerCase();
     return planos.filter((p) => {
-      // Planos criados pelas crianças pertencem apenas ao seu próprio perfil/histórico
-      if (p.notas_medicas === "Plano criado pela própria criança") return false;
-
+      // Os planos que as crianças montam para si próprias já não vêm nesta
+      // lista: são excluídos no servidor (`planosParaGestao`), pelo autor ser
+      // o próprio dono. Filtrar aqui pelo texto das notas era frágil — bastava
+      // alguém editá-las para os planos todos reaparecerem ao corpo clínico.
       if (filtro === "standard" && !(p.is_standard && p.ativo)) return false;
       if (filtro === "cancelados" && p.ativo) return false;
       if (filtro === "todos" && !p.ativo) return false;
       if (!termo) return true;
       return (
+        (p.nome ?? "").toLowerCase().includes(termo) ||
         (p.nome_paciente ?? "").toLowerCase().includes(termo) ||
         (p.notas_medicas ?? "").toLowerCase().includes(termo)
       );
@@ -193,6 +195,15 @@ const GestaoPlanos = () => {
                   <h2 className="mt-2 truncate text-lg font-bold text-tinta">
                     {p.nome || (p.is_standard ? "Modelo Geral" : "Plano de Treino")}
                   </h2>
+                  {/* De quem é o plano. Passou a ser o nome do plano a ocupar
+                      o título, e a criança deixou de aparecer em qualquer
+                      sítio do cartão — numa lista clínica de planos
+                      personalizados, isso é o que falta saber primeiro. */}
+                  {!p.is_standard && (
+                    <p className="truncate text-sm text-aco">
+                      {p.nome_paciente ?? "Sem paciente associado"}
+                    </p>
+                  )}
                 </div>
               </div>
 

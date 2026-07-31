@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -18,12 +19,20 @@ import {
 import { supabase } from "../services/supabaseClient";
 import type { Permission, UserProfile } from "../types/permissions";
 
+/** O que a API devolve ao concluir um treino e que muda o perfil na hora. */
+export interface ProgressoDoTreino {
+  totalXp: number;
+  level: number;
+  streakAtual: number;
+}
+
 interface UserContextValue {
   user: UserProfile | null;
   permissions: Permission[];
   isLoading: boolean;
   isAuthenticated: boolean;
   setUser: (user: UserProfile | null) => void;
+  atualizarProgresso: (progresso: ProgressoDoTreino) => void;
 }
 
 const UserContext = createContext<UserContextValue>({
@@ -32,6 +41,7 @@ const UserContext = createContext<UserContextValue>({
   isLoading: true,
   isAuthenticated: false,
   setUser: () => {},
+  atualizarProgresso: () => {},
 });
 
 // Só limpamos a sessão local quando o backend confirma que o token
@@ -52,6 +62,37 @@ export function UserProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     userRef.current = user;
   }, [user]);
+
+  /**
+   * Atualiza XP, nível e sequência depois de um treino concluído.
+   *
+   * O perfil só era lido ao carregar a página (ou ao mudar de sessão), por isso
+   * o XP mostrado ficava congelado: a criança acabava um treino, voltava ao
+   * painel e via o mesmo número de antes — até fazer F5. Os valores já vinham
+   * na resposta do `POST /sessoes/concluir`; faltava alguém aplicá-los.
+   *
+   * Também se reescreve o que está guardado localmente, senão o próximo
+   * arranque voltava a pintar o valor velho enquanto revalida.
+   */
+  const atualizarProgresso = useCallback((progresso: ProgressoDoTreino) => {
+    setUser((atual) => {
+      if (!atual) return atual;
+      const atualizado: UserProfile = {
+        ...atual,
+        xp: progresso.totalXp,
+        nivel: progresso.level,
+        streakAtual: progresso.streakAtual,
+      };
+      userRef.current = atualizado;
+
+      const guardado = loadStoredAuth();
+      if (guardado) {
+        persistAuthState({ ...guardado, user: atualizado });
+      }
+
+      return atualizado;
+    });
+  }, []);
 
   useEffect(() => {
     let isInitialLoadDone = false;
@@ -186,6 +227,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         isLoading,
         isAuthenticated: user !== null,
         setUser,
+        atualizarProgresso,
       }}
     >
       {children}

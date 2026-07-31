@@ -70,6 +70,14 @@ export interface PlanoAtivo {
   condicao_paciente?: string;
   condicao_clinica?: string | null;
   is_standard?: boolean;
+  /**
+   * O plano foi montado pela própria criança, e não prescrito por um clínico.
+   *
+   * Vem calculado do servidor (autor igual a dono). Substitui a comparação com
+   * o texto `notas_medicas === "Plano criado pela própria criança"`, que estava
+   * repetida por vários ecrãs e que qualquer edição das notas desfazia.
+   */
+  criado_pelo_paciente?: boolean;
   exercicios: ExercicioDoPlano[];
 }
 

@@ -22,7 +22,25 @@ const IconeTrofeu = (props: React.SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-// Removido linksAdmin pois agora a gestão de utilizadores fica no corpo clínico
+/**
+ * A gestão de utilizadores passou a viver no menu do corpo clínico — é o que
+ * está pedido: quem é clínico é também administrador.
+ *
+ * O contrário não é verdade. Uma conta de `admin` gere pessoas, não trata
+ * crianças: o backend recusa-lhe os dados clínicos (`@Roles(CORPO_CLINICO)` em
+ * pacientes, sessões e prescrições), e mostrar-lhe esses ecrãs seria mostrar
+ * uma lista de páginas que respondem 403 — além de a convidar a folhear
+ * historiais que não lhe dizem respeito. Por isso o admin mantém um menu só
+ * seu, com o que efetivamente pode fazer.
+ */
+const linksAdmin: SidebarLink[] = [
+  {
+    to: "/dashboard/admin",
+    label: "Gestão de Utilizadores",
+    Icon: IconePlano,
+    end: true,
+  },
+];
 
 const linksMedico: SidebarLink[] = [
   { to: "/dashboard/medico", label: "Início", Icon: IconeInicio, end: true },
@@ -51,11 +69,13 @@ export const Layout = () => {
   const isPaciente = user?.role === "paciente";
   const isAdmin = user?.role === "admin";
 
-  const linksDoUtilizador = isClinico || isAdmin
+  const linksDoUtilizador = isClinico
     ? linksMedico
-    : isPaciente
-      ? linksPaciente
-      : null;
+    : isAdmin
+      ? linksAdmin
+      : isPaciente
+        ? linksPaciente
+        : null;
 
   const mostrarSidebar =
     linksDoUtilizador && !paginasSemSidebar.includes(location.pathname);
