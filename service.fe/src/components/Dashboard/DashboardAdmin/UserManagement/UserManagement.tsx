@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
+import { mensagemDeErro } from "../../../../services/erroApi";
 import {
   createUser,
   disableUser,
@@ -37,6 +38,8 @@ const UserManagement = () => {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<"list" | "create">("list");
+  const [pesquisa, setPesquisa] = useState("");
+  const [filtroPerfil, setFiltroPerfil] = useState<UserRole | "todos">("todos");
 
   const selectedUser = useMemo(
     () => users.find((user) => user.idUser === editingUserId) ?? null,
@@ -72,11 +75,16 @@ const UserManagement = () => {
     }
   }, [selectedUser]);
 
-  const resetForm = () => {
+  // `manterMensagem` limpa o formulário sem apagar a confirmação de sucesso
+  // acabada de escrever: sem isto, o reset a seguir a gravar deitava a mensagem
+  // fora e a ação não deixava rasto nenhum no ecrã.
+  const resetForm = (manterMensagem = false) => {
     setEditingUserId(null);
     setForm(initialForm);
     setError(null);
-    setMessage(null);
+    if (!manterMensagem) {
+      setMessage(null);
+    }
   };
 
   const handleSubmit = async (payload: {
@@ -115,21 +123,18 @@ const UserManagement = () => {
         setMessage("Utilizador criado com sucesso.");
       }
       await loadUsers();
-      resetForm();
+      resetForm(true);
+      // Volta à lista, onde a confirmação é mostrada ao lado do registo já
+      // atualizado. O formulário de criação não tem botão de saída, pelo que
+      // ficar nele deixava o administrador sem caminho de regresso.
+      setView("list");
     } catch (err: unknown) {
       console.error(err);
-      // Mostrar mensagem mais informativa quando disponível (Axios)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const anyErr = err as any;
-      const serverMessage =
-        anyErr?.response?.data?.message ||
-        anyErr?.response?.data ||
-        anyErr?.message;
-      setError(
-        typeof serverMessage === "string"
-          ? serverMessage
-          : JSON.stringify(serverMessage),
-      );
+      // Era aqui que vivia a última cópia local desta extração. `mensagemDeErro`
+      // faz o mesmo — incluindo a lista que o `ValidationPipe` do NestJS devolve
+      // em `message`, sem a qual o administrador via "Request failed with status
+      // code 400" em vez de "A palavra-passe tem de ter pelo menos 8 caracteres."
+      setError(mensagemDeErro(err, "Erro desconhecido"));
     } finally {
       setLoading(false);
     }
@@ -153,79 +158,105 @@ const UserManagement = () => {
     setError(null);
     try {
       await disableUser(id);
-      setMessage("Utilizador desativado com sucesso.");
+      // O servidor apaga mesmo o registo (DELETE), não o desativa: dizer
+      // "desativado" levava o administrador a julgar que a conta é reponível.
+      setMessage("Utilizador apagado definitivamente.");
       await loadUsers();
-      resetForm();
+      resetForm(true);
     } catch (err) {
       console.error(err);
-      setError("Erro ao desativar o utilizador.");
+      setError("Erro ao apagar o utilizador.");
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div className="flex-1 bg-slate-50 px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto w-full max-w-6xl space-y-6">
-        <div className="flex items-center justify-start gap-3">
-          <button
-            type="button"
-            onClick={() => setView("list")}
-            className={`rounded-2xl px-4 py-2 text-sm font-medium focus:outline-none ${
-              view === "list"
-                ? "bg-blue-600 text-white"
-                : "bg-white text-slate-700 border border-slate-200"
-            }`}
-          >
-            Todos os utilizadores
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              resetForm();
-              setView("create");
-            }}
-            className={`rounded-2xl px-4 py-2 text-sm font-medium focus:outline-none ${
-              view === "create"
-                ? "bg-blue-600 text-white"
-                : "bg-white text-slate-700 border border-slate-200"
-            }`}
-          >
-            Criar utilizador
-          </button>
-        </div>
+  // Pesquisa e filtro por perfil — com muitas contas, percorrer a lista à mão
+  // era impraticável.
+  const termo = pesquisa.trim().toLowerCase();
+  const usersVisiveis = users.filter((u) => {
+    if (filtroPerfil !== "todos" && u.role !== filtroPerfil) return false;
+    if (!termo) return true;
+    return (
+      u.nome.toLowerCase().includes(termo) ||
+      u.email.toLowerCase().includes(termo)
+    );
+  });
 
-        {view === "list" ? (
-          <section className="grid gap-6">
-            <div>
-              <UserList
-                users={users}
-                loading={loading}
-                onEdit={handleEdit}
-                onDisable={handleDisable}
-              />
-            </div>
-          </section>
-        ) : (
-          <section className="grid gap-6">
-            <div>
-              <UserForm
-                form={form}
-                setForm={setForm}
-                editingUserId={editingUserId}
-                onSubmit={handleSubmit}
-                onCancel={() => {
-                  resetForm();
-                }}
-                loading={loading}
-                message={message}
-                error={error}
-                roles={ROLES}
-              />
-            </div>
-          </section>
-        )}
+  // A criar/editar, o formulário é o ecrã — sem separadores
+  if (view === "create") {
+    return (
+      <UserForm
+        form={form}
+        setForm={setForm}
+        editingUserId={editingUserId}
+        onSubmit={handleSubmit}
+        onCancel={() => {
+          resetForm();
+          setView("list");
+        }}
+        loading={loading}
+        message={message}
+        error={error}
+        roles={ROLES}
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Barra de ferramentas: pesquisar, filtrar e criar */}
+      <div className="flex flex-wrap items-center gap-3">
+        <input
+          type="search"
+          aria-label="Pesquisar utilizadores por nome ou email"
+          value={pesquisa}
+          onChange={(e) => setPesquisa(e.target.value)}
+          placeholder="Pesquisar por nome ou email…"
+          className="min-w-[220px] flex-1 rounded-xl border border-tinta/15 bg-papel-claro px-4 py-2.5 text-sm text-tinta placeholder:text-aco focus:border-cobalto focus:ring-2 focus:ring-cobalto/20"
+        />
+        <select
+          aria-label="Filtrar por perfil"
+          value={filtroPerfil}
+          onChange={(e) =>
+            setFiltroPerfil(e.target.value as UserRole | "todos")
+          }
+          className="rounded-xl border border-tinta/15 bg-papel-claro px-3 py-2.5 text-sm font-semibold text-tinta focus:border-cobalto focus:ring-2 focus:ring-cobalto/20"
+        >
+          <option value="todos">Todos os perfis</option>
+          <option value={UserRole.ADMIN}>Administrador</option>
+          <option value={UserRole.CORPO_CLINICO}>Corpo Clínico</option>
+          <option value={UserRole.PACIENTE}>Paciente</option>
+        </select>
+        <button
+          type="button"
+          onClick={() => {
+            resetForm();
+            setView("create");
+          }}
+          className="flex items-center gap-2 rounded-(--radius-vinheta) border-[3px] border-tinta bg-cobalto px-4 py-2.5 text-sm font-bold text-papel shadow-vinheta transition hover:bg-cobalto-vivo active:scale-95 active:shadow-none"
+        >
+          <span className="text-lg leading-none">+</span> Criar utilizador
+        </button>
       </div>
+
+      {error && (
+        <div className="rounded-2xl border-2 border-capa/30 bg-capa/10 p-4 text-sm font-medium text-capa-escura">
+          {error}
+        </div>
+      )}
+      {message && (
+        <div className="rounded-2xl border-2 border-turbo/30 bg-turbo/10 p-4 text-sm font-medium text-turbo-escuro">
+          {message}
+        </div>
+      )}
+
+      <UserList
+        users={usersVisiveis}
+        loading={loading}
+        onEdit={handleEdit}
+        onDisable={handleDisable}
+      />
     </div>
   );
 };

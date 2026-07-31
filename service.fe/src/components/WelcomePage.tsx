@@ -1,20 +1,53 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import BtnGlobal from "./BtnGlobal";
-import { useUser } from "../contexts/UserContext"; // Lemos DIRETAMENTE do contexto global
+import CapitaoMais25D from "./CapitaoMais25D";
+import CapitaoMais from "./CapitaoMais";
+import { useUser } from "../contexts/UserContext";
+import quadroHeroi from "../assets/quadro-heroi.jpg";
 
-interface WelcomePageProps {
-  logoSrc?: string;
-}
+// Promessas do Capitão — voz da Academia: encorajamento, nunca cobrança.
+const FRASES_CAPITAO = [
+  "Cada movimento conta — mais um passo, todos os dias.",
+  "Aqui não há vilões, só treinos e conquistas.",
+  "Ganhas superpoderes um minuto de cada vez.",
+  "Os heróis também descansam — e voltam mais fortes.",
+];
 
-const WelcomePage = ({ logoSrc }: WelcomePageProps) => {
+const PILARES: {
+  titulo: string;
+  badge: string;
+  texto: string;
+}[] = [
+  {
+    titulo: "Missão",
+    badge: "bg-cobalto/10 text-cobalto",
+    texto:
+      "Ajudar crianças e jovens em contexto clínico a manterem-se ativos, fortes e motivados durante o seu percurso de tratamento, através de planos de exercício simples e acompanhados por profissionais de saúde.",
+  },
+  {
+    titulo: "Visão",
+    badge: "bg-turbo/15 text-turbo-escuro",
+    texto:
+      "Ser uma referência na integração da atividade física no cuidado pediátrico, tornando o movimento parte natural da recuperação de cada criança, dentro e fora do hospital.",
+  },
+  {
+    titulo: "Valores",
+    badge: "bg-raio/25 text-tinta",
+    texto:
+      "Cuidado centrado na criança, rigor clínico, alegria no processo de recuperação, e uma parceria próxima entre profissionais de saúde, crianças e famílias.",
+  },
+  {
+    titulo: "Propósito",
+    badge: "bg-capa/10 text-capa-escura",
+    texto:
+      "Transformar minutos de exercício em minutos de esperança — promovendo não só a recuperação física, mas também o bem-estar emocional e social de cada criança.",
+  },
+];
+
+const WelcomePage = () => {
   const navigate = useNavigate();
-
   const { user } = useUser();
-
-  // console.log(
-  //   "[WelcomePage] user recebido do contexto:",
-  //   user?.email || "Nenhum utilizador",
-  // );
 
   const isAuthenticated = !!user;
 
@@ -30,50 +63,222 @@ const WelcomePage = ({ logoSrc }: WelcomePageProps) => {
 
   const handleAction = () => navigate(destination);
 
-  return (
-    <div className="flex flex-1 flex-col justify-center px-4 py-16 text-center">
-      <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-        Bem-vindo ao <span className="text-blue-600">+MMAis</span>!
-      </h1>
+  // Chegar de outra página com /#missao deve levar direto à secção
+  useEffect(() => {
+    if (window.location.hash !== "#missao") return;
+    const t = setTimeout(
+      () =>
+        document
+          .getElementById("missao")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      120,
+    );
+    return () => clearTimeout(t);
+  }, []);
 
-      <div className="mt-10 flex justify-center">
-        {logoSrc ? (
-          <img
-            src={logoSrc}
-            alt="+MMAis"
-            className="h-32 w-32 rounded-2xl object-contain"
-          />
-        ) : (
-          <div className="flex h-32 w-32 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-            <svg
-              className="h-14 w-14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
+  // Carrossel das promessas do Capitão — arranca pausado se o utilizador
+  // pedir menos movimento, e pode sempre ser parado à mão.
+  const [fraseAtual, setFraseAtual] = useState(0);
+  const [pausado, setPausado] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+  );
+  useEffect(() => {
+    if (pausado) return;
+    const intervalo = setInterval(() => {
+      setFraseAtual((atual) => (atual + 1) % FRASES_CAPITAO.length);
+    }, 5000);
+    return () => clearInterval(intervalo);
+  }, [pausado]);
+
+  return (
+    <div className="flex flex-1 flex-col">
+      {/* HERO — Academia de Heróis */}
+      <div className="relative flex flex-col items-center justify-center overflow-hidden bg-[linear-gradient(160deg,#3D6BFF_0%,#1D42C8_55%,#16307F_100%)] px-4 py-16 text-center">
+        <div className="fundo-raios absolute -inset-[40%] opacity-15" aria-hidden="true" />
+        <div className="fundo-reticula absolute inset-0 opacity-50" aria-hidden="true" />
+
+        <div className="relative">
+          <CapitaoMais25D />
+
+          <h1 className="texto-autocolante mt-6 font-display text-4xl tracking-wide sm:text-5xl">
+            Bem-vindo ao MMAIS<span style={{ color: "#FFCE29" }}>+</span>!
+          </h1>
+
+          <p className="mt-3 font-display text-lg tracking-widest text-raio [text-shadow:2px_2px_0_#141F3C]">
+            Mais Minutos Ativos · A Academia de Heróis
+          </p>
+          <p className="mx-auto mt-2 max-w-md text-lg text-[#F0F3FF]">
+            Missões, conquistas e superpoderes — mais um passo, todos os dias.
+          </p>
+
+          {/* As duas entradas lado a lado: entrar na conta ou experimentar já */}
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <BtnGlobal onClick={handleAction} variant="raio" className="px-10 py-3">
+              {buttonText}
+            </BtnGlobal>
+
+            {!isAuthenticated && (
+              <button
+                onClick={() => navigate("/experimentar")}
+                className="inline-flex min-h-12 items-center justify-center gap-2 rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro px-8 py-3 font-display text-lg tracking-wide text-tinta shadow-vinheta transition hover:bg-papel active:scale-95 active:shadow-none"
+              >
+                Experimentar grátis
+              </button>
+            )}
           </div>
-        )}
+
+          {!isAuthenticated && (
+            <p className="mt-3 text-sm font-bold text-[#EAEFFF]">
+              Ainda não tens conta? Testa um treino sem te registares.
+            </p>
+          )}
+
+          <p className="mt-4 text-sm font-bold text-[#EAEFFF]/80">
+            Psst… toca no Capitão para ele dar uma pirueta! ↻
+          </p>
+        </div>
       </div>
 
-      <p className="mt-10 text-sm font-bold uppercase tracking-widest text-blue-600">
-        Mais Minutos Ativos
-      </p>
-      <p className="mx-auto mt-3 max-w-md text-lg text-slate-500">
-        A tua aplicação para te manteres forte, ativo(a) e te divertires!
-      </p>
-
-      <BtnGlobal
-        onClick={handleAction}
-        className="mt-10 mx-auto rounded-xl bg-blue-600 px-10 py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-500/30"
+      {/* MISSÃO E PROPÓSITO */}
+      <section
+        id="missao"
+        className="w-full scroll-mt-20 border-y-[3px] border-tinta bg-papel px-4 py-16 text-center sm:py-24"
       >
-        {buttonText}
-      </BtnGlobal>
+        <div className="mx-auto max-w-3xl">
+          <span className="inline-flex items-center gap-2 rounded-full border-2 border-tinta bg-papel-claro px-4 py-1.5 text-xs font-bold uppercase tracking-[0.2em] text-cobalto shadow-vinheta">
+            MMAIS<span className="texto-raio-contorno">+</span>
+          </span>
+          <h2 className="mx-auto mt-5 font-display text-3xl tracking-wide text-tinta sm:text-5xl">
+            A nossa missão e propósito
+          </h2>
+          <p className="mx-auto mt-5 max-w-2xl text-lg font-medium text-aco sm:text-xl">
+            Levamos exercício, alegria e movimento a cada criança em tratamento.
+          </p>
+
+          {/* Carrossel das promessas do Capitão */}
+          <div className="mx-auto mt-14 max-w-2xl">
+            <div className="flex items-center justify-center gap-3">
+              <CapitaoMais className="h-10 w-auto" title="" />
+              <p className="text-xs font-bold uppercase tracking-widest text-aco">
+                Palavra de Capitão
+              </p>
+            </div>
+            <p
+              aria-live="polite"
+              aria-atomic="true"
+              className="mx-auto mt-6 min-h-[4.5rem] max-w-xl font-display text-2xl leading-relaxed tracking-wide text-cobalto sm:text-3xl"
+            >
+              <span key={fraseAtual} className="entrada-pop inline-block">
+                {FRASES_CAPITAO[fraseAtual]}
+              </span>
+            </p>
+            <div className="mt-4 flex items-center justify-center gap-1">
+              {FRASES_CAPITAO.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setFraseAtual(i)}
+                  aria-label={`Ver promessa ${i + 1}`}
+                  aria-current={i === fraseAtual}
+                  /* O ponto continua pequeno, mas a área de toque tem 48px:
+                     antes eram 10x10 px, impossíveis de acertar num tablet. */
+                  className="group flex min-h-12 min-w-12 items-center justify-center"
+                >
+                  <span
+                    className={`h-2.5 rounded-full border-2 border-tinta transition-all ${
+                      i === fraseAtual
+                        ? "w-8 bg-raio"
+                        : "w-2.5 bg-papel-claro group-hover:bg-raio/50"
+                    }`}
+                  />
+                </button>
+              ))}
+
+              {/* Texto que muda sozinho tem de poder ser parado. */}
+              <button
+                type="button"
+                onClick={() => setPausado((p) => !p)}
+                className="ml-1 flex min-h-12 min-w-12 items-center justify-center rounded-lg text-sm font-bold text-aco transition-colors hover:bg-tinta/5 hover:text-tinta"
+              >
+                <span aria-hidden="true">{pausado ? "▶" : "❚❚"}</span>
+                <span className="sr-only">
+                  {pausado ? "Retomar" : "Pausar"} as promessas do Capitão
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* O QUADRO — a peça que está no hospital e inspira miúdos e equipa */}
+      <section className="w-full bg-papel-claro px-4 py-16 sm:py-24">
+        <div className="mx-auto grid max-w-5xl items-center gap-10 md:grid-cols-[auto_1fr]">
+          {/* Moldura: o quadro é o herói do bloco, sem adornos a competir */}
+          <figure className="entrada-pop mx-auto max-w-sm">
+            <img
+              src={quadroHeroi}
+              alt="Quadro exposto no hospital: um menino de t-shirt de super-herói, descalço, a chutar com força uma bola de futebol onde está um desenho feito por ele próprio."
+              width={825}
+              height={1100}
+              loading="lazy"
+              className="w-full rounded-(--radius-vinheta) border-[3px] border-tinta shadow-vinheta"
+            />
+          </figure>
+
+          <div className="text-center md:text-left">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-cobalto">
+              No hospital
+            </p>
+            <h2 className="mt-2 font-display text-3xl tracking-wide text-tinta sm:text-4xl">
+              O herói já existia antes de nós
+            </h2>
+            <p className="mt-4 text-lg leading-relaxed text-aco">
+              Este quadro está no hospital e é dele que vem a nossa ideia: uma
+              criança em tratamento é, todos os dias, um herói. A bola é um
+              desenho do próprio menino — é o problema dele, que ele chuta com
+              toda a força para bem longe.
+            </p>
+            <p className="mt-4 text-base leading-relaxed text-tinta/80">
+              O Capitão Mais nasceu daqui. Quando um miúdo abre a aplicação e vê
+              o Capitão, está a ver-se a si próprio.
+            </p>
+            <figcaption className="mt-6 text-sm font-bold text-aco">
+              «Santiago» · pintura de MrTheo — exposta na ULS São João
+            </figcaption>
+          </div>
+        </div>
+      </section>
+
+      {/* MISSÃO · VISÃO · VALORES · PROPÓSITO */}
+      <section className="mx-auto w-full max-w-5xl px-4 py-16 sm:py-24">
+        <div className="text-center">
+          <p className="text-sm font-bold uppercase tracking-widest text-cobalto">
+            Quem somos
+          </p>
+          <h3 className="mt-2 font-display text-3xl tracking-wide text-tinta sm:text-4xl">
+            Porque existimos
+          </h3>
+        </div>
+
+        <div className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2">
+          {PILARES.map((pilar, idx) => (
+            <div
+              key={pilar.titulo}
+              className={`entrada-pop${idx > 0 ? `-${Math.min(idx + 1, 4)}` : ""} rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-8 shadow-vinheta transition hover:-translate-y-0.5`}
+            >
+              <span
+                className={`inline-block rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${pilar.badge}`}
+              >
+                {pilar.titulo}
+              </span>
+              <p className="mt-4 text-justify text-base leading-relaxed text-tinta/80">
+                {pilar.texto}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 };

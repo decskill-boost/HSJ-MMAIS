@@ -1,0 +1,3 @@
+
+# Vercel CLI — contem segredos de producao quando se faz `vercel pull`
+.vercel

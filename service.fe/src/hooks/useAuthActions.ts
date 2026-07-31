@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useUser } from "../contexts/UserContext";
 import { authService } from "../services/Auth";
 import type { UserProfile } from "../types/permissions";
+import { registarDebug } from "../lib/registo";
 
 export const useAuthActions = () => {
   // 1. Consumimos DIRETAMENTE o estado global e a função de atualizar do Contexto
@@ -12,7 +13,7 @@ export const useAuthActions = () => {
   const navigate = useNavigate();
 
   const handleLogin = (userProfile: UserProfile): boolean => {
-    console.log("[useAuthActions] handleLogin chamado", userProfile.email);
+    registarDebug("[useAuthActions] handleLogin chamado", userProfile.email);
 
     if (
       userProfile.role !== "admin" &&
@@ -41,7 +42,7 @@ export const useAuthActions = () => {
   };
 
   const handleLogout = async () => {
-    console.log("[useAuthActions] handleLogout chamado");
+    registarDebug("[useAuthActions] handleLogout chamado");
     try {
       await authService.logout();
     } catch (error) {

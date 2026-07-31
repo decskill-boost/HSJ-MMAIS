@@ -1,13 +1,15 @@
 import {
   ConflictException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 import { Perfil } from '../entities/perfil.entity';
+import { Recompensa } from '../entities/recompensa.entity';
 import { Utilizador } from '../entities/utilizador.entity';
 import { getEffectiveStreak } from '../sessoes/streak.util';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -15,13 +17,17 @@ import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
-  private readonly supabaseAdmin: SupabaseClient;
+  // O tipo vem do próprio `createClient` para não haver divergência nos
+  // parâmetros genéricos do SupabaseClient.
+  private readonly supabaseAdmin: ReturnType<typeof createClient>;
 
   constructor(
     @InjectRepository(Utilizador)
     private readonly utilizadorRepo: Repository<Utilizador>,
     @InjectRepository(Perfil)
     private readonly perfilRepo: Repository<Perfil>,
+    @InjectRepository(Recompensa)
+    private readonly recompensaRepo: Repository<Recompensa>,
     private readonly configService: ConfigService,
   ) {
     const supabaseUrl = this.configService.getOrThrow<string>('SUPABASE_URL');
@@ -57,7 +63,37 @@ export class UsersService {
       ),
       urlFotoPerfil: user.url_foto_perfil,
       permissions,
+      data_registo: user.data_registo,
     };
+  }
+
+  /**
+   * Progresso do próprio: o XP atual e o catálogo de conquistas.
+   *
+   * Substitui duas leituras que o browser fazia direto ao Supabase — o
+   * catálogo de `recompensas` e o `xp` da linha do utilizador. O id vem do
+   * token, nunca do cliente: ninguém pode pedir o progresso de outra criança.
+   */
+  async getProgresso(id_user: string) {
+    const utilizador = await this.utilizadorRepo.findOne({
+      where: { id_user },
+      // A chave primária TEM de vir no select. `Utilizador` tem uma relação
+      // muitos-para-muitos (permissoesDirectas) e, nesse caso, o TypeORM gera
+      // uma subconsulta DISTINCT que ordena por `id_user`; sem ela no select,
+      // o Postgres recusa com «column distinctAlias.Utilizador_id_user does
+      // not exist». Só aparece contra a base de dados real.
+      select: { id_user: true, xp: true },
+    });
+
+    if (!utilizador) {
+      throw new NotFoundException('Utilizador não encontrado');
+    }
+
+    const recompensas = await this.recompensaRepo.find({
+      order: { xp_necessario: 'ASC' },
+    });
+
+    return { xp: utilizador.xp, recompensas };
   }
 
   async findById(id_user: string) {
@@ -97,14 +133,11 @@ export class UsersService {
     });
 
     if (error || !data.user?.id) {
-      // Log detalhado para debugging: mostra tanto o erro quanto o objeto retornado
-      // assim conseguimos ver a resposta do Supabase no servidor (stack trace no terminal).
-      // Não alterar lógica de rethrow — mantemos 500 para o cliente.
-      // eslint-disable-next-line no-console
+      // Só o erro do Supabase: o `createUserDto` traz a palavra-passe em claro
+      // e o `data` traz o utilizador todo. Nada disso entra nos registos.
       console.error('Supabase admin.createUser falhou', {
-        error,
-        data,
-        createUserDto,
+        mensagem: error?.message,
+        estado: error?.status,
       });
       throw new Error(
         error?.message ?? 'Não foi possível criar o utilizador no Supabase',
@@ -122,7 +155,7 @@ export class UsersService {
     } as DeepPartial<Utilizador>;
 
     const savedUser = await this.utilizadorRepo.save(novoUtilizador);
-    return this.mapUtilizadorToProfile(savedUser as Utilizador);
+    return this.mapUtilizadorToProfile(savedUser);
   }
 
   async updateUser(id_user: string, updateUserDto: UpdateUserDto) {
@@ -160,6 +193,43 @@ export class UsersService {
     return this.mapUtilizadorToProfile(await this.utilizadorRepo.save(user));
   }
 
+  /**
+   * Remove as credenciais no Supabase Auth. Trata o «utilizador não existe»
+   * como sucesso, para que uma segunda tentativa não fique bloqueada.
+   */
+  private async removerCredenciaisSupabase(id_user: string) {
+    const { error: deleteError } =
+      await this.supabaseAdmin.auth.admin.deleteUser(id_user);
+
+    if (!deleteError || deleteError.status === 404) {
+      return;
+    }
+
+    // Só a mensagem e o estado: a resposta do Supabase traz dados do
+    // utilizador que não devem entrar nos registos.
+    console.error('Supabase admin.deleteUser falhou', {
+      mensagem: deleteError.message,
+      estado: deleteError.status,
+    });
+
+    // Se não conseguimos apagar, pelo menos banimos a conta para garantir
+    // que já não é possível autenticar.
+    const { error: banError } =
+      await this.supabaseAdmin.auth.admin.updateUserById(id_user, {
+        ban_duration: '1000000h',
+      });
+
+    if (banError) {
+      console.error('Supabase admin.updateUserById (ban) também falhou', {
+        mensagem: banError.message,
+        estado: banError.status,
+      });
+      throw new InternalServerErrorException(
+        'Não foi possível desativar as credenciais do utilizador',
+      );
+    }
+  }
+
   async disableUser(id_user: string) {
     const user = await this.utilizadorRepo.findOne({
       where: { id_user },
@@ -169,53 +239,20 @@ export class UsersService {
       throw new NotFoundException('Utilizador não encontrado');
     }
 
-    // Tentar remover o utilizador também do Supabase Auth (credenciais)
-    try {
-      // Supabase admin API: tenta apagar o utilizador por ID
-      const { error: deleteError } =
-        await this.supabaseAdmin.auth.admin.deleteUser(id_user);
+    // A base de dados primeiro, dentro da transacção, e o Supabase Auth como
+    // último passo antes do commit: se a remoção do registo for recusada
+    // (chaves estrangeiras de sessões, prescrições ou permissões), a
+    // transacção é revertida e as credenciais ficam intactas.
+    //
+    // Fica uma janela por fechar: se o commit falhar depois de as credenciais
+    // já terem sido apagadas, o registo sobrevive sem forma de autenticar.
+    // É o lado seguro a falhar — ninguém ganha acesso a mais nada — mas obriga
+    // a limpar o registo à mão. Fechá-la exigiria outbox ou commit em 2 fases.
+    await this.utilizadorRepo.manager.transaction(async (manager) => {
+      await manager.delete(Utilizador, { id_user });
+      await this.removerCredenciaisSupabase(id_user);
+    });
 
-      if (deleteError) {
-        // Regista e falha para permitir diagnóstico — veremos se devemos fallback
-        // eslint-disable-next-line no-console
-        console.error('Supabase admin.deleteUser falhou', {
-          deleteError,
-          id_user,
-        });
-        throw new Error(
-          deleteError.message ?? 'Falha ao remover utilizador do Supabase',
-        );
-      }
-    } catch (supabaseErr) {
-      // Se a remoção direta falhar, tentamos aplicar um ban como fallback
-      // para garantir que o utilizador não consegue autenticar.
-      // eslint-disable-next-line no-console
-      console.warn(
-        'Remoção no Supabase falhou — a tentar ban temporário como fallback',
-        {
-          err: supabaseErr,
-          id_user,
-        },
-      );
-
-      const { error: banError } =
-        await this.supabaseAdmin.auth.admin.updateUserById(id_user, {
-          ban_duration: '1000000h',
-        });
-
-      if (banError) {
-        // eslint-disable-next-line no-console
-        console.error('Supabase admin.updateUserById (ban) também falhou', {
-          banError,
-          id_user,
-        });
-        throw new Error(
-          banError.message ?? 'Falha ao desativar utilizador no Supabase',
-        );
-      }
-    }
-
-    await this.utilizadorRepo.delete({ id_user });
     return { success: true };
   }
 }

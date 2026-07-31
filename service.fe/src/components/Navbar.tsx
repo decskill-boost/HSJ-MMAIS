@@ -1,5 +1,6 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import BtnGlobal from "./BtnGlobal";
+import CapitaoMais from "./CapitaoMais";
 import UserMenu from "./UserMenu";
 import type { UserProfile } from "../types/user";
 
@@ -50,13 +51,23 @@ export const Navbar = ({
   isMenuOpen,
   onMenuToggle,
 }: NavbarProps) => {
-  const isClinico = user?.tipo_utilizador === "corpo_clinico";
-  const brandColor = isClinico
-    ? "text-indigo-600 hover:text-indigo-700"
-    : "text-blue-600 hover:text-blue-700";
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // A Missão é uma secção da página inicial (deixou de ser página própria),
+  // por isso o menu leva lá com scroll em vez de mudar de rota.
+  const irParaMissao = () => {
+    if (location.pathname === "/") {
+      document
+        .getElementById("missao")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      navigate("/#missao");
+    }
+  };
 
   return (
-    <header className="h-[68px] sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-sm px-4 py-0 sm:px-6 lg:px-8">
+    <header className="h-[68px] sticky top-0 z-50 border-b-[3px] border-tinta bg-papel-claro/95 backdrop-blur-sm px-4 py-0 sm:px-6 lg:px-8">
       {/* ZERO px aqui dentro! Só mx-auto e max-w-6xl */}
       <div className="mx-auto flex h-full w-full max-w-6xl items-center justify-between">
         <div className="flex items-center gap-3">
@@ -64,7 +75,7 @@ export const Navbar = ({
           {user && (
             <button
               onClick={onMenuToggle}
-              className="rounded-lg p-2 text-slate-600 transition-colors hover:bg-slate-100 md:hidden"
+              className="flex min-h-12 min-w-12 items-center justify-center rounded-lg text-aco transition-colors hover:bg-tinta/10 md:hidden"
               aria-label="Alternar menu"
               aria-expanded={isMenuOpen}
             >
@@ -78,10 +89,22 @@ export const Navbar = ({
 
           <Link
             to="/"
-            className={`text-2xl font-extrabold tracking-tight transition-colors ${brandColor}`}
+            className="flex items-center gap-2.5 font-display text-2xl tracking-wide text-tinta transition-opacity hover:opacity-80"
           >
-            +MMAis
+            <span className="animate-balancar">
+              <CapitaoMais className="h-10 w-auto" title="" />
+            </span>
+            <span>
+              MMAIS<span className="texto-raio-contorno">+</span>
+            </span>
           </Link>
+
+          <button
+            onClick={irParaMissao}
+            className="hidden text-sm font-bold text-aco transition hover:text-cobalto sm:block"
+          >
+            Missão e Propósito
+          </button>
         </div>
 
         {/* Canto direito: avatar + dropdown com sessão; senão, "Entrar" */}
@@ -92,7 +115,7 @@ export const Navbar = ({
             <BtnGlobal
               onClick={onLoginClick}
               variant="secondary"
-              className="focus:ring-2 focus:ring-blue-500/20"
+              className="focus:ring-2 focus:ring-cobalto/20"
             >
               Entrar
             </BtnGlobal>

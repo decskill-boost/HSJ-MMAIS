@@ -34,7 +34,9 @@ const lisbonWallClockFormatter = new Intl.DateTimeFormat('en-US', {
 /** How far Europe/Lisbon is ahead of UTC at `instant`, in ms (0 in winter, +1h in summer/DST). */
 function lisbonOffsetMs(instant: Date): number {
   const parts = Object.fromEntries(
-    lisbonWallClockFormatter.formatToParts(instant).map((p) => [p.type, p.value]),
+    lisbonWallClockFormatter
+      .formatToParts(instant)
+      .map((p) => [p.type, p.value]),
   );
   const asIfUtc = Date.UTC(
     Number(parts.year),
@@ -50,7 +52,9 @@ function lisbonOffsetMs(instant: Date): number {
 /** UTC instant of 00:00:00 in Europe/Lisbon on the calendar day `date` falls on there. */
 export function startOfLisbonDay(date: Date): Date {
   const utcMidnightGuess = new Date(`${toLisbonDateKey(date)}T00:00:00.000Z`);
-  return new Date(utcMidnightGuess.getTime() - lisbonOffsetMs(utcMidnightGuess));
+  return new Date(
+    utcMidnightGuess.getTime() - lisbonOffsetMs(utcMidnightGuess),
+  );
 }
 
 /** UTC instant of 24:00:00 (next midnight) in Europe/Lisbon on the calendar day `date` falls on there. */
@@ -69,7 +73,10 @@ export interface StreakUpdateResult {
   changed: boolean;
 }
 
-export function computeStreakUpdate(current: StreakState, now: Date): StreakUpdateResult {
+export function computeStreakUpdate(
+  current: StreakState,
+  now: Date,
+): StreakUpdateResult {
   if (!current.ultimaAtividade) {
     return { streakAtual: 1, ultimaAtividade: now, changed: true };
   }
@@ -77,10 +84,18 @@ export function computeStreakUpdate(current: StreakState, now: Date): StreakUpda
   const gap = diffInCalendarDays(current.ultimaAtividade, now);
 
   if (gap <= 0) {
-    return { streakAtual: current.streakAtual, ultimaAtividade: current.ultimaAtividade, changed: false };
+    return {
+      streakAtual: current.streakAtual,
+      ultimaAtividade: current.ultimaAtividade,
+      changed: false,
+    };
   }
   if (gap === 1) {
-    return { streakAtual: current.streakAtual + 1, ultimaAtividade: now, changed: true };
+    return {
+      streakAtual: current.streakAtual + 1,
+      ultimaAtividade: now,
+      changed: true,
+    };
   }
   return { streakAtual: 1, ultimaAtividade: now, changed: true };
 }

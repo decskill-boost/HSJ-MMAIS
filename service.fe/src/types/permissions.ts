@@ -27,6 +27,7 @@ export interface UserProfile {
   streakAtual: number;
   urlFotoPerfil: string | null;
   permissions: Permission[];
+  entityId?: string | null;
   id_user?: string;
   tipo_utilizador?: UserRole;
   streak_atual?: number;

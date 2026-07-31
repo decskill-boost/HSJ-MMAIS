@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, JoinColumn, PrimaryColumn } from 'typeorm';
+import { Entity, ManyToOne, JoinColumn, PrimaryColumn, Column } from 'typeorm';
 import { Prescricao } from './prescricao.entity';
 import { Exercicio } from './exercicio.entity';
 
@@ -17,4 +17,7 @@ export class PrescricaoExercicio {
   @ManyToOne(() => Exercicio)
   @JoinColumn({ name: 'id_exercicio' })
   exercicio: Exercicio;
+
+  @Column({ type: 'int', nullable: true, default: null })
+  duracao_segundos: number | null;
 }

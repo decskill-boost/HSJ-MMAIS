@@ -17,6 +17,10 @@ export interface SessaoParaHistorico {
   diversao: number | null;
   duracaoSegundos: number | null;
   dataHora: Date;
+  teveProblemas?: boolean;
+  participacaoFamiliares?: boolean;
+  fcMaxima?: number | null;
+  fcMedia?: number | null;
 }
 
 /** A prescription's active window, in Lisbon calendar-date keys (YYYY-MM-DD). */
@@ -34,6 +38,10 @@ export interface SessaoResumo {
   diversao: number | null;
   duracaoSegundos: number | null;
   hora: string;
+  teveProblemas?: boolean;
+  participacaoFamiliares?: boolean;
+  fcMaxima?: number | null;
+  fcMedia?: number | null;
 }
 
 export interface DiaHistorico {
@@ -92,7 +100,8 @@ function classificarDia(
   }
   if (
     sessoesDoDia.some((s) => s.status === SessaoStatus.FALHADO) ||
-    (data < hoje && sessoesDoDia.some((s) => s.status === SessaoStatus.INICIADO))
+    (data < hoje &&
+      sessoesDoDia.some((s) => s.status === SessaoStatus.INICIADO))
   ) {
     return DiaStatus.FALHADO;
   }
@@ -132,7 +141,12 @@ export function deriveHistorico(
     const dentroDeAlgumaJanela = prescricaoWindows.some((janela) =>
       isWithinWindow(data, janela),
     );
-    const status = classificarDia(sessoesDoDia, dentroDeAlgumaJanela, data, hoje);
+    const status = classificarDia(
+      sessoesDoDia,
+      dentroDeAlgumaJanela,
+      data,
+      hoje,
+    );
 
     return {
       data,
@@ -145,6 +159,10 @@ export function deriveHistorico(
         diversao: s.diversao,
         duracaoSegundos: s.duracaoSegundos,
         hora: s.dataHora.toISOString(),
+        teveProblemas: s.teveProblemas ?? false,
+        participacaoFamiliares: s.participacaoFamiliares ?? false,
+        fcMaxima: s.fcMaxima ?? null,
+        fcMedia: s.fcMedia ?? null,
       })),
     };
   });
@@ -155,7 +173,9 @@ export function deriveHistorico(
   >();
   for (const dia of dias) {
     const semanaInicio = segundaFeiraDaSemana(dia.data);
-    const janelaAtiva = prescricaoWindows.find((janela) => isWithinWindow(dia.data, janela));
+    const janelaAtiva = prescricaoWindows.find((janela) =>
+      isWithinWindow(dia.data, janela),
+    );
     const atual = resumoPorSemana.get(semanaInicio) ?? {
       diasConcluidos: 0,
       frequenciaEsperada: janelaAtiva?.frequenciaSemanal ?? 0,
@@ -210,14 +230,26 @@ export function calcularAdesao(
     const dentroDeAlgumaJanela = prescricaoWindows.some((janela) =>
       isWithinWindow(data, janela),
     );
-    const status = classificarDia(sessoesDoDia, dentroDeAlgumaJanela, data, hoje);
+    const status = classificarDia(
+      sessoesDoDia,
+      dentroDeAlgumaJanela,
+      data,
+      hoje,
+    );
 
-    if (status === DiaStatus.CONCLUIDO || status === DiaStatus.FALHADO || status === DiaStatus.IGNORADO) {
+    if (
+      status === DiaStatus.CONCLUIDO ||
+      status === DiaStatus.FALHADO ||
+      status === DiaStatus.IGNORADO
+    ) {
       diasEsperados += 1;
       if (status === DiaStatus.CONCLUIDO) diasConcluidos += 1;
     }
   }
 
-  const percentual = diasEsperados === 0 ? null : Math.round((diasConcluidos / diasEsperados) * 100);
+  const percentual =
+    diasEsperados === 0
+      ? null
+      : Math.round((diasConcluidos / diasEsperados) * 100);
   return { diasConcluidos, diasEsperados, percentual };
 }

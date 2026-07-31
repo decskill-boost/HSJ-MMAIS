@@ -27,6 +27,7 @@ export interface CreateUserPayload {
   email: string;
   password: string;
   tipo_utilizador: string;
+  entityId?: string;
 }
 
 export async function createUser(payload: CreateUserPayload) {
@@ -41,6 +42,7 @@ export interface UpdateUserPayload {
   nome?: string;
   email?: string;
   tipo_utilizador?: string;
+  entityId?: string;
 }
 
 export async function updateUser(id: string, payload: UpdateUserPayload) {

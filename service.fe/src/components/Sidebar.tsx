@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
+import { useTeclaEscape } from "../hooks/useTeclaEscape";
 
 // Ícones inline (sem dependências)
 const IconHome = (props: React.SVGProps<SVGSVGElement>) => (
@@ -81,12 +83,27 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ links, isOpen, onClose }: SidebarProps) => {
+  const [isNavigating, setIsNavigating] = useState(false);
+
+  // A gaveta tapava o ecrã em mobile e só fechava com um toque no fundo.
+  useTeclaEscape(() => onClose?.(), Boolean(isOpen));
+
+  const handleLinkClick = (e: React.MouseEvent) => {
+    if (isNavigating) {
+      e.preventDefault();
+      return;
+    }
+    setIsNavigating(true);
+    setTimeout(() => setIsNavigating(false), 400);
+    onClose?.();
+  };
+
   return (
     <>
       {/* Overlay escuro para mobile quando a sidebar está aberta */}
       {isOpen && (
         <div
-          className="fixed inset-0 top-[68px] z-30 bg-slate-900/50 backdrop-blur-sm transition-opacity md:hidden"
+          className="fixed inset-0 top-[68px] z-30 bg-tinta/50 backdrop-blur-sm transition-opacity md:hidden"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -94,8 +111,8 @@ export const Sidebar = ({ links, isOpen, onClose }: SidebarProps) => {
 
       {/* Sidebar - flutuante em mobile, fixa/estática em desktop */}
       <aside
-        className={`fixed inset-y-0 left-0 top-[68px] z-40 w-60 transform overflow-y-auto border-r border-slate-200 bg-white transition-transform duration-300 ease-in-out md:static md:block md:translate-x-0 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed inset-y-0 left-0 top-[68px] z-40 w-60 transform overflow-y-auto border-r border-tinta/15 bg-papel-claro transition-[transform,visibility] duration-300 ease-in-out md:static md:block md:translate-x-0 md:visible ${
+          isOpen ? "translate-x-0" : "-translate-x-full invisible"
         }`}
       >
         <nav className="flex flex-col gap-1 p-4">
@@ -104,12 +121,14 @@ export const Sidebar = ({ links, isOpen, onClose }: SidebarProps) => {
               key={to}
               to={to}
               end={end}
-              onClick={onClose} // Fecha o menu ao clicar num link (bom para mobile)
+              onClick={handleLinkClick}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold transition ${
+                `flex items-center gap-3 rounded-xl border-2 px-3 py-2.5 text-sm font-bold transition ${
+                  isNavigating ? "pointer-events-none opacity-60" : ""
+                } ${
                   isActive
-                    ? "bg-indigo-50 text-indigo-700"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    ? "border-tinta bg-cobalto/10 text-cobalto shadow-[2px_2px_0_#141F3C]"
+                    : "border-transparent text-aco hover:bg-papel hover:text-tinta"
                 }`
               }
             >

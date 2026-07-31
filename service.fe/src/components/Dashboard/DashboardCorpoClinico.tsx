@@ -1,11 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useOutletContext } from "react-router-dom";
+import { Link, useNavigate, useOutletContext } from "react-router-dom";
 import BtnGlobal from "../BtnGlobal";
+import EstadoVazio from "../ui/EstadoVazio";
 import {
-  planosService,
-  type PlanoPorPaciente,
-} from "../../services/planosService";
+  CabecaTabela,
+  CorpoTabela,
+  LinhaMensagem,
+  Tabela,
+  Th,
+} from "../ui/Tabela";
 import type { UserProfile } from "../../types/user";
+import LoadingSpinner from "../LoadingSpinner";
+import { mensagemDeErro } from "../../services/erroApi";
+import { pacientesService } from "../../services/pacientes";
+import { sessoesService } from "../../services/sessoesService";
 
 interface LayoutContext {
   user: UserProfile | null;
@@ -13,28 +21,96 @@ interface LayoutContext {
   handleLogout: () => void;
 }
 
+interface PacienteComUltimoTreino {
+  id_user: string;
+  nome: string;
+  email: string;
+  ultimoTreino: string;
+  ultimoTreinoDate: Date | null;
+}
+
 const DashboardCorpoClinico = () => {
   const navigate = useNavigate();
   const { user } = useOutletContext<LayoutContext>();
-  const displayName = user?.nome?.split(" ")[0] ?? "Colega";
+  // Nome tal como está registado. Não prefixar "Dr." — o nome já costuma trazer
+  // o título (Dr./Dra./Enf.) e antes saía "Olá, Dr. Dra.".
+  const displayName = user?.nome?.trim() || "Colega";
 
-  const [planos, setPlanos] = useState<PlanoPorPaciente[]>([]);
+  const [pacientes, setPacientes] = useState<PacienteComUltimoTreino[]>([]);
+  const [totalTreinos, setTotalTreinos] = useState(0);
+  const [treinosSemana, setTreinosSemana] = useState(0);
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState<string | null>(null);
+
+  // Paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const paginatedPacientes = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return pacientes.slice(startIndex, startIndex + itemsPerPage);
+  }, [pacientes, currentPage]);
+
+  const totalPaginas = Math.ceil(pacientes.length / itemsPerPage);
+
+  // Quem não treina há mais de 7 dias (ou nunca treinou) — o que o clínico
+  // precisa de ver primeiro. Limitado a 5 para o painel não crescer sem fim.
+  const precisamAtencao = useMemo(() => {
+    const limite = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    return pacientes
+      .filter(
+        (p) => !p.ultimoTreinoDate || p.ultimoTreinoDate.getTime() < limite,
+      )
+      .slice(0, 5);
+  }, [pacientes]);
 
   useEffect(() => {
     const carregar = async () => {
       try {
         setLoading(true);
         setErro(null);
-        const lista = await planosService.getPlanosPorPacientes();
-        setPlanos(lista);
+        
+        // Tudo agregado no servidor, num par de pedidos:
+        //  - `GET /api/pacientes` traz o último treino de cada criança. Antes
+        //    o browser descarregava as sessões do hospital inteiro, em páginas
+        //    de mil, só para descobrir a data mais recente de cada uma.
+        //  - `sessoesService.getEstatisticas()` traz os dois contadores. Antes
+        //    eram dois `count` diretos à tabela e a fronteira dos 7 dias era
+        //    calculada com o relógio do posto de trabalho.
+        const [listaPacientes, estatisticas] = await Promise.all([
+          pacientesService.getPacientesComAdesao(),
+          sessoesService.getEstatisticas(),
+        ]);
+
+        const formatarDataExibicao = (data: Date) => {
+          return data.toLocaleString("pt-PT", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        };
+
+        const mapeados = listaPacientes.map((p) => {
+          // Timestamp sem fuso: lido como hora local, tal como antes.
+          const bruto = p.ultimoTreino ? new Date(p.ultimoTreino) : null;
+          const ultimoDate =
+            bruto && !Number.isNaN(bruto.getTime()) ? bruto : null;
+          return {
+            id_user: p.idUser,
+            nome: p.nome,
+            email: p.email,
+            ultimoTreino: ultimoDate ? formatarDataExibicao(ultimoDate) : "Nunca treinou",
+            ultimoTreinoDate: ultimoDate,
+          };
+        });
+
+        setPacientes(mapeados);
+        setTotalTreinos(estatisticas.totalConcluidas);
+        setTreinosSemana(estatisticas.concluidasUltimos7Dias);
       } catch (e) {
-        setErro(
-          e instanceof Error
-            ? e.message
-            : "Não foi possível carregar os dados.",
-        );
+        setErro(mensagemDeErro(e, "Não foi possível carregar os dados."));
       } finally {
         setLoading(false);
       }
@@ -43,222 +119,238 @@ const DashboardCorpoClinico = () => {
     void carregar();
   }, []);
 
-  const totalPlanosAtivos = useMemo(
-    () =>
-      planos.reduce(
-        (total, p) => total + p.planos.filter((pl) => pl.ativo).length,
-        0,
-      ),
-    [planos],
-  );
-
-  const totalPlanosInativos = useMemo(
-    () =>
-      planos.reduce(
-        (total, p) => total + p.planos.filter((pl) => !pl.ativo).length,
-        0,
-      ),
-    [planos],
-  );
-
-  const pacientesSemPlano = useMemo(
-    () => planos.filter((p) => !p.planos.some((pl) => pl.ativo)).length,
-    [planos],
-  );
-
   return (
     <div className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        {/* Cabeçalho Gradiente que o Claude apagou */}
-        <section className="rounded-3xl border border-slate-200 bg-gradient-to-br from-indigo-600 to-slate-900 p-6 text-white shadow-sm sm:p-8">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        {/* Cabeçalho — QG clínico é sóbrio (Papel/Cobalto/Aço). O banner escuro
+            anterior era linguagem da Academia e tornava o botão ilegível. */}
+        <section className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-6 shadow-vinheta sm:p-8">
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-indigo-200">
+              <p className="text-xs font-bold uppercase tracking-[0.2em] text-cobalto">
                 Painel do Corpo Clínico
               </p>
-              <h1 className="mt-2 text-3xl font-extrabold tracking-tight sm:text-4xl">
-                Olá, Dr. {displayName}
+              <h1 className="mt-1 text-3xl font-extrabold tracking-tight text-tinta sm:text-4xl">
+                Olá, {displayName}
               </h1>
-              <p className="mt-3 max-w-2xl text-sm text-indigo-100 sm:text-base">
-                Prescreva programas de exercício para crianças e jovens dos 6
-                aos 18 anos, reveja protocolos e acompanhe o progresso diário.
+              <p className="mt-2 max-w-2xl text-sm text-aco">
+                Acompanhe o progresso das crianças, reveja protocolos e
+                monitorize atividades físicas.
               </p>
             </div>
-            <div className="flex flex-col gap-3 rounded-3xl bg-white/10 px-4 py-4 text-right backdrop-blur-sm">
-              <div>
-                <p className="text-sm font-medium text-indigo-100">
-                  Pacientes registados
+
+            <div className="flex shrink-0 items-center gap-3">
+              <div className="rounded-xl border border-tinta/15 bg-papel px-4 py-3 text-center">
+                <p className="text-xs font-bold uppercase tracking-wide text-aco">
+                  Pacientes
                 </p>
-                <p className="mt-1 text-2xl font-bold">
-                  {loading ? "…" : planos.length}
+                <p className="mt-0.5 text-2xl font-bold text-tinta">
+                  {loading ? "…" : pacientes.length}
                 </p>
               </div>
-              <BtnGlobal
-                variant="secondary"
+              <button
                 onClick={() => navigate("/perfil")}
-                className="rounded-xl border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700"
+                className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro px-4 py-2.5 text-sm font-bold text-tinta shadow-vinheta transition hover:bg-papel active:scale-95 active:shadow-none"
               >
                 Informação pessoal
-              </BtnGlobal>
+              </button>
             </div>
           </div>
         </section>
 
-        {/* As tuas 3 métricas novas e limpas */}
+        {/* Métricas */}
         <section className="grid gap-4 lg:grid-cols-3">
-          <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
-              Planos ativos
+          <article className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-5 shadow-vinheta">
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-tinta">
+              Pacientes Acompanhados
             </p>
-            <p className="mt-4 text-3xl font-bold text-slate-900">
-              {loading ? "…" : totalPlanosAtivos}
+            <p className="mt-4 text-3xl font-bold text-tinta">
+              {loading ? "…" : pacientes.length}
             </p>
-            <p className="mt-2 text-sm text-slate-500">
-              Programas de exercício em curso.
-            </p>
-          </article>
-
-          <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
-              Planos concluídos
-            </p>
-            <p className="mt-4 text-3xl font-bold text-slate-900">
-              {loading ? "…" : totalPlanosInativos}
-            </p>
-            <p className="mt-2 text-sm text-slate-500">
-              Histórico de planos finalizados ou cancelados.
+            <p className="mt-2 text-sm text-tinta/80">
+              Crianças e jovens em acompanhamento.
             </p>
           </article>
 
-          <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
-              Sem plano ativo
+          <article className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-5 shadow-vinheta">
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-tinta">
+              Total de Treinos
             </p>
-            <p className="mt-4 text-3xl font-bold text-slate-900">
-              {loading ? "…" : pacientesSemPlano}
+            <p className="mt-4 text-3xl font-bold text-tinta">
+              {loading ? "…" : totalTreinos}
             </p>
-            <p className="mt-2 text-sm text-slate-500">
-              Pacientes que necessitam de prescrição.
+            <p className="mt-2 text-sm text-tinta/80">
+              Sessões concluídas com sucesso.
+            </p>
+          </article>
+
+          <article className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-5 shadow-vinheta">
+            <p className="text-sm font-bold uppercase tracking-[0.14em] text-tinta">
+              Treinos esta Semana
+            </p>
+            <p className="mt-4 text-3xl font-bold text-tinta">
+              {loading ? "…" : treinosSemana}
+            </p>
+            <p className="mt-2 text-sm text-tinta/80">
+              Sessões concluídas nos últimos 7 dias.
             </p>
           </article>
         </section>
 
-        {/* Tabela de pacientes e botões de ação que o Claude apagou */}
+        {/* Tabela de pacientes e ações rápidas */}
         <section className="grid gap-6 xl:grid-cols-[1.6fr_0.9fr]">
-          <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <article className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-6 shadow-vinheta">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-xl font-bold text-slate-900">Pacientes</h2>
-                <p className="mt-1 text-sm text-slate-500">
+                <h2 className="text-xl font-bold text-tinta">Pacientes</h2>
+                <p className="mt-1 text-sm text-aco">
                   Clique numa linha para ver o detalhe do paciente.
                 </p>
               </div>
               <BtnGlobal
-                onClick={() => navigate("/dashboard/medico/adesao")}
-                className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700"
+                onClick={() => navigate("/dashboard/medico/pacientes")}
+                className="px-4 py-2.5 text-sm font-semibold"
               >
-                Gerir planos
+                Ver Pacientes
               </BtnGlobal>
             </div>
 
             {erro && (
-              <div className="mt-4 rounded-2xl bg-red-50 p-4 text-sm text-red-700">
+              <div className="mt-4 rounded-2xl bg-capa/10 p-4 text-sm text-capa-escura">
                 {erro}
               </div>
             )}
 
-            <div className="mt-6 overflow-hidden rounded-3xl border border-slate-200 bg-slate-50">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-white text-slate-600">
-                  <tr>
-                    <th className="px-4 py-4 font-semibold">Criança</th>
-                    <th className="px-4 py-4 font-semibold">Planos totais</th>
-                    <th className="px-4 py-4 font-semibold">Planos ativos</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200 bg-white">
-                  {loading ? (
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="px-4 py-8 text-center text-slate-500"
-                      >
-                        A carregar pacientes…
-                      </td>
-                    </tr>
-                  ) : planos.length === 0 ? (
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="px-4 py-8 text-center text-slate-500"
-                      >
-                        Nenhum paciente encontrado.
-                      </td>
-                    </tr>
-                  ) : (
-                    planos.map((paciente) => {
-                      const planosAtivos = paciente.planos.filter(
-                        (p) => p.ativo,
-                      ).length;
-
-                      return (
-                        <tr
-                          key={paciente.id_paciente}
-                          onClick={() =>
-                            navigate(
-                              `/dashboard/medico/pacientes/${paciente.id_paciente}`,
-                            )
-                          }
-                          className="cursor-pointer transition hover:bg-indigo-50"
+            <Tabela
+              legenda="Pacientes e data do último treino"
+              className="mt-6"
+            >
+              <CabecaTabela>
+                <tr>
+                  <Th>Criança</Th>
+                  <Th className="text-center">Último treino</Th>
+                </tr>
+              </CabecaTabela>
+              <CorpoTabela>
+                {loading ? (
+                  <LinhaMensagem colunas={2}>
+                    <LoadingSpinner mensagem="A carregar pacientes..." />
+                  </LinhaMensagem>
+                ) : pacientes.length === 0 ? (
+                  <LinhaMensagem colunas={2}>
+                    <EstadoVazio
+                      titulo="Ainda não há pacientes"
+                      descricao="Assim que houver crianças a treinar, o último treino de cada uma aparece aqui."
+                    />
+                  </LinhaMensagem>
+                ) : (
+                  paginatedPacientes.map((paciente) => (
+                    <tr
+                      key={paciente.id_user}
+                      onClick={() =>
+                        navigate(
+                          `/dashboard/medico/pacientes/${paciente.id_user}`,
+                        )
+                      }
+                      className="cursor-pointer transition-colors hover:bg-raio/15"
+                    >
+                      <td className="px-4 py-4 font-bold text-tinta">
+                        {/* Ligação a sério: a linha só era clicável com rato. */}
+                        <Link
+                          to={`/dashboard/medico/pacientes/${paciente.id_user}`}
+                          className="hover:underline"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          <td className="px-4 py-4 font-semibold text-slate-900">
-                            {paciente.nome}
-                          </td>
-                          <td className="px-4 py-4 text-slate-700">
-                            {paciente.planos.length}
-                          </td>
-                          <td className="px-4 py-4 text-slate-700">
-                            {planosAtivos}
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
+                          {paciente.nome}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        <span
+                          className={`inline-flex rounded-full border-2 px-3 py-1 text-xs font-bold ${
+                            paciente.ultimoTreinoDate
+                              ? "border-turbo bg-turbo/20 text-turbo-escuro"
+                              : "border-tinta/20 bg-papel text-aco"
+                          }`}
+                        >
+                          {paciente.ultimoTreino}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </CorpoTabela>
+            </Tabela>
+
+            {totalPaginas > 1 && (
+              <nav
+                aria-label="Paginação da lista de pacientes"
+                className="mt-4 flex items-center justify-between gap-4 border-t-2 border-tinta/10 pt-4"
+              >
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((prev) => prev - 1)}
+                  className="min-h-11 rounded-(--radius-vinheta) border-2 border-tinta bg-papel-claro px-4 text-xs font-bold text-tinta transition-colors hover:bg-raio/25 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Anterior
+                </button>
+                <span aria-live="polite" className="text-xs font-bold text-aco">
+                  Página {currentPage} de {totalPaginas}
+                </span>
+                <button
+                  disabled={currentPage === totalPaginas}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
+                  className="min-h-11 rounded-(--radius-vinheta) border-2 border-tinta bg-papel-claro px-4 text-xs font-bold text-tinta transition-colors hover:bg-raio/25 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Seguinte
+                </button>
+              </nav>
+            )}
           </article>
 
-          <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-bold text-slate-900">
-                  Ações rápidas
-                </h2>
-                <p className="mt-1 text-sm text-slate-500">
-                  Atalhos para o dia a dia.
-                </p>
-              </div>
+          {/* Antes eram "Ações rápidas" que repetiam a sidebar inteira.
+              Passa a mostrar quem precisa mesmo de atenção, com ação direta. */}
+          <article className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-6 shadow-vinheta">
+            <div>
+              <h2 className="text-lg font-bold text-tinta">
+                Precisam de atenção
+              </h2>
+              <p className="mt-1 text-sm text-aco">
+                Sem treinos nos últimos 7 dias.
+              </p>
             </div>
+
             <div className="mt-5 space-y-3">
-              <BtnGlobal
-                onClick={() => navigate("/plano/criar")}
-                className="w-full rounded-xl bg-indigo-600 px-4 py-3 text-sm font-semibold text-white hover:bg-indigo-700"
-              >
-                Criar novo plano
-              </BtnGlobal>
-              <BtnGlobal
-                onClick={() => navigate("/dashboard/medico/pacientes")}
-                className="w-full rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
-              >
-                Gerir planos de pacientes
-              </BtnGlobal>
-              <BtnGlobal
-                onClick={() => navigate("/exercicios")}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold !text-slate-700 hover:bg-slate-50"
-              >
-                Biblioteca de exercícios
-              </BtnGlobal>
+              {loading ? (
+                <p className="text-sm text-aco">A carregar…</p>
+              ) : precisamAtencao.length === 0 ? (
+                <p className="rounded-2xl border border-turbo/30 bg-turbo/10 p-4 text-sm font-medium text-turbo-escuro">
+                  Todos os pacientes treinaram esta semana. 👏
+                </p>
+              ) : (
+                precisamAtencao.map((p) => (
+                  <div
+                    key={p.id_user}
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-tinta/15 bg-papel p-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-tinta">
+                        {p.nome}
+                      </p>
+                      <p className="truncate text-xs text-aco">
+                        {p.ultimoTreino}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() =>
+                        navigate(`/dashboard/medico/pacientes/${p.id_user}`)
+                      }
+                      className="shrink-0 rounded-xl border-2 border-tinta bg-papel px-3 py-1.5 text-xs font-bold text-tinta transition hover:bg-papel active:scale-95"
+                    >
+                      Ver detalhe
+                    </button>
+                  </div>
+                ))
+              )}
             </div>
           </article>
         </section>

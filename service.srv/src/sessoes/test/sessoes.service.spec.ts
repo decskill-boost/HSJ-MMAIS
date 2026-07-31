@@ -1,8 +1,12 @@
-import { NotFoundException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { getDataSourceToken, getRepositoryToken } from '@nestjs/typeorm';
 import { Test } from '@nestjs/testing';
 import { Exercicio } from '../../entities/exercicio.entity';
-import { SessaoRealizada, SessaoStatus } from '../../entities/sessao-realizada.entity';
+import { Prescricao } from '../../entities/prescricao.entity';
+import {
+  SessaoRealizada,
+  SessaoStatus,
+} from '../../entities/sessao-realizada.entity';
 import { Utilizador } from '../../entities/utilizador.entity';
 import { ConcluirExercicioDto } from '../dto/concluir-exercicio.dto';
 import { IniciarExercicioDto } from '../dto/iniciar-exercicio.dto';
@@ -16,29 +20,30 @@ const mockExercicio = (overrides: Partial<Exercicio> = {}): Exercicio =>
     categoria: 'Relaxamento',
     url_video: null,
     duracao_segundos: 600,
-    dificuldade_clinica: 3,
+    dificuldade_clinica: 'facil',
     descricao: null,
     ativo: true,
     ...overrides,
   }) as Exercicio;
 
-const mockUser = (overrides: Partial<Utilizador> = {}): Utilizador =>
-  ({
-    id_user: 'paciente-1',
-    nome: 'Criança Teste',
-    email: 'paciente@example.com',
-    tipo_utilizador: 'paciente',
-    xp: 0,
-    nivel: 1,
-    streak_atual: 0,
-    streak_ultima_atividade: null,
-    data_registo: new Date(),
-    url_foto_perfil: null,
-    permissoesDirectas: [],
-    ...overrides,
-  }) as Utilizador;
+const mockUser = (overrides: Partial<Utilizador> = {}): Utilizador => ({
+  id_user: 'paciente-1',
+  nome: 'Criança Teste',
+  email: 'paciente@example.com',
+  tipo_utilizador: 'paciente',
+  xp: 0,
+  nivel: 1,
+  streak_atual: 0,
+  streak_ultima_atividade: null,
+  data_registo: new Date(),
+  url_foto_perfil: null,
+  permissoesDirectas: [],
+  ...overrides,
+});
 
-const mockSessao = (overrides: Partial<SessaoRealizada> = {}): SessaoRealizada =>
+const mockSessao = (
+  overrides: Partial<SessaoRealizada> = {},
+): SessaoRealizada =>
   ({
     id_sessao: 'sessao-iniciada',
     status: SessaoStatus.INICIADO,
@@ -61,7 +66,7 @@ describe('SessoesService', () => {
   let service: SessoesService;
   let sessaoRepo: { findOne: jest.Mock; create: jest.Mock; save: jest.Mock };
   let exercicioRepo: { findOne: jest.Mock };
-  let utilizadorRepo: { findOne: jest.Mock };
+  let prescricaoRepo: { findOne: jest.Mock };
   let manager: {
     create: jest.Mock;
     save: jest.Mock;
@@ -83,13 +88,18 @@ describe('SessoesService', () => {
 
   beforeEach(async () => {
     manager = {
-      create: jest.fn((_entity, data) => ({ id_sessao: 'sessao-1', ...data })),
-      save: jest.fn((entity) => Promise.resolve(entity)),
+      create: jest.fn((_entity: unknown, data: object) => ({
+        id_sessao: 'sessao-1',
+        ...data,
+      })),
+      save: jest.fn((entity: unknown) => Promise.resolve(entity)),
       findOne: jest.fn(),
       update: jest.fn().mockResolvedValue(undefined),
     };
     dataSource = {
-      transaction: jest.fn((cb) => cb(manager)),
+      transaction: jest.fn((cb: (gestor: typeof manager) => unknown) =>
+        cb(manager),
+      ),
     };
 
     const module = await Test.createTestingModule({
@@ -107,6 +117,10 @@ describe('SessoesService', () => {
           provide: getRepositoryToken(Utilizador),
           useValue: { findOne: jest.fn() },
         },
+        {
+          provide: getRepositoryToken(Prescricao),
+          useValue: { findOne: jest.fn(), createQueryBuilder: jest.fn() },
+        },
         { provide: getDataSourceToken(), useValue: dataSource },
       ],
     }).compile();
@@ -114,16 +128,23 @@ describe('SessoesService', () => {
     service = module.get(SessoesService);
     sessaoRepo = module.get(getRepositoryToken(SessaoRealizada));
     exercicioRepo = module.get(getRepositoryToken(Exercicio));
-    utilizadorRepo = module.get(getRepositoryToken(Utilizador));
+    prescricaoRepo = module.get(getRepositoryToken(Prescricao));
+
+    // Por omissão o plano usado nos testes é um plano standard (sem paciente
+    // associado), que qualquer criança pode treinar.
+    prescricaoRepo.findOne.mockResolvedValue({
+      id_prescricao: 'prescricao-1',
+      id_paciente: null,
+    });
   });
 
   describe('iniciarExercicio', () => {
     it('throws when the exercise does not exist or is inactive', async () => {
       exercicioRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.iniciarExercicio('paciente-1', iniciarDto)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.iniciarExercicio('paciente-1', iniciarDto),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('creates a new iniciado row when none exists yet today', async () => {
@@ -131,18 +152,27 @@ describe('SessoesService', () => {
       sessaoRepo.findOne
         .mockResolvedValueOnce(null) // no concluido today
         .mockResolvedValueOnce(null); // no iniciado today
-      sessaoRepo.create.mockImplementation((data) => ({ id_sessao: 'sessao-nova', ...data }));
+      sessaoRepo.create.mockImplementation((data: object) => ({
+        id_sessao: 'sessao-nova',
+        ...data,
+      }));
       sessaoRepo.save.mockImplementation((entity) => Promise.resolve(entity));
 
       const result = await service.iniciarExercicio('paciente-1', iniciarDto);
 
-      expect(result).toEqual({ sessionId: 'sessao-nova', alreadyCompletedToday: false });
+      expect(result).toEqual({
+        sessionId: 'sessao-nova',
+        alreadyCompletedToday: false,
+      });
       expect(sessaoRepo.create).toHaveBeenCalledWith(
-        expect.objectContaining({ status: SessaoStatus.INICIADO, concluido: false }),
+        expect.objectContaining({
+          status: SessaoStatus.INICIADO,
+          concluido: false,
+        }),
       );
     });
 
-    it('reuses today\'s iniciado row instead of creating a duplicate', async () => {
+    it("reuses today's iniciado row instead of creating a duplicate", async () => {
       exercicioRepo.findOne.mockResolvedValue(mockExercicio());
       sessaoRepo.findOne
         .mockResolvedValueOnce(null) // no concluido today
@@ -150,19 +180,28 @@ describe('SessoesService', () => {
 
       const result = await service.iniciarExercicio('paciente-1', iniciarDto);
 
-      expect(result).toEqual({ sessionId: 'sessao-existente', alreadyCompletedToday: false });
+      expect(result).toEqual({
+        sessionId: 'sessao-existente',
+        alreadyCompletedToday: false,
+      });
       expect(sessaoRepo.create).not.toHaveBeenCalled();
     });
 
     it('does not create a row when the exercise was already completed today', async () => {
       exercicioRepo.findOne.mockResolvedValue(mockExercicio());
       sessaoRepo.findOne.mockResolvedValueOnce(
-        mockSessao({ id_sessao: 'sessao-concluida', status: SessaoStatus.CONCLUIDO }),
+        mockSessao({
+          id_sessao: 'sessao-concluida',
+          status: SessaoStatus.CONCLUIDO,
+        }),
       );
 
       const result = await service.iniciarExercicio('paciente-1', iniciarDto);
 
-      expect(result).toEqual({ sessionId: 'sessao-concluida', alreadyCompletedToday: true });
+      expect(result).toEqual({
+        sessionId: 'sessao-concluida',
+        alreadyCompletedToday: true,
+      });
       expect(sessaoRepo.create).not.toHaveBeenCalled();
     });
   });
@@ -171,9 +210,9 @@ describe('SessoesService', () => {
     it('throws when the exercise does not exist or is inactive', async () => {
       exercicioRepo.findOne.mockResolvedValue(null);
 
-      await expect(service.concluirExercicio('paciente-1', dto)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.concluirExercicio('paciente-1', dto),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('transitions an existing iniciado row to concluido instead of inserting a new one', async () => {
@@ -187,17 +226,27 @@ describe('SessoesService', () => {
       expect(manager.create).not.toHaveBeenCalled();
       expect(sessaoIniciada.status).toBe(SessaoStatus.CONCLUIDO);
       expect(sessaoIniciada.concluido).toBe(true);
-      expect(result).toMatchObject({ sessionId: 'sessao-iniciada', alreadyCompletedToday: false });
+      expect(result).toMatchObject({
+        sessionId: 'sessao-iniciada',
+        alreadyCompletedToday: false,
+      });
     });
 
-    it('always scopes the iniciado lookup to today, even when id_sessao is supplied, so a session left open from a previous day cannot be completed under today\'s XP with a stale date', async () => {
+    it("always scopes the iniciado lookup to today, even when id_sessao is supplied, so a session left open from a previous day cannot be completed under today's XP with a stale date", async () => {
       exercicioRepo.findOne.mockResolvedValue(mockExercicio());
       sessaoRepo.findOne.mockResolvedValue(null);
       mockManagerFindOne(null, mockUser({ xp: 90, nivel: 1 }));
 
-      await service.concluirExercicio('paciente-1', { ...dto, id_sessao: 'sessao-de-ontem' });
+      await service.concluirExercicio('paciente-1', {
+        ...dto,
+        id_sessao: 'sessao-de-ontem',
+      });
 
-      const chamadaSessao = manager.findOne.mock.calls.find(
+      const chamadas = manager.findOne.mock.calls as [
+        unknown,
+        { where: Record<string, unknown> },
+      ][];
+      const chamadaSessao = chamadas.find(
         ([entity]) => entity === SessaoRealizada,
       );
       expect(chamadaSessao).toBeDefined();
@@ -215,9 +264,16 @@ describe('SessoesService', () => {
 
       expect(manager.create).toHaveBeenCalledWith(
         SessaoRealizada,
-        expect.objectContaining({ status: SessaoStatus.CONCLUIDO, concluido: true }),
+        expect.objectContaining({
+          status: SessaoStatus.CONCLUIDO,
+          concluido: true,
+        }),
       );
-      expect(result).toMatchObject({ xpGained: 10, totalXp: 100, alreadyCompletedToday: false });
+      expect(result).toMatchObject({
+        xpGained: 10,
+        totalXp: 100,
+        alreadyCompletedToday: false,
+      });
     });
 
     it('flips stale iniciado rows from earlier days to falhado', async () => {
@@ -252,31 +308,61 @@ describe('SessoesService', () => {
       expect(manager.save).toHaveBeenCalledTimes(2);
     });
 
-    it('does not award xp twice for the same exercise on the same day', async () => {
+    /**
+     * REGRA MUDADA (PR #76): repetir o mesmo exercício no mesmo dia volta a dar
+     * XP. Antes dava zero, e era isso que fazia o XP parecer «parado» a quem
+     * repetia um treino.
+     *
+     * O `alreadyCompletedToday` continua a sair a true — é o que o ecrã usa
+     * para não voltar a festejar a mesma conquista.
+     */
+    it('volta a dar xp quando o mesmo exercício é repetido no mesmo dia', async () => {
       exercicioRepo.findOne.mockResolvedValue(mockExercicio());
       sessaoRepo.findOne.mockResolvedValue({
         id_sessao: 'sessao-existing',
-      } as SessaoRealizada);
-      utilizadorRepo.findOne.mockResolvedValue(
-        mockUser({ xp: 50, nivel: 1, streak_atual: 2, streak_ultima_atividade: new Date() }),
-      );
+      });
+      const user = mockUser({
+        xp: 50,
+        nivel: 1,
+        streak_atual: 2,
+        streak_ultima_atividade: new Date(),
+      });
+      mockManagerFindOne(null, user);
 
       const result = await service.concluirExercicio('paciente-1', dto);
 
       expect(result).toMatchObject({
-        xpGained: 0,
-        totalXp: 50,
+        xpGained: 10,
+        totalXp: 60,
         level: 1,
         leveledUp: false,
         streakAtual: 2,
         alreadyCompletedToday: true,
-        sessionId: 'sessao-existing',
       });
-      expect(dataSource.transaction).not.toHaveBeenCalled();
+      expect(manager.save).toHaveBeenCalled();
+    });
+
+    /**
+     * O limite existe para um exercício mal configurado no catálogo não
+     * conseguir atirar o nível da criança para o infinito com um só treino.
+     */
+    it('limita a recompensa a 500 XP por treino', async () => {
+      exercicioRepo.findOne.mockResolvedValue(
+        mockExercicio({ recompensa_xp: 100000 }),
+      );
+      sessaoRepo.findOne.mockResolvedValue(null);
+      mockManagerFindOne(null, mockUser({ xp: 0, nivel: 1 }));
+
+      const result = await service.concluirExercicio('paciente-1', dto);
+
+      expect(result.xpGained).toBe(500);
+      expect(result.totalXp).toBe(500);
     });
 
     it('does not level up when the reward does not cross a threshold', async () => {
-      exercicioRepo.findOne.mockResolvedValue(mockExercicio({ recompensa_xp: 5 }));
+      exercicioRepo.findOne.mockResolvedValue(
+        mockExercicio({ recompensa_xp: 5 }),
+      );
       sessaoRepo.findOne.mockResolvedValue(null);
       mockManagerFindOne(null, mockUser({ xp: 10, nivel: 1 }));
 
@@ -291,11 +377,18 @@ describe('SessoesService', () => {
       // Simulates the second of two different exercises completed the same day: the per-exercise
       // dedupe check (sessaoRepo) finds nothing for THIS exercise, so it still reaches the
       // transaction branch and earns xp, but the streak was already updated earlier today.
-      exercicioRepo.findOne.mockResolvedValue(mockExercicio({ id_exercicio: 'exercicio-2' }));
+      exercicioRepo.findOne.mockResolvedValue(
+        mockExercicio({ id_exercicio: 'exercicio-2' }),
+      );
       sessaoRepo.findOne.mockResolvedValue(null);
       mockManagerFindOne(
         null,
-        mockUser({ xp: 10, nivel: 1, streak_atual: 1, streak_ultima_atividade: new Date() }),
+        mockUser({
+          xp: 10,
+          nivel: 1,
+          streak_atual: 1,
+          streak_ultima_atividade: new Date(),
+        }),
       );
 
       const result = await service.concluirExercicio('paciente-1', {
@@ -313,7 +406,12 @@ describe('SessoesService', () => {
       sessaoRepo.findOne.mockResolvedValue(null);
       mockManagerFindOne(
         null,
-        mockUser({ xp: 10, nivel: 1, streak_atual: 3, streak_ultima_atividade: yesterday }),
+        mockUser({
+          xp: 10,
+          nivel: 1,
+          streak_atual: 3,
+          streak_ultima_atividade: yesterday,
+        }),
       );
 
       const result = await service.concluirExercicio('paciente-1', dto);
@@ -327,12 +425,108 @@ describe('SessoesService', () => {
       sessaoRepo.findOne.mockResolvedValue(null);
       mockManagerFindOne(
         null,
-        mockUser({ xp: 10, nivel: 1, streak_atual: 10, streak_ultima_atividade: threeDaysAgo }),
+        mockUser({
+          xp: 10,
+          nivel: 1,
+          streak_atual: 10,
+          streak_ultima_atividade: threeDaysAgo,
+        }),
       );
 
       const result = await service.concluirExercicio('paciente-1', dto);
 
       expect(result.streakAtual).toBe(1);
+    });
+  });
+
+  /**
+   * Sem esta verificação, uma criança podia carimbar o seu treino com o plano
+   * de OUTRA criança (o id vinha do corpo do pedido e nunca era confrontado
+   * com o dono). Além de sujar o historial clínico dessa outra, a chave
+   * estrangeira `fk_sessoes_prescricao` passava a impedir para sempre que o
+   * corpo clínico eliminasse esse plano.
+   */
+  describe('plano associado ao treino', () => {
+    const prescricaoDe = (idDono: string | null) =>
+      ({
+        id_prescricao: 'prescricao-1',
+        id_paciente: idDono ? { id_user: idDono } : null,
+      }) as unknown as Prescricao;
+
+    /** Deixa o repositório pronto a criar uma sessão nova sem duplicados. */
+    const prepararSessaoNova = () => {
+      sessaoRepo.findOne
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce(null);
+      sessaoRepo.create.mockImplementation(
+        (data: Partial<SessaoRealizada>): SessaoRealizada =>
+          ({ id_sessao: 'nova', ...data }) as SessaoRealizada,
+      );
+      sessaoRepo.save.mockImplementation((entity: SessaoRealizada) =>
+        Promise.resolve(entity),
+      );
+    };
+
+    it('recusa iniciar um treino com o plano de outra criança', async () => {
+      exercicioRepo.findOne.mockResolvedValue(mockExercicio());
+      prescricaoRepo.findOne.mockResolvedValue(prescricaoDe('paciente-2'));
+
+      await expect(
+        service.iniciarExercicio('paciente-1', iniciarDto),
+      ).rejects.toThrow(BadRequestException);
+      expect(sessaoRepo.create).not.toHaveBeenCalled();
+    });
+
+    it('recusa concluir um treino com o plano de outra criança', async () => {
+      exercicioRepo.findOne.mockResolvedValue(mockExercicio());
+      sessaoRepo.findOne.mockResolvedValue(null);
+      prescricaoRepo.findOne.mockResolvedValue(prescricaoDe('paciente-2'));
+
+      await expect(
+        service.concluirExercicio('paciente-1', dto),
+      ).rejects.toThrow(BadRequestException);
+      expect(dataSource.transaction).not.toHaveBeenCalled();
+    });
+
+    it('recusa um plano que não existe, com a mesma mensagem, para não revelar que identificadores existem', async () => {
+      exercicioRepo.findOne.mockResolvedValue(mockExercicio());
+      prescricaoRepo.findOne.mockResolvedValue(null);
+
+      await expect(
+        service.iniciarExercicio('paciente-1', iniciarDto),
+      ).rejects.toThrow('Plano de treino inválido.');
+    });
+
+    it('aceita o plano da própria criança', async () => {
+      exercicioRepo.findOne.mockResolvedValue(mockExercicio());
+      prescricaoRepo.findOne.mockResolvedValue(prescricaoDe('paciente-1'));
+      prepararSessaoNova();
+
+      await expect(
+        service.iniciarExercicio('paciente-1', iniciarDto),
+      ).resolves.toMatchObject({ sessionId: 'nova' });
+    });
+
+    it('aceita um plano standard (sem paciente associado)', async () => {
+      exercicioRepo.findOne.mockResolvedValue(mockExercicio());
+      prescricaoRepo.findOne.mockResolvedValue(prescricaoDe(null));
+      prepararSessaoNova();
+
+      await expect(
+        service.iniciarExercicio('paciente-1', iniciarDto),
+      ).resolves.toMatchObject({ sessionId: 'nova' });
+    });
+
+    it('aceita um treino sem plano nenhum e nem sequer consulta a tabela', async () => {
+      exercicioRepo.findOne.mockResolvedValue(mockExercicio());
+      prepararSessaoNova();
+
+      await service.iniciarExercicio('paciente-1', {
+        id_exercicio: 'exercicio-1',
+        id_prescricao: '',
+      });
+
+      expect(prescricaoRepo.findOne).not.toHaveBeenCalled();
     });
   });
 });

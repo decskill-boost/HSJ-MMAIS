@@ -7,7 +7,9 @@ import {
   SessaoParaHistorico,
 } from '../historico.util';
 
-const sessao = (overrides: Partial<SessaoParaHistorico> = {}): SessaoParaHistorico => ({
+const sessao = (
+  overrides: Partial<SessaoParaHistorico> = {},
+): SessaoParaHistorico => ({
   idSessao: 'sessao-1',
   nomeExercicio: 'Braços',
   status: SessaoStatus.CONCLUIDO,
@@ -18,7 +20,9 @@ const sessao = (overrides: Partial<SessaoParaHistorico> = {}): SessaoParaHistori
   ...overrides,
 });
 
-const janela = (overrides: Partial<PrescricaoWindow> = {}): PrescricaoWindow => ({
+const janela = (
+  overrides: Partial<PrescricaoWindow> = {},
+): PrescricaoWindow => ({
   inicio: '2026-06-01',
   fim: '2026-06-30',
   frequenciaSemanal: 3,
@@ -36,13 +40,21 @@ describe('deriveHistorico', () => {
     );
 
     expect(dias).toHaveLength(1);
-    expect(dias[0]).toMatchObject({ data: '2026-06-10', status: DiaStatus.CONCLUIDO });
+    expect(dias[0]).toMatchObject({
+      data: '2026-06-10',
+      status: DiaStatus.CONCLUIDO,
+    });
     expect(dias[0].sessoes).toHaveLength(1);
   });
 
   it('marks a past day with only an iniciado session as falhado', () => {
     const { dias } = deriveHistorico(
-      [sessao({ status: SessaoStatus.INICIADO, dataHora: new Date('2026-06-10T10:00:00Z') })],
+      [
+        sessao({
+          status: SessaoStatus.INICIADO,
+          dataHora: new Date('2026-06-10T10:00:00Z'),
+        }),
+      ],
       [janela()],
       '2026-06-10',
       '2026-06-10',
@@ -54,7 +66,12 @@ describe('deriveHistorico', () => {
 
   it('marks an explicitly falhado session as falhado', () => {
     const { dias } = deriveHistorico(
-      [sessao({ status: SessaoStatus.FALHADO, dataHora: new Date('2026-06-10T10:00:00Z') })],
+      [
+        sessao({
+          status: SessaoStatus.FALHADO,
+          dataHora: new Date('2026-06-10T10:00:00Z'),
+        }),
+      ],
       [janela()],
       '2026-06-10',
       '2026-06-10',
@@ -66,7 +83,12 @@ describe('deriveHistorico', () => {
 
   it('marks today with only an iniciado session as pendente, not falhado', () => {
     const { dias } = deriveHistorico(
-      [sessao({ status: SessaoStatus.INICIADO, dataHora: new Date('2026-06-15T10:00:00Z') })],
+      [
+        sessao({
+          status: SessaoStatus.INICIADO,
+          dataHora: new Date('2026-06-15T10:00:00Z'),
+        }),
+      ],
       [janela()],
       '2026-06-15',
       '2026-06-15',
@@ -89,7 +111,13 @@ describe('deriveHistorico', () => {
   });
 
   it('marks an empty past day inside a prescription window as ignorado', () => {
-    const { dias } = deriveHistorico([], [janela()], '2026-06-05', '2026-06-05', '2026-06-15');
+    const { dias } = deriveHistorico(
+      [],
+      [janela()],
+      '2026-06-05',
+      '2026-06-05',
+      '2026-06-15',
+    );
 
     expect(dias[0].status).toBe(DiaStatus.IGNORADO);
   });
@@ -156,7 +184,11 @@ describe('calcularAdesao', () => {
       '2026-06-15',
     );
 
-    expect(result).toEqual({ diasConcluidos: 0, diasEsperados: 0, percentual: null });
+    expect(result).toEqual({
+      diasConcluidos: 0,
+      diasEsperados: 0,
+      percentual: null,
+    });
   });
 
   it('tallies concluido/falhado/ignorado days and excludes pendente days from the percentage', () => {
@@ -179,7 +211,11 @@ describe('calcularAdesao', () => {
       '2026-06-11',
     );
 
-    expect(result).toEqual({ diasConcluidos: 1, diasEsperados: 10, percentual: 10 });
+    expect(result).toEqual({
+      diasConcluidos: 1,
+      diasEsperados: 10,
+      percentual: 10,
+    });
   });
 
   it('excludes days past an expired prescription window from diasEsperados', () => {
@@ -190,7 +226,11 @@ describe('calcularAdesao', () => {
     );
 
     // Only 2026-06-01..05 are inside the window; 06-06..06-14 are past but sem_plano, 06-15 is pendente.
-    expect(result).toEqual({ diasConcluidos: 1, diasEsperados: 5, percentual: 20 });
+    expect(result).toEqual({
+      diasConcluidos: 1,
+      diasEsperados: 5,
+      percentual: 20,
+    });
   });
 
   it('does not double-count a day covered by two overlapping prescription windows', () => {
@@ -204,6 +244,10 @@ describe('calcularAdesao', () => {
     );
 
     // 2026-06-01..15 (15 distinct days) are past and inside at least one window -> ignorado each.
-    expect(result).toEqual({ diasConcluidos: 0, diasEsperados: 15, percentual: 0 });
+    expect(result).toEqual({
+      diasConcluidos: 0,
+      diasEsperados: 15,
+      percentual: 0,
+    });
   });
 });

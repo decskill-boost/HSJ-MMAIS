@@ -37,13 +37,13 @@ const UserForm = ({
   roles,
 }: Props) => {
   return (
-    <div className="h-fit rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-xl font-semibold text-slate-900">
+    <div className="h-fit painel p-6">
+      <h2 className="font-display text-2xl tracking-wide text-tinta">
         {editingUserId ? "Editar utilizador" : "Criar novo utilizador"}
       </h2>
-      <p className="mt-2 text-sm text-slate-500">
-        Os utilizadores criados aqui serão gravados no Supabase e no perfil da
-        base de dados.
+      {/* Descreve o que acontece para quem usa, não como está construído. */}
+      <p className="mt-2 text-sm text-aco">
+        A conta fica logo ativa e a pessoa passa a poder entrar na plataforma.
       </p>
 
       <form
@@ -54,51 +54,51 @@ const UserForm = ({
         }}
       >
         <div>
-          <label className="block text-sm font-semibold text-slate-700">
+          <label className="block text-sm font-semibold text-tinta" htmlFor="conta-nome">
             Nome
           </label>
-          <input
+          <input id="conta-nome"
             value={form.nome}
             onChange={(event) => setForm({ ...form, nome: event.target.value })}
             disabled={loading}
-            className="mt-2 block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+            className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro"
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-slate-700">
+          <label className="block text-sm font-semibold text-tinta" htmlFor="conta-email">
             Email
           </label>
-          <input
+          <input id="conta-email"
             type="email"
             value={form.email}
             onChange={(event) =>
               setForm({ ...form, email: event.target.value })
             }
             disabled={loading}
-            className="mt-2 block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+            className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro"
           />
         </div>
         {!editingUserId && (
           <div>
-            <label className="block text-sm font-semibold text-slate-700">
-              Password
+            <label className="block text-sm font-semibold text-tinta" htmlFor="conta-palavra-passe">
+              Palavra-passe
             </label>
-            <input
+            <input id="conta-palavra-passe"
               type="password"
               value={form.password}
               onChange={(event) =>
                 setForm({ ...form, password: event.target.value })
               }
               disabled={loading}
-              className="mt-2 block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+              className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro"
             />
           </div>
         )}
         <div>
-          <label className="block text-sm font-semibold text-slate-700">
-            Role
+          <label className="block text-sm font-semibold text-tinta" htmlFor="conta-perfil">
+            Perfil
           </label>
-          <select
+          <select id="conta-perfil"
             value={form.tipo_utilizador}
             onChange={(event) =>
               setForm({
@@ -107,7 +107,7 @@ const UserForm = ({
               })
             }
             disabled={loading}
-            className="mt-2 block w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2 text-slate-900 focus:border-blue-500 focus:bg-white focus:outline-none"
+            className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro"
           >
             {roles.map((role) => (
               <option key={role.value} value={role.value}>
@@ -118,12 +118,12 @@ const UserForm = ({
         </div>
 
         {message && (
-          <div className="rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700">
+          <div className="rounded-xl bg-turbo/10 px-4 py-3 text-sm text-turbo-escuro">
             {message}
           </div>
         )}
         {error && (
-          <div className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">
+          <div className="rounded-xl bg-capa/10 px-4 py-3 text-sm text-capa-escura">
             {error}
           </div>
         )}

@@ -61,9 +61,13 @@ export class SupabaseAuthGuard implements CanActivate {
             callback(null, key.getPublicKey());
           });
         },
-        // ES256: chave atual (assimétrica). HS256/RS256: mantidos para
-        // cobrir tokens antigos ainda não expirados durante a transição.
-        { algorithms: ['ES256', 'RS256', 'HS256'] },
+        // Só algoritmos assimétricos. A chave acima vem de `getPublicKey()`,
+        // isto é, é pública por definição: aceitar HS256 (simétrico) seria
+        // deixar que essa chave pública servisse de segredo HMAC — o ataque
+        // clássico de confusão de algoritmo. E não perdemos nada: um token
+        // HS256 legado não tem `kid` resolúvel no JWKS, por isso nunca chegava
+        // sequer a ser verificado por este caminho.
+        { algorithms: ['ES256', 'RS256'] },
         (err, decoded) => {
           if (err || !decoded || typeof decoded === 'string') {
             reject(err ?? new Error('Token inválido'));

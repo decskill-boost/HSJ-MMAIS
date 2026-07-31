@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -9,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { ApiError, fetchCurrentUser } from "../lib/api";
+import { registarDebug } from "../lib/registo";
 import {
   clearStoredAuth,
   loadStoredAuth,
@@ -17,12 +19,20 @@ import {
 import { supabase } from "../services/supabaseClient";
 import type { Permission, UserProfile } from "../types/permissions";
 
+/** O que a API devolve ao concluir um treino e que muda o perfil na hora. */
+export interface ProgressoDoTreino {
+  totalXp: number;
+  level: number;
+  streakAtual: number;
+}
+
 interface UserContextValue {
   user: UserProfile | null;
   permissions: Permission[];
   isLoading: boolean;
   isAuthenticated: boolean;
   setUser: (user: UserProfile | null) => void;
+  atualizarProgresso: (progresso: ProgressoDoTreino) => void;
 }
 
 const UserContext = createContext<UserContextValue>({
@@ -31,6 +41,7 @@ const UserContext = createContext<UserContextValue>({
   isLoading: true,
   isAuthenticated: false,
   setUser: () => {},
+  atualizarProgresso: () => {},
 });
 
 // Só limpamos a sessão local quando o backend confirma que o token
@@ -51,6 +62,37 @@ export function UserProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     userRef.current = user;
   }, [user]);
+
+  /**
+   * Atualiza XP, nível e sequência depois de um treino concluído.
+   *
+   * O perfil só era lido ao carregar a página (ou ao mudar de sessão), por isso
+   * o XP mostrado ficava congelado: a criança acabava um treino, voltava ao
+   * painel e via o mesmo número de antes — até fazer F5. Os valores já vinham
+   * na resposta do `POST /sessoes/concluir`; faltava alguém aplicá-los.
+   *
+   * Também se reescreve o que está guardado localmente, senão o próximo
+   * arranque voltava a pintar o valor velho enquanto revalida.
+   */
+  const atualizarProgresso = useCallback((progresso: ProgressoDoTreino) => {
+    setUser((atual) => {
+      if (!atual) return atual;
+      const atualizado: UserProfile = {
+        ...atual,
+        xp: progresso.totalXp,
+        nivel: progresso.level,
+        streakAtual: progresso.streakAtual,
+      };
+      userRef.current = atualizado;
+
+      const guardado = loadStoredAuth();
+      if (guardado) {
+        persistAuthState({ ...guardado, user: atualizado });
+      }
+
+      return atualizado;
+    });
+  }, []);
 
   useEffect(() => {
     let isInitialLoadDone = false;
@@ -83,24 +125,29 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
 
     async function loadUser() {
-      console.log("[UserContext] a iniciar carregamento de utilizador");
+      registarDebug("[UserContext] a iniciar carregamento de utilizador");
       const storedAuth = loadStoredAuth();
+      const temCacheLocal = Boolean(storedAuth?.accessToken && storedAuth.user);
       if (storedAuth?.accessToken && storedAuth.user) {
-        console.log(
-          "[UserContext] utilizador restaurado do storage",
+        // Cache otimista: mostramos já o perfil guardado para não haver ecrã
+        // em branco, mas confirmamos sempre com o servidor logo a seguir.
+        // O role e as permissões que estão em storage nunca podem ser a
+        // palavra final - quem edite o localStorage não pode ganhar ecrãs.
+        registarDebug(
+          "[UserContext] utilizador restaurado do storage (a revalidar)",
           storedAuth.user.email,
         );
         setUser(storedAuth.user);
         userRef.current = storedAuth.user;
         setIsLoading(false);
         isInitialLoadDone = true;
-        return;
       }
 
       const {
         data: { session },
+        error: erroSessao,
       } = await supabase.auth.getSession();
-      console.log("[UserContext] sessão obtida do Supabase", {
+      registarDebug("[UserContext] sessão obtida do Supabase", {
         hasToken: Boolean(session?.access_token),
         expiresAt: session?.expires_at,
       });
@@ -110,10 +157,20 @@ export function UserProvider({ children }: { children: ReactNode }) {
           session.access_token,
           session.expires_at ?? null,
         );
+      } else if (temCacheLocal && erroSessao) {
+        // Falha a contactar a Supabase (rede ou serviço em baixo): mantemos a
+        // cache local em vez de deslogar por um problema temporário.
+        console.warn(
+          "[UserContext] sessão indisponível, a manter cache local",
+          erroSessao,
+        );
       } else {
-        console.log("[UserContext] sem sessão válida no Supabase");
+        // Sem sessão viva, o que está em storage não serve para nada - se não
+        // for limpo, a cache órfã ressuscita no recarregamento seguinte.
+        registarDebug("[UserContext] sem sessão válida no Supabase");
         setUser(null);
         userRef.current = null;
+        clearStoredAuth();
       }
 
       setIsLoading(false);
@@ -125,7 +182,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log("[UserContext] auth state change", {
+      registarDebug("[UserContext] auth state change", {
         event: _event,
         hasToken: Boolean(session?.access_token),
       });
@@ -136,7 +193,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       // limpar uma sessão válida por causa de uma falha
       // pontual/redundante desta segunda chamada.
       if (_event === "INITIAL_SESSION" && userRef.current) {
-        console.log(
+        registarDebug(
           "[UserContext] INITIAL_SESSION ignorado, utilizador já carregado",
         );
         return;
@@ -148,7 +205,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
           session.expires_at ?? null,
         );
       } else {
-        console.log("[UserContext] sessão removida no auth state change");
+        registarDebug("[UserContext] sessão removida no auth state change");
         setUser(null);
         userRef.current = null;
         clearStoredAuth();
@@ -170,6 +227,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         isLoading,
         isAuthenticated: user !== null,
         setUser,
+        atualizarProgresso,
       }}
     >
       {children}
