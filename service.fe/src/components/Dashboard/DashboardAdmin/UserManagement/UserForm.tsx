@@ -5,17 +5,19 @@ type UserFormData = {
   nome: string;
   email: string;
   password: string;
+  confirmPassword: string;
   tipo_utilizador: UserRole;
 };
 
 interface Props {
   form: UserFormData;
-  setForm: (f: UserFormData) => void;
+  setForm: (f: UserFormData | ((prev: UserFormData) => UserFormData)) => void;
   editingUserId: string | null;
   onSubmit: (payload: {
     nome: string;
     email: string;
     password?: string;
+    confirmPassword?: string;
     tipo_utilizador: UserRole;
   }) => Promise<void>;
   onCancel: () => void;
@@ -59,7 +61,9 @@ const UserForm = ({
           </label>
           <input id="conta-nome"
             value={form.nome}
-            onChange={(event) => setForm({ ...form, nome: event.target.value })}
+            onChange={(event) =>
+              setForm((prev) => ({ ...prev, nome: event.target.value }))
+            }
             disabled={loading}
             className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro"
           />
@@ -68,31 +72,60 @@ const UserForm = ({
           <label className="block text-sm font-semibold text-tinta" htmlFor="conta-email">
             Email
           </label>
-          <input id="conta-email"
+          <input
+            id="conta-email"
             type="email"
             value={form.email}
             onChange={(event) =>
-              setForm({ ...form, email: event.target.value })
+              setForm((prev) => ({ ...prev, email: event.target.value }))
             }
-            disabled={loading}
-            className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro"
+            disabled={loading || !!editingUserId}
+            className={`mt-2 block w-full rounded-2xl border px-4 py-2 text-tinta ${
+              editingUserId
+                ? "border-tinta/20 bg-aco/20 text-aco cursor-not-allowed font-medium select-none"
+                : "border-tinta/15 bg-papel focus:border-cobalto focus:bg-papel-claro"
+            }`}
           />
+          {editingUserId && (
+            <p className="mt-1 text-xs text-aco">
+              O email de acesso não pode ser alterado.
+            </p>
+          )}
         </div>
         {!editingUserId && (
-          <div>
-            <label className="block text-sm font-semibold text-tinta" htmlFor="conta-palavra-passe">
-              Palavra-passe
-            </label>
-            <input id="conta-palavra-passe"
-              type="password"
-              value={form.password}
-              onChange={(event) =>
-                setForm({ ...form, password: event.target.value })
-              }
-              disabled={loading}
-              className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro"
-            />
-          </div>
+          <>
+            <div>
+              <label className="block text-sm font-semibold text-tinta" htmlFor="conta-palavra-passe">
+                Palavra-passe
+              </label>
+              <input id="conta-palavra-passe"
+                type="password"
+                value={form.password}
+                onChange={(event) =>
+                  setForm((prev) => ({ ...prev, password: event.target.value }))
+                }
+                disabled={loading}
+                className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-tinta" htmlFor="conta-confirmar-palavra-passe">
+                Confirmar palavra-passe
+              </label>
+              <input id="conta-confirmar-palavra-passe"
+                type="password"
+                value={form.confirmPassword}
+                onChange={(event) =>
+                  setForm((prev) => ({
+                    ...prev,
+                    confirmPassword: event.target.value,
+                  }))
+                }
+                disabled={loading}
+                className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro"
+              />
+            </div>
+          </>
         )}
         <div>
           <label className="block text-sm font-semibold text-tinta" htmlFor="conta-perfil">
@@ -101,10 +134,10 @@ const UserForm = ({
           <select id="conta-perfil"
             value={form.tipo_utilizador}
             onChange={(event) =>
-              setForm({
-                ...form,
+              setForm((prev) => ({
+                ...prev,
                 tipo_utilizador: event.target.value as UserRole,
-              })
+              }))
             }
             disabled={loading}
             className="mt-2 block w-full rounded-2xl border border-tinta/15 bg-papel px-4 py-2 text-tinta focus:border-cobalto focus:bg-papel-claro"

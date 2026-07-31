@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { UserProfile } from "../../../../types/permissions";
+import { useUser } from "../../../../contexts/UserContext";
 import ConfirmDialog from "../../../ui/ConfirmDialog";
 import BtnGlobal from "../../../BtnGlobal";
 import LoadingSpinner from "../../../LoadingSpinner";
@@ -35,6 +36,10 @@ const getRoleLabel = (role?: string) => {
 
 const UserList = ({ users, loading, onEdit, onDisable }: Props) => {
   const [toDelete, setToDelete] = useState<UserProfile | null>(null);
+  const { user: currentUser } = useUser();
+
+  const currentUserId = currentUser?.idUser || currentUser?.id_user;
+  const currentUserEmail = currentUser?.email?.toLowerCase();
 
   return (
     <div className="painel p-6">
@@ -72,37 +77,53 @@ const UserList = ({ users, loading, onEdit, onDisable }: Props) => {
             </tr>
           </CabecaTabela>
           <CorpoTabela>
-            {users.map((user) => (
-              <tr key={user.idUser} className="transition-colors hover:bg-raio/15">
-                <td className="px-4 py-4">
-                  <div className="flex items-center gap-3">
-                    <span
-                      aria-hidden="true"
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-2 border-tinta bg-cobalto-nevoa text-sm font-bold text-cobalto"
-                    >
-                      {user.nome.charAt(0).toUpperCase()}
+            {users.map((user) => {
+              const isSelf =
+                (currentUserId &&
+                  (user.idUser === currentUserId ||
+                    user.id_user === currentUserId)) ||
+                (currentUserEmail &&
+                  user.email.toLowerCase() === currentUserEmail);
+
+              return (
+                <tr key={user.idUser} className="transition-colors hover:bg-raio/15">
+                  <td className="px-4 py-4">
+                    <div className="flex items-center gap-3">
+                      <span
+                        aria-hidden="true"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border-2 border-tinta bg-cobalto-nevoa text-sm font-bold text-cobalto"
+                      >
+                        {user.nome.charAt(0).toUpperCase()}
+                      </span>
+                      <span className="font-bold text-tinta">{user.nome}</span>
+                      {isSelf && (
+                        <span className="rounded-full bg-tinta/10 px-2 py-0.5 text-xs font-semibold text-aco">
+                          Tu
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 text-aco">{user.email}</td>
+                  <td className="px-4 py-4">
+                    <span className="inline-flex rounded-full border-2 border-cobalto bg-cobalto-nevoa px-3 py-1 text-xs font-bold text-cobalto">
+                      {getRoleLabel(user.role || user.tipo_utilizador)}
                     </span>
-                    <span className="font-bold text-tinta">{user.nome}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-4 text-aco">{user.email}</td>
-                <td className="px-4 py-4">
-                  <span className="inline-flex rounded-full border-2 border-cobalto bg-cobalto-nevoa px-3 py-1 text-xs font-bold text-cobalto">
-                    {getRoleLabel(user.role || user.tipo_utilizador)}
-                  </span>
-                </td>
-                <td className="px-4 py-4">
-                  <div className="flex justify-end gap-2 whitespace-nowrap">
-                    <BtnGlobal variant="secondary" onClick={() => onEdit(user)}>
-                      Editar
-                    </BtnGlobal>
-                    <BtnGlobal variant="danger" onClick={() => setToDelete(user)}>
-                      Apagar
-                    </BtnGlobal>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="flex justify-end gap-2 whitespace-nowrap">
+                      <BtnGlobal variant="secondary" onClick={() => onEdit(user)}>
+                        Editar
+                      </BtnGlobal>
+                      {!isSelf && (
+                        <BtnGlobal variant="danger" onClick={() => setToDelete(user)}>
+                          Apagar
+                        </BtnGlobal>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </CorpoTabela>
         </Tabela>
       )}
