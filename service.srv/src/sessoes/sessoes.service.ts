@@ -114,7 +114,6 @@ export class SessoesService {
 
     const idDono = prescricao?.id_paciente?.id_user ?? null;
     if (!prescricao || (idDono !== null && idDono !== idPaciente)) {
-      console.error("ERRO: Plano de treino inválido", { idPrescricao, idPaciente, idDono, prescricaoExiste: !!prescricao });
       throw new BadRequestException('Plano de treino inválido.');
     }
   }
@@ -197,7 +196,6 @@ export class SessoesService {
     const cleanSessaoId = cleanUuid(dto.id_sessao);
 
     if (!cleanPacienteId || !cleanExercicioId) {
-      console.error("ERRO: Paciente ou Exercício inválido", { idPaciente, cleanPacienteId, idExercicio: dto.id_exercicio, cleanExercicioId });
       throw new BadRequestException('Paciente ou Exercício inválido');
     }
 
@@ -222,6 +220,14 @@ export class SessoesService {
       },
     });
 
+    // REGRA MUDADA (PR #76): repetir o mesmo exercício no mesmo dia volta a
+    // dar XP. Antes era `alreadyCompleted ? 0 : recompensa_xp` — e era essa a
+    // razão de o XP «não subir» quando a criança repetia um treino.
+    //
+    // O `alreadyCompleted` continua a ser calculado e devolvido, porque o ecrã
+    // usa-o para não festejar duas vezes a mesma conquista. O valor é limitado
+    // a [0, 500] para um exercício mal configurado no catálogo não conseguir
+    // atirar o nível da criança para o infinito.
     const xpGained = Math.min(Math.max(0, exercicio.recompensa_xp ?? 0), 500);
 
     return this.dataSource.transaction(async (manager) => {

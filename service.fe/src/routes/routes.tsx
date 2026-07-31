@@ -6,6 +6,7 @@ import { UserRole } from "../types/permissions";
 // Primeira pintura: carregadas de imediato
 import WelcomePage from "../components/WelcomePage";
 import PageNotFound from "../components/PageNotFound";
+import SemAutorizacao from "../components/SemAutorizacao";
 import Login from "../components/Login";
 
 // Restantes rotas: code-splitting — cada perfil só descarrega o que usa
@@ -57,6 +58,9 @@ export const router = createBrowserRouter([
         ],
       },
 
+      // Ecrãs clínicos: só o corpo clínico. É o mesmo que o backend impõe
+      // (`@Roles(CORPO_CLINICO)` em pacientes, sessões e prescrições) — deixar
+      // entrar aqui um admin daria uma página inteira de 403.
       {
         element: <ProtectedRoute role={UserRole.CORPO_CLINICO} />,
         children: [
@@ -66,6 +70,18 @@ export const router = createBrowserRouter([
           { path: "exercicios", element: <ExerciciosPage /> },
           { path: "plano/criar", element: <CriarPlano /> },
           { path: "dashboard/medico/planos", element: <GestaoPlanos /> },
+        ],
+      },
+
+      // Gestão de utilizadores: os dois papéis. O corpo clínico porque passou a
+      // ser também administrador; o admin porque continua a sê-lo. Este ecrã
+      // ficou dentro do grupo clínico e, como o `role` compara por igualdade
+      // exata, uma conta de `admin` era expulsa da única página que lhe resta.
+      {
+        element: (
+          <ProtectedRoute roles={[UserRole.CORPO_CLINICO, UserRole.ADMIN]} />
+        ),
+        children: [
           { path: "dashboard/admin", element: <DashboardAdmin /> },
         ],
       },
@@ -79,6 +95,10 @@ export const router = createBrowserRouter([
           { path: "paciente/plano/criar", element: <CriarPlanoPaciente /> },
         ],
       },
+
+      // Destino do ProtectedRoute quando o perfil não chega. Sem esta rota, a
+      // pessoa caía no `*` e via um 404.
+      { path: "sem-autorizacao", element: <SemAutorizacao /> },
 
       { path: "*", element: <PageNotFound /> },
     ],

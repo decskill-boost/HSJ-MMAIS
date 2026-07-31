@@ -2,6 +2,7 @@ import { NotFoundException } from '@nestjs/common';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Test } from '@nestjs/testing';
 import { Prescricao } from '../../entities/prescricao.entity';
+import { PrescricaoExercicio } from '../../entities/prescricao-exercicio.entity';
 import {
   SessaoRealizada,
   SessaoStatus,
@@ -69,6 +70,11 @@ describe('PacientesService — perfil, sessões e agregados', () => {
             find: jest.fn(),
             createQueryBuilder: jest.fn(() => mockQueryBuilder()),
           },
+        },
+        // Ver a nota em pacientes.service.spec.ts: dependência nova do serviço.
+        {
+          provide: getRepositoryToken(PrescricaoExercicio),
+          useValue: { find: jest.fn().mockResolvedValue([]) },
         },
       ],
     }).compile();
@@ -212,6 +218,13 @@ describe('PacientesService — perfil, sessões e agregados', () => {
         fc_maxima: 140,
         teve_problemas: true,
         nome_exercicio: 'Saltos',
+        // Campos acrescentados no PR #76: o histórico clínico passou a
+        // identificar o plano de onde veio o treino. Um treino solto (sem
+        // plano) mantém-nos a null, que é este caso.
+        id_prescricao: null,
+        nome_plano: null,
+        total_exercicios_plano: null,
+        exercicios_plano: [],
       });
       // Hora de parede, sem «Z»: é assim que o painel clínico a lê hoje.
       expect(sessao.data_hora).not.toMatch(/Z$/);

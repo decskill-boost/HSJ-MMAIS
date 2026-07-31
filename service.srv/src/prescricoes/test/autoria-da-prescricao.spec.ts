@@ -4,6 +4,7 @@ import { CreatePrescricaoDto } from '../create-prescricao.dto';
 import { PrescricoesController } from '../prescricoes.controller';
 import type { PrescricoesService } from '../prescricoes.service';
 import type { SupabaseJwtPayload } from '../../auth/supabase-jwt-payload.interface';
+import { UserRole } from '../../users/user-role.enum';
 
 const MEDICO_AUTENTICADO = 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa';
 const OUTRO_MEDICO = 'bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb';
@@ -66,9 +67,29 @@ describe('Autoria da prescrição (POST /prescricoes)', () => {
     )) as CreatePrescricaoDto;
 
     const tokenDoMedico: SupabaseJwtPayload = { sub: MEDICO_AUTENTICADO };
-    await controlador.create(dados, tokenDoMedico);
+    await controlador.create(dados, tokenDoMedico, UserRole.CORPO_CLINICO);
 
-    expect(create).toHaveBeenCalledWith(dados, MEDICO_AUTENTICADO);
+    expect(create).toHaveBeenCalledWith(
+      dados,
+      MEDICO_AUTENTICADO,
+      UserRole.CORPO_CLINICO,
+    );
     expect(JSON.stringify(create.mock.calls)).not.toContain(OUTRO_MEDICO);
+  });
+
+  it('leva o papel de quem pede, para o serviço poder distinguir criança de clínico', async () => {
+    const create = jest.fn(() => Promise.resolve({ id_prescricao: 'x' }));
+    const controlador = new PrescricoesController({
+      create,
+    } as unknown as PrescricoesService);
+
+    const dados = (await pipe.transform(
+      corpoDoFrontend,
+      metadata,
+    )) as CreatePrescricaoDto;
+
+    await controlador.create(dados, { sub: PACIENTE }, UserRole.PACIENTE);
+
+    expect(create).toHaveBeenCalledWith(dados, PACIENTE, UserRole.PACIENTE);
   });
 });

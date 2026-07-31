@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { sessoesService } from "../../services/sessoesService";
+import { useUser } from "../../contexts/UserContext";
 import CapitaoMais from "../CapitaoMais";
 
 interface Props {
@@ -47,6 +48,7 @@ const FRASES_CAPITAO: Record<number, string> = {
 const AvaliacaoExercicio = ({
   idExercicio, idPrescricao, duracaoSegundos, recompensaXp, onConcluir,
 }: Props) => {
+  const { atualizarProgresso } = useUser();
   const [step, setStep] = useState(1);
   const [diversao, setDiversao] = useState(3);
   const [esforco, setEsforco] = useState(5);
@@ -134,12 +136,18 @@ const AvaliacaoExercicio = ({
         participacao_familiares: companhia ?? false,
       });
       setXpGanho(resultado.xpGained);
+      // Sem isto, o XP no painel e na barra lateral só mudava depois de
+      // recarregar a página — parecia que o treino não tinha contado.
+      atualizarProgresso({
+        totalXp: resultado.totalXp,
+        level: resultado.level,
+        streakAtual: resultado.streakAtual,
+      });
       setConcluido(true);
-    } catch (err: any) {
+    } catch (err) {
       // A criança acabou o treino: se isto falha em silêncio, ela fica a olhar
       // para um botão que não faz nada e o treino perde-se.
       console.error(err);
-      console.log("ERRO API:", err.response?.data);
       setErroEnvio(
         "Não conseguimos guardar o teu treino. Vê a ligação e tenta outra vez.",
       );

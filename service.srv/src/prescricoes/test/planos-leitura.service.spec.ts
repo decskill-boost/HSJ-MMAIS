@@ -9,6 +9,7 @@ import type { LinhaPlano } from '../planos.mapper';
 
 const CRIANCA_A = 'aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa';
 const CRIANCA_B = 'bbbbbbbb-2222-4222-8222-bbbbbbbbbbbb';
+const CLINICO = 'cccccccc-3333-4333-8333-cccccccccccc';
 const PLANO_1 = '11111111-1111-4111-8111-111111111111';
 const PLANO_2 = '22222222-2222-4222-8222-222222222222';
 const EXERCICIO_1 = 'e1111111-1111-4111-8111-111111111111';
@@ -73,6 +74,7 @@ const parametros = (chamadas: Chamada[]) =>
 
 const linha = (over: Partial<LinhaPlano>): LinhaPlano => ({
   id_prescricao: PLANO_1,
+  nome: null,
   frequencia_semanal: 3,
   notas_medicas: 'Começar devagar.',
   data_inicio: new Date(2025, 5, 1, 10, 0, 0),
@@ -84,6 +86,7 @@ const linha = (over: Partial<LinhaPlano>): LinhaPlano => ({
   condicao_clinica: null,
   is_standard: false,
   id_paciente: CRIANCA_A,
+  id_medico: CLINICO,
   ex_id_exercicio: null,
   ex_nome_exercicio: null,
   ex_duracao_segundos: null,

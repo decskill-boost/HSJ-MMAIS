@@ -112,6 +112,29 @@ describe('SQL das consultas de leitura de planos', () => {
     expect(sql()).toContain('ORDER BY "p"."data_inicio" DESC');
   });
 
+  /**
+   * Os planos que as crianças montam para si próprias não são atos clínicos e
+   * não entram na lista de gestão. O critério é estrutural — o autor é o
+   * próprio dono — e não o texto das notas médicas, que qualquer edição
+   * desfazia (e que devolveria à lista todos os planos das crianças).
+   */
+  it('E4 exclui os planos montados pela própria criança, sem depender das notas', async () => {
+    await servico.planosParaGestao();
+
+    expect(sql()).toContain('"p"."id_medico" <> "p"."id_paciente"');
+    expect(sql()).toContain('"p"."id_paciente" IS NULL');
+    expect(sql()).not.toContain('notas_medicas" !=');
+    // O nome do plano tem de sair da base: sem ele a lista mostrava sempre o
+    // texto de reserva.
+    expect(sql()).toContain('"p"."nome"');
+  });
+
+  it('E5 traz o nome, para o editor não o apagar ao guardar', async () => {
+    await servico.planoParaEdicao('id-do-plano').catch(() => undefined);
+
+    expect(sql()).toContain('"p"."nome"');
+  });
+
   it('E5 lê a duração da prescrição sem COALESCE', async () => {
     await servico.planoParaEdicao('id-do-plano').catch(() => undefined);
 

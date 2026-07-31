@@ -56,7 +56,11 @@ export const CriarPlanoPaciente = () => {
         id_medico: user.idUser,
         frequencia_semanal: 3,
         data_validade: null,
-        notas_medicas: "Plano criado pela própria criança",
+        // Sem notas médicas: este campo é do corpo clínico e aparecia no cartão
+        // do plano como se fosse indicação médica. Que o plano é dela fica
+        // registado na própria prescrição (o autor é o dono) e chega ao ecrã
+        // como `criado_pelo_paciente`.
+        notas_medicas: "",
         is_standard: false,
         nome: nomePlano.trim() || "O meu Plano",
         exercicios: selecionados,

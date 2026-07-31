@@ -18,17 +18,17 @@ async function bootstrap() {
    * `whitelist` descarta campos que nenhum DTO declara, para não se escrever
    * na base de dados o que o cliente entender mandar.
    */
+  /*
+   * Não há `exceptionFactory` à medida de propósito. Houve um, e escrevia
+   * `JSON.stringify(errors)` para os registos — mas um erro de validação leva
+   * consigo o VALOR submetido, por isso um `POST /users` recusado deixava a
+   * palavra-passe em claro nos registos da Vercel. A resposta por omissão do
+   * Nest já traz as mensagens das restrições, que é o que o cliente precisa.
+   */
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       transform: true,
-      exceptionFactory: (errors) => {
-        console.error("VALIDATION ERRORS:", JSON.stringify(errors, null, 2));
-        const messages = errors.map(
-          (error) => `${error.property} has wrong value ${error.value}, ${Object.values(error.constraints || {}).join(', ')}`
-        );
-        return new (require('@nestjs/common').BadRequestException)(messages);
-      },
     }),
   );
 

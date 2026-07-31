@@ -118,6 +118,7 @@ CREATE TABLE public.prescricoes (
   dificuldade        varchar(20) NOT NULL DEFAULT 'facil'::character varying,
   condicao_clinica   varchar(255),
   data_fim           timestamp,
+  nome               varchar(255),
   CONSTRAINT prescricoes_pkey PRIMARY KEY (id_prescricao),
   CONSTRAINT fk_prescricoes_paciente
     FOREIGN KEY (id_paciente) REFERENCES public.utilizadores(id_user),
