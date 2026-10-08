@@ -7,6 +7,8 @@ import {
   MaxLength,
   Min,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { referenciaDoVideo } from '../../armazenamento/video.util';
 
 /**
  * Criação de um exercício da biblioteca.
@@ -39,7 +41,10 @@ export class CreateExercicioDto {
   @Max(500, { message: 'A recompensa em XP não pode ultrapassar 500.' })
   recompensa_xp?: number;
 
+  // O ecrã de edição devolve o link assinado que recebeu: volta a ser `gs://`
+  // antes de validar (o link nem cabe nos 255) e antes de gravar.
   @IsOptional()
+  @Transform(({ value }) => referenciaDoVideo(value))
   @IsString()
   @MaxLength(255)
   url_video?: string;

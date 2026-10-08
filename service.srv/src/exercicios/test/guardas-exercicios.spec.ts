@@ -78,6 +78,7 @@ describe('ExerciciosController: cadeia de guardas de cada rota', () => {
     // Se este teste passasse com zero handlers, os que se seguem eram vácuos.
     expect(handlers.map((h) => h.nome).sort()).toEqual([
       'create',
+      'criarUploadDeVideo',
       'findAll',
       'findOne',
       'remove',
@@ -100,7 +101,9 @@ describe('ExerciciosController: cadeia de guardas de cada rota', () => {
   it('as escritas continuam reservadas ao corpo clínico', () => {
     const porNome = new Map(handlers.map((h) => [h.nome, h]));
 
-    for (const nome of ['create', 'update', 'remove']) {
+    // Enviar vídeos para o bucket é uma escrita como as outras: um URL de
+    // upload nas mãos de uma criança era espaço de armazenamento à borla.
+    for (const nome of ['create', 'criarUploadDeVideo', 'update', 'remove']) {
       expect(porNome.get(nome)?.roles).toEqual([UserRole.CORPO_CLINICO]);
     }
   });
