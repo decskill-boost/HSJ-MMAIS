@@ -14,7 +14,7 @@ const UPLOAD = {
     "Content-Type": "video/mp4",
     "x-goog-content-length-range": "0,104857600",
   },
-  urlPublica: "https://storage.googleapis.com/mmais-videos/exercicios/abc.mp4",
+  urlVideo: "gs://mmais-videos/exercicios/abc.mp4",
 };
 
 describe("enviarVideo", () => {
@@ -23,10 +23,10 @@ describe("enviarVideo", () => {
     put.mockReset().mockResolvedValue({ status: 200 });
   });
 
-  it("pede o URL assinado com o tipo do ficheiro e devolve o URL público", async () => {
+  it("pede o URL assinado com o tipo do ficheiro e devolve a referência a gravar", async () => {
     const ficheiro = new File(["video"], "salto.mp4", { type: "video/mp4" });
 
-    await expect(enviarVideo(ficheiro)).resolves.toBe(UPLOAD.urlPublica);
+    await expect(enviarVideo(ficheiro)).resolves.toBe(UPLOAD.urlVideo);
     expect(post).toHaveBeenCalledWith("/exercicios/videos", {
       tipo: "video/mp4",
     });

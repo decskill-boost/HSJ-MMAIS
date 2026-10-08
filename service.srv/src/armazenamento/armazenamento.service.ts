@@ -18,40 +18,61 @@ export type TipoDeVideo = keyof typeof TIPOS_DE_VIDEO;
 /** O mesmo limite que o frontend mostra ao escolher o ficheiro. */
 export const TAMANHO_MAXIMO_VIDEO_BYTES = 100 * 1024 * 1024;
 
+/** Os vídeos dos exercícios ficam todos debaixo deste prefixo. */
+const PASTA_DOS_VIDEOS = 'exercicios/';
+
 /** Chega para enviar 100 MB numa ligação fraca e não deixa o URL a circular. */
 const VALIDADE_DO_UPLOAD_MS = 15 * 60 * 1000;
+
+/**
+ * Os links de leitura são assinados por janelas de 6 horas e valem até ao fim
+ * da janela seguinte, ou seja, entre 6 e 12 horas depois de saírem da API.
+ *
+ * Dentro da mesma janela, o mesmo vídeo dá sempre o mesmo link. Sem isso cada
+ * pedido gerava um URL novo e o browser voltava a descarregar as miniaturas da
+ * biblioteca inteira a cada visita.
+ */
+export const JANELA_DE_LEITURA_MS = 6 * 60 * 60 * 1000;
 
 export interface UploadDeVideo {
   /** URL assinado para onde o browser faz o PUT do ficheiro. */
   urlUpload: string;
   /** Cabeçalhos que o PUT TEM de levar — fazem parte da assinatura. */
   cabecalhos: Record<string, string>;
-  /** URL de leitura, que é o que fica gravado em `url_video`. */
-  urlPublica: string;
+  /** Referência `gs://` ao objeto, que é o que fica gravado em `url_video`. */
+  urlVideo: string;
 }
 
 /**
- * Vídeos dos exercícios no Google Cloud Storage.
+ * Vídeos dos exercícios num bucket privado do Google Cloud Storage.
  *
- * O ficheiro não passa por aqui: na Vercel o corpo de um pedido não pode ter
- * mais de 4,5 MB e um vídeo chega aos 100 MB. O backend só assina um URL de
- * upload — curto, para um único objeto, com o tipo e o tamanho máximo presos na
- * assinatura — e o browser envia o vídeo direto ao bucket.
+ * Upload: o ficheiro não passa por aqui — na Vercel o corpo de um pedido não
+ * pode ter mais de 4,5 MB e um vídeo chega aos 100 MB. O backend só assina um
+ * URL de upload, curto, para um único objeto, com o tipo e o tamanho máximo
+ * presos na assinatura, e o browser envia o vídeo direto ao bucket.
  *
- * O cliente do GCS só é criado no primeiro upload. Se as variáveis faltarem ou
- * estiverem mal, falha só este pedido (503); criá-lo no arranque deitava abaixo
- * a aplicação inteira, incluindo o login.
+ * Leitura: o bucket não é público. A base de dados guarda `gs://…` e cada
+ * resposta da API leva um link de leitura assinado no lugar dele (ver
+ * `AssinarVideosInterceptor`).
+ *
+ * O cliente do GCS só é criado quando é preciso. Se as variáveis faltarem ou
+ * estiverem mal, falha só o upload (503) e os vídeos ficam sem link; criá-lo no
+ * arranque deitava abaixo a aplicação inteira, incluindo o login.
  */
 @Injectable()
 export class ArmazenamentoService {
   private readonly logger = new Logger(ArmazenamentoService.name);
   private bucketGcs?: Bucket;
+  private readonly linksDeLeitura = new Map<
+    string,
+    { janela: number; url: string }
+  >();
 
   constructor(private readonly config: ConfigService) {}
 
   async criarUploadDeVideo(tipo: TipoDeVideo): Promise<UploadDeVideo> {
     const bucket = this.bucket();
-    const objeto = `exercicios/${randomUUID()}.${TIPOS_DE_VIDEO[tipo]}`;
+    const objeto = `${PASTA_DOS_VIDEOS}${randomUUID()}.${TIPOS_DE_VIDEO[tipo]}`;
     const intervaloDeTamanho = `0,${TAMANHO_MAXIMO_VIDEO_BYTES}`;
 
     let urlUpload: string;
@@ -78,8 +99,56 @@ export class ArmazenamentoService {
         'Content-Type': tipo,
         'x-goog-content-length-range': intervaloDeTamanho,
       },
-      urlPublica: `https://storage.googleapis.com/${bucket.name}/${objeto}`,
+      urlVideo: `gs://${bucket.name}/${objeto}`,
     };
+  }
+
+  /**
+   * Troca a referência `gs://` de um vídeo por um link de leitura assinado.
+   *
+   * Só assina objetos da pasta dos vídeos deste bucket: o `url_video` é escrito
+   * pelo cliente, e sem esta restrição quem pudesse editar um exercício
+   * conseguia links para qualquer ficheiro do bucket. O que não comece por
+   * `gs://` (os vídeos antigos do Supabase) sai como entrou.
+   *
+   * Nunca lança: um vídeo sem link é um cartão sem miniatura, mas um erro aqui
+   * deitava abaixo a biblioteca inteira. Devolve `null` quando não consegue.
+   */
+  async urlDeLeitura(referencia: string): Promise<string | null> {
+    if (!referencia.startsWith('gs://')) return referencia;
+
+    let bucket: Bucket;
+    try {
+      bucket = this.bucket();
+    } catch {
+      return null;
+    }
+
+    const prefixo = `gs://${bucket.name}/${PASTA_DOS_VIDEOS}`;
+    if (!referencia.startsWith(prefixo) || referencia.includes('..')) {
+      this.logger.warn(`referência de vídeo fora da pasta: ${referencia}`);
+      return null;
+    }
+
+    const janela =
+      Math.floor(Date.now() / JANELA_DE_LEITURA_MS) * JANELA_DE_LEITURA_MS;
+    const guardado = this.linksDeLeitura.get(referencia);
+    if (guardado?.janela === janela) return guardado.url;
+
+    try {
+      const objeto = referencia.slice(`gs://${bucket.name}/`.length);
+      const [url] = await bucket.file(objeto).getSignedUrl({
+        version: 'v4',
+        action: 'read',
+        accessibleAt: new Date(janela),
+        expires: janela + 2 * JANELA_DE_LEITURA_MS,
+      });
+      this.linksDeLeitura.set(referencia, { janela, url });
+      return url;
+    } catch (err) {
+      this.logger.error('falha ao assinar o link de leitura', err);
+      return null;
+    }
   }
 
   private bucket(): Bucket {

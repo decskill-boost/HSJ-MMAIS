@@ -44,7 +44,7 @@ describe('ExerciciosController', () => {
       const upload = {
         urlUpload: 'https://storage.googleapis.com/b/x?X-Goog-Signature=abc',
         cabecalhos: { 'Content-Type': 'video/mp4' },
-        urlPublica: 'https://storage.googleapis.com/b/x',
+        urlVideo: 'gs://b/exercicios/x.mp4',
       };
       armazenamento.criarUploadDeVideo.mockResolvedValue(upload);
 
