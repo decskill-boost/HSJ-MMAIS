@@ -14,8 +14,10 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { SupabaseAuthGuard } from '../auth/supabase-auth.guard';
 import { UserRole } from '../users/user-role.enum';
+import { ArmazenamentoService } from '../armazenamento/armazenamento.service';
 import { ExerciciosService } from './exercicios.service';
 import { CreateExercicioDto } from './dto/create-exercicio.dto';
+import { CriarUploadVideoDto } from './dto/criar-upload-video.dto';
 import { UpdateExercicioDto } from './dto/update-exercicio.dto';
 
 /**
@@ -26,7 +28,10 @@ import { UpdateExercicioDto } from './dto/update-exercicio.dto';
 @Controller('exercicios')
 @UseGuards(SupabaseAuthGuard)
 export class ExerciciosController {
-  constructor(private readonly exerciciosService: ExerciciosService) {}
+  constructor(
+    private readonly exerciciosService: ExerciciosService,
+    private readonly armazenamento: ArmazenamentoService,
+  ) {}
 
   // GET /api/exercicios
   @Get()
@@ -63,6 +68,20 @@ export class ExerciciosController {
   // O tipo tem de ser o DTO, não a entidade: ver CreateExercicioDto.
   create(@Body() body: CreateExercicioDto) {
     return this.exerciciosService.create(body);
+  }
+
+  /**
+   * POST /api/exercicios/videos
+   *
+   * Devolve um URL assinado para o browser enviar o vídeo direto ao bucket do
+   * GCS, e o URL público a gravar depois em `url_video`. Quem pode criar ou
+   * alterar exercícios é quem pode enviar vídeos — e mais ninguém.
+   */
+  @Post('videos')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.CORPO_CLINICO)
+  criarUploadDeVideo(@Body() body: CriarUploadVideoDto) {
+    return this.armazenamento.criarUploadDeVideo(body.tipo);
   }
 
   // PUT /api/exercicios/:id
