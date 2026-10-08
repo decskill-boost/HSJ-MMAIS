@@ -3,6 +3,7 @@ import type { ConfigService } from '@nestjs/config';
 import { generateKeyPairSync } from 'node:crypto';
 import {
   ArmazenamentoService,
+  JANELA_DE_LEITURA_MS,
   TAMANHO_MAXIMO_VIDEO_BYTES,
 } from '../armazenamento.service';
 
@@ -47,8 +48,8 @@ describe('ArmazenamentoService', () => {
     expect(url.searchParams.get('X-Goog-Expires')).toBe('900');
     expect(url.searchParams.get('X-Goog-Signature')).toBeTruthy();
 
-    // O URL público aponta para o mesmo objeto que foi assinado.
-    expect(upload.urlPublica).toBe(`${url.origin}${url.pathname}`);
+    // A referência a gravar aponta para o mesmo objeto que foi assinado.
+    expect(upload.urlVideo).toBe(`gs:/${url.pathname}`);
   });
 
   /**
@@ -74,7 +75,7 @@ describe('ArmazenamentoService', () => {
       'Content-Type': 'video/quicktime',
       'x-goog-content-length-range': `0,${TAMANHO_MAXIMO_VIDEO_BYTES}`,
     });
-    expect(upload.urlPublica).toMatch(/\.mov$/);
+    expect(upload.urlVideo).toMatch(/\.mov$/);
   });
 
   it('cada pedido recebe um objeto diferente', async () => {
@@ -86,7 +87,7 @@ describe('ArmazenamentoService', () => {
     const a = await servico.criarUploadDeVideo('video/mp4');
     const b = await servico.criarUploadDeVideo('video/mp4');
 
-    expect(a.urlPublica).not.toBe(b.urlPublica);
+    expect(a.urlVideo).not.toBe(b.urlVideo);
   });
 
   it('aceita as credenciais em base64', async () => {
@@ -98,6 +99,103 @@ describe('ArmazenamentoService', () => {
     await expect(servico.criarUploadDeVideo('video/mp4')).resolves.toEqual(
       expect.objectContaining({ urlUpload: expect.any(String) as string }),
     );
+  });
+
+  describe('links de leitura (o bucket é privado)', () => {
+    const REFERENCIA = 'gs://mmais-videos/exercicios/abc.mp4';
+    // Meio de uma janela de 6 h, para os testes não dependerem da hora a que correm.
+    const INICIO_DA_JANELA = Date.UTC(2026, 9, 8, 12);
+
+    let servico: ArmazenamentoService;
+
+    beforeEach(() => {
+      jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate'] });
+      jest.setSystemTime(INICIO_DA_JANELA + JANELA_DE_LEITURA_MS / 2);
+      servico = servicoCom({
+        GCS_BUCKET: 'mmais-videos',
+        GCS_CREDENTIALS: CREDENCIAIS,
+      });
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+      jest.restoreAllMocks();
+    });
+
+    it('troca a referência gs:// por um GET assinado ao mesmo objeto', async () => {
+      const url = new URL((await servico.urlDeLeitura(REFERENCIA)) as string);
+
+      expect(url.origin).toBe('https://storage.googleapis.com');
+      expect(url.pathname).toBe('/mmais-videos/exercicios/abc.mp4');
+      expect(url.searchParams.get('X-Goog-Signature')).toBeTruthy();
+    });
+
+    /**
+     * Assinado a partir do início da janela e válido até ao fim da seguinte:
+     * quem recebe o link tem sempre pelo menos 6 h para o usar.
+     */
+    it('vale do início da janela até ao fim da janela seguinte', async () => {
+      const url = new URL((await servico.urlDeLeitura(REFERENCIA)) as string);
+
+      expect(url.searchParams.get('X-Goog-Date')).toBe('20261008T120000Z');
+      expect(url.searchParams.get('X-Goog-Expires')).toBe(
+        String((2 * JANELA_DE_LEITURA_MS) / 1000),
+      );
+    });
+
+    it('dá o mesmo link dentro da janela, para o browser o poder guardar', async () => {
+      const primeiro = await servico.urlDeLeitura(REFERENCIA);
+      jest.setSystemTime(INICIO_DA_JANELA + JANELA_DE_LEITURA_MS - 1);
+
+      await expect(servico.urlDeLeitura(REFERENCIA)).resolves.toBe(primeiro);
+
+      // E é a assinatura que é estável, não só a cache: outra instância dá o mesmo.
+      const outro = servicoCom({
+        GCS_BUCKET: 'mmais-videos',
+        GCS_CREDENTIALS: CREDENCIAIS,
+      });
+      await expect(outro.urlDeLeitura(REFERENCIA)).resolves.toBe(primeiro);
+    });
+
+    it('muda de link quando muda a janela', async () => {
+      const primeiro = await servico.urlDeLeitura(REFERENCIA);
+      jest.setSystemTime(INICIO_DA_JANELA + JANELA_DE_LEITURA_MS);
+
+      await expect(servico.urlDeLeitura(REFERENCIA)).resolves.not.toBe(
+        primeiro,
+      );
+    });
+
+    // Os vídeos antigos do Supabase continuam a tocar tal como estão.
+    it('deixa passar o que não é gs://', async () => {
+      const supabase =
+        'https://x.supabase.co/storage/v1/object/public/exercise-videos/1.mp4';
+
+      await expect(servico.urlDeLeitura(supabase)).resolves.toBe(supabase);
+    });
+
+    /**
+     * O `url_video` é escrito pelo cliente. Sem esta restrição, quem edita um
+     * exercício conseguia um link para qualquer ficheiro do bucket — ou de
+     * outro bucket a que a conta de serviço tenha acesso.
+     */
+    it.each([
+      'gs://outro-bucket/exercicios/abc.mp4',
+      'gs://mmais-videos/outra-pasta/abc.mp4',
+      'gs://mmais-videos/exercicios/../segredo.json',
+      'gs://mmais-videos-falso/exercicios/abc.mp4',
+    ])('não assina %s', async (referencia) => {
+      jest.spyOn(Logger.prototype, 'warn').mockImplementation(() => {});
+
+      await expect(servico.urlDeLeitura(referencia)).resolves.toBeNull();
+    });
+
+    it('sem configuração devolve null em vez de rebentar a resposta', async () => {
+      jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
+      const semBucket = servicoCom({});
+
+      await expect(semBucket.urlDeLeitura(REFERENCIA)).resolves.toBeNull();
+    });
   });
 
   describe('sem configuração válida falha só o pedido, com 503', () => {

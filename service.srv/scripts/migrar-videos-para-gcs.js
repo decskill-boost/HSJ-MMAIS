@@ -93,10 +93,8 @@ async function main() {
         new URL(url_video).pathname.split(CAMINHO_SUPABASE)[1],
       );
       const objeto = `exercicios/${nomeOriginal}`;
-      const urlNova = `https://storage.googleapis.com/${nomeBucket}/${objeto
-        .split('/')
-        .map(encodeURIComponent)
-        .join('/')}`;
+      // O bucket é privado: grava-se a referência, e a API assina-a à saída.
+      const urlNova = `gs://${nomeBucket}/${objeto}`;
 
       console.log(`\n${nome_exercicio}\n  ${url_video}\n  → ${urlNova}`);
       if (!APLICAR) continue;

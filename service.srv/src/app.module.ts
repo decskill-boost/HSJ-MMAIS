@@ -1,8 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ArmazenamentoModule } from './armazenamento/armazenamento.module';
+import { AssinarVideosInterceptor } from './armazenamento/assinar-videos.interceptor';
 import { ExerciciosModule } from './exercicios/exercicios.module';
 import { SessoesModule } from './sessoes/sessoes.module';
 import { UsersModule } from './users/users.module';
@@ -37,8 +40,14 @@ import { PacientesModule } from './pacientes/pacientes.module';
     UsersModule,
     PrescricoesModule,
     PacientesModule,
+    ArmazenamentoModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    // Os vídeos estão num bucket privado: todo o `url_video` que sai da API
+    // leva um link de leitura assinado no lugar da referência `gs://`.
+    { provide: APP_INTERCEPTOR, useClass: AssinarVideosInterceptor },
+  ],
 })
 export class AppModule {}

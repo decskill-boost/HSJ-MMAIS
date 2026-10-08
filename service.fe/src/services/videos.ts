@@ -4,12 +4,16 @@ import { apiClient } from "./apiClient";
 interface UploadDeVideo {
   urlUpload: string;
   cabecalhos: Record<string, string>;
-  urlPublica: string;
+  urlVideo: string;
 }
 
 /**
  * Envia o vídeo de um exercício para o bucket do Google Cloud Storage e devolve
- * o URL público, que é o que se grava em `url_video`.
+ * a referência `gs://` a gravar em `url_video`.
+ *
+ * O bucket é privado: essa referência não toca sozinha. Os exercícios que vêm
+ * da API já trazem no `url_video` um link de leitura assinado, por isso os
+ * ecrãs usam-no como `src` sem saber de nada disto.
  *
  * O ficheiro não passa pelo backend (na Vercel um pedido não pode ter mais de
  * 4,5 MB): o backend só assina um URL de upload e o browser envia o vídeo
@@ -34,5 +38,5 @@ export async function enviarVideo(
     },
   });
 
-  return data.urlPublica;
+  return data.urlVideo;
 }
