@@ -2,6 +2,7 @@ import { NotFoundException, ParseUUIDPipe } from '@nestjs/common';
 import { ROUTE_ARGS_METADATA } from '@nestjs/common/constants';
 import { ExerciciosController } from '../exercicios.controller';
 import type { ExerciciosService } from '../exercicios.service';
+import type { ArmazenamentoService } from '../../armazenamento/armazenamento.service';
 import type { Exercicio } from '../../entities/exercicio.entity';
 
 const UUID_VALIDO = '7c9e6679-7425-40de-944b-e07fc1f90ae7';
@@ -26,13 +27,34 @@ function pipesDoParametroId(metodo: string): unknown[] {
 
 describe('ExerciciosController', () => {
   let servico: { findOne: jest.Mock };
+  let armazenamento: { criarUploadDeVideo: jest.Mock };
   let controlador: ExerciciosController;
 
   beforeEach(() => {
     servico = { findOne: jest.fn() };
+    armazenamento = { criarUploadDeVideo: jest.fn() };
     controlador = new ExerciciosController(
       servico as unknown as ExerciciosService,
+      armazenamento as unknown as ArmazenamentoService,
     );
+  });
+
+  describe('POST /exercicios/videos', () => {
+    it('devolve o upload assinado pelo armazenamento para o tipo pedido', async () => {
+      const upload = {
+        urlUpload: 'https://storage.googleapis.com/b/x?X-Goog-Signature=abc',
+        cabecalhos: { 'Content-Type': 'video/mp4' },
+        urlPublica: 'https://storage.googleapis.com/b/x',
+      };
+      armazenamento.criarUploadDeVideo.mockResolvedValue(upload);
+
+      await expect(
+        controlador.criarUploadDeVideo({ tipo: 'video/mp4' }),
+      ).resolves.toBe(upload);
+      expect(armazenamento.criarUploadDeVideo).toHaveBeenCalledWith(
+        'video/mp4',
+      );
+    });
   });
 
   describe('GET /exercicios/:id', () => {
