@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ArmazenamentoModule } from '../armazenamento/armazenamento.module';
 import { AuthModule } from '../auth/auth.module';
 import { UsersModule } from '../users/users.module';
 import { ExerciciosService } from './exercicios.service';
@@ -19,7 +18,6 @@ import { SessaoRealizada } from '../entities/sessao-realizada.entity';
     // resolve no contexto de quem usa a guarda — daí também o UsersModule.
     AuthModule,
     UsersModule,
-    ArmazenamentoModule,
   ],
   providers: [ExerciciosService],
   controllers: [ExerciciosController],

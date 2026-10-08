@@ -3,7 +3,7 @@ import Modal from "../ui/Modal";
 import ConfirmDialog from "../ui/ConfirmDialog";
 import { exerciciosService } from "../../services/exercicios";
 import type { Exercicio } from "../../services/exercicios";
-import { enviarVideo } from "../../services/videos";
+import { supabase } from "../../services/supabaseClient";
 import { CriarExercicioModal } from "./CriarExercicioModal";
 import LoadingSpinner from "../LoadingSpinner";
 import MiniaturaVideo from "../ui/MiniaturaVideo";
@@ -139,7 +139,24 @@ const ExerciciosPage = () => {
     try {
       let url_video = exercicioEditando.url_video;
       if (editVideoFile) {
-        url_video = await enviarVideo(editVideoFile, setUploadProgressEdit);
+        const ext = editVideoFile.name.split(".").pop();
+        const fileName = `${Date.now()}.${ext}`;
+        let progress = 0;
+        const interval = setInterval(() => {
+          progress += 5;
+          if (progress >= 85) { clearInterval(interval); progress = 85; }
+          setUploadProgressEdit(progress);
+        }, 200);
+        const { error } = await supabase.storage
+          .from("exercise-videos")
+          .upload(fileName, editVideoFile, { upsert: false });
+        clearInterval(interval);
+        setUploadProgressEdit(100);
+        if (error) throw error;
+        const { data: publicData } = supabase.storage
+          .from("exercise-videos")
+          .getPublicUrl(fileName);
+        url_video = publicData.publicUrl;
       }
 
       await exerciciosService.update(exercicioEditando.id_exercicio, {
