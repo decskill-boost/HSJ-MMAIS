@@ -74,8 +74,8 @@ export class ExerciciosController {
    * POST /api/exercicios/videos
    *
    * Devolve um URL assinado para o browser enviar o vídeo direto ao bucket do
-   * GCS, e o URL público a gravar depois em `url_video`. Quem pode criar ou
-   * alterar exercícios é quem pode enviar vídeos — e mais ninguém.
+   * GCS, e a referência `gs://` a gravar depois em `url_video`. Quem pode criar
+   * ou alterar exercícios é quem pode enviar vídeos — e mais ninguém.
    */
   @Post('videos')
   @UseGuards(RolesGuard)
