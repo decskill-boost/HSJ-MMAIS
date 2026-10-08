@@ -217,6 +217,7 @@ describe('PacientesService — perfil, sessões e agregados', () => {
         fc_media: 110,
         fc_maxima: 140,
         teve_problemas: true,
+        participacao_familiares: false,
         nome_exercicio: 'Saltos',
         // Campos acrescentados no PR #76: o histórico clínico passou a
         // identificar o plano de onde veio o treino. Um treino solto (sem

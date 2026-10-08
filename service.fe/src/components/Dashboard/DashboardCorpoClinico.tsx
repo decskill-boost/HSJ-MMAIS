@@ -142,7 +142,7 @@ const DashboardCorpoClinico = () => {
             <div className="flex shrink-0 items-center gap-3">
               <div className="rounded-xl border border-tinta/15 bg-papel px-4 py-3 text-center">
                 <p className="text-xs font-bold uppercase tracking-wide text-aco">
-                  Pacientes
+                  Doentes
                 </p>
                 <p className="mt-0.5 text-2xl font-bold text-tinta">
                   {loading ? "…" : pacientes.length}
@@ -162,7 +162,7 @@ const DashboardCorpoClinico = () => {
         <section className="grid gap-4 lg:grid-cols-3">
           <article className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-5 shadow-vinheta">
             <p className="text-sm font-bold uppercase tracking-[0.14em] text-tinta">
-              Pacientes Acompanhados
+              Doentes Acompanhados
             </p>
             <p className="mt-4 text-3xl font-bold text-tinta">
               {loading ? "…" : pacientes.length}
@@ -202,16 +202,16 @@ const DashboardCorpoClinico = () => {
           <article className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro p-6 shadow-vinheta">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h2 className="text-xl font-bold text-tinta">Pacientes</h2>
+                <h2 className="text-xl font-bold text-tinta">Doentes</h2>
                 <p className="mt-1 text-sm text-aco">
-                  Clique numa linha para ver o detalhe do paciente.
+                  Clique numa linha para ver o detalhe do doente.
                 </p>
               </div>
               <BtnGlobal
                 onClick={() => navigate("/dashboard/medico/pacientes")}
                 className="px-4 py-2.5 text-sm font-semibold"
               >
-                Ver Pacientes
+                Ver Doentes
               </BtnGlobal>
             </div>
 
@@ -222,7 +222,7 @@ const DashboardCorpoClinico = () => {
             )}
 
             <Tabela
-              legenda="Pacientes e data do último treino"
+              legenda="Doentes e data do último treino"
               className="mt-6"
             >
               <CabecaTabela>
@@ -234,12 +234,12 @@ const DashboardCorpoClinico = () => {
               <CorpoTabela>
                 {loading ? (
                   <LinhaMensagem colunas={2}>
-                    <LoadingSpinner mensagem="A carregar pacientes..." />
+                    <LoadingSpinner mensagem="A carregar doentes..." />
                   </LinhaMensagem>
                 ) : pacientes.length === 0 ? (
                   <LinhaMensagem colunas={2}>
                     <EstadoVazio
-                      titulo="Ainda não há pacientes"
+                      titulo="Ainda não há doentes"
                       descricao="Assim que houver crianças a treinar, o último treino de cada uma aparece aqui."
                     />
                   </LinhaMensagem>
@@ -283,7 +283,7 @@ const DashboardCorpoClinico = () => {
 
             {totalPaginas > 1 && (
               <nav
-                aria-label="Paginação da lista de pacientes"
+                aria-label="Paginação da lista de doentes"
                 className="mt-4 flex items-center justify-between gap-4 border-t-2 border-tinta/10 pt-4"
               >
                 <button
@@ -324,7 +324,7 @@ const DashboardCorpoClinico = () => {
                 <p className="text-sm text-aco">A carregar…</p>
               ) : precisamAtencao.length === 0 ? (
                 <p className="rounded-2xl border border-turbo/30 bg-turbo/10 p-4 text-sm font-medium text-turbo-escuro">
-                  Todos os pacientes treinaram esta semana. 👏
+                  Todos os doentes treinaram esta semana. 👏
                 </p>
               ) : (
                 precisamAtencao.map((p) => (

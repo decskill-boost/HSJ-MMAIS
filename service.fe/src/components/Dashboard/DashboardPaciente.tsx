@@ -38,45 +38,60 @@ interface UltimaSessao {
   data_hora: string;
   nome_exercicio: string | null;
   recompensa_xp: number | null;
+  duracao: number | null;
 }
 
 const DashboardPaciente = () => {
   const navigate = useNavigate();
   const { user } = useOutletContext<LayoutContext>();
-  const displayName = user?.nome?.split(" ")[0] ?? "Herói";
+  const displayName = user?.nome?.split(" ")[0] || "Herói";
 
   const [ultimaSessao, setUltimaSessao] = useState<UltimaSessao | null>(null);
   const [loadingUltimaSessao, setLoadingUltimaSessao] = useState(true);
+
+  const [minutosAtivosSemana, setMinutosAtivosSemana] = useState(0);
 
   useEffect(() => {
     const idUser = user?.idUser;
     if (!idUser) return;
 
-    async function carregarUltimaSessao() {
+    async function carregarSessoes() {
       try {
-        // Devolve apenas as sessões CONCLUÍDAS de quem faz o pedido — o id do
-        // paciente vem do token, não daqui — já ordenadas da mais recente para
-        // a mais antiga. `limite=1` porque só se mostra a última.
-        const { data } = await apiClient.get<UltimaSessao[]>(
-          "/sessoes/minhas",
-          { params: { limite: 1 } },
-        );
+        const { data } = await apiClient.get<UltimaSessao[]>("/sessoes/minhas");
 
-        setUltimaSessao(Array.isArray(data) ? (data[0] ?? null) : null);
+        if (Array.isArray(data) && data.length > 0) {
+          setUltimaSessao(data[0]);
+
+          const seteDiasAtras = new Date();
+          seteDiasAtras.setDate(seteDiasAtras.getDate() - 7);
+          
+          const somaSegundos = data
+            .filter((s) => new Date(s.data_hora) >= seteDiasAtras)
+            .reduce((acc, s) => acc + (s.duracao ?? 0), 0);
+          
+          setMinutosAtivosSemana(Math.round(somaSegundos / 60));
+        } else {
+          setUltimaSessao(null);
+          setMinutosAtivosSemana(0);
+        }
       } catch (err) {
-        // Este cartão nunca teve mensagem de erro própria: se a última sessão
-        // não vier, mantém-se o estado «ainda não treinaste», como antes.
-        console.error("Erro ao obter última sessão:", err);
+        console.error("Erro ao obter sessões:", err);
       } finally {
         setLoadingUltimaSessao(false);
       }
     }
 
-    void carregarUltimaSessao();
+    void carregarSessoes();
   }, [user?.idUser]);
 
   // Medalhas do herói
   const medalhas = [
+    {
+      emoji: "⏱️",
+      label: "Min. ativos (7d)",
+      value: `${minutosAtivosSemana}`,
+      fundo: "bg-cobalto/10",
+    },
     {
       emoji: "🔥",
       label: "Dias seguidos",
@@ -93,9 +108,11 @@ const DashboardPaciente = () => {
       emoji: "🏅",
       label: "Nível",
       value: `${user?.nivel ?? 1}`,
-      fundo: "bg-cobalto/10",
+      fundo: "bg-cobalto/10", // I should change this since I used it above
     },
   ];
+
+  medalhas[3].fundo = "bg-capa/10";
 
   return (
     <div className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
@@ -113,7 +130,7 @@ const DashboardPaciente = () => {
                 Olá, {displayName}! 🦸
               </h1>
               <p className="mt-2 text-sm text-[#F0F3FF]">
-                Pronto para mais uma missão? Cada treino são superpoderes novos.
+                Pronto para mais uma missão? Soma minutos ativos para ganhares superpoderes!
               </p>
             </div>
           </div>
@@ -128,11 +145,11 @@ const DashboardPaciente = () => {
         </section>
 
         {/* MEDALHAS */}
-        <section className="grid grid-cols-3 gap-3 sm:gap-4">
+        <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
           {medalhas.map((m, i) => (
             <article
               key={m.label}
-              className={`${["entrada-pop", "entrada-pop-2", "entrada-pop-3"][i]} flex flex-col items-center gap-1 rounded-(--radius-vinheta) border-[3px] border-tinta ${m.fundo} p-4 text-center shadow-vinheta`}
+              className={`${["entrada-pop", "entrada-pop-2", "entrada-pop-3", "entrada-pop-4"][i] ?? "entrada-pop"} flex flex-col items-center gap-1 rounded-(--radius-vinheta) border-[3px] border-tinta ${m.fundo} p-4 text-center shadow-vinheta`}
             >
               <span className="text-3xl">{m.emoji}</span>
               <p className="font-display text-2xl tracking-wide text-tinta sm:text-3xl">
@@ -160,7 +177,7 @@ const DashboardPaciente = () => {
                   <span className="text-3xl">🏅</span>
                   <div>
                     <p className="font-bold text-tinta">
-                      {ultimaSessao.nome_exercicio ?? "Treino"}
+                      {Math.round((ultimaSessao.duracao ?? 0) / 60)} minutos de atividade
                     </p>
                     <p className="mt-0.5 text-xs text-aco">
                       {formatarDataSessao(ultimaSessao.data_hora)}

@@ -65,6 +65,7 @@ export interface SessaoConcluidaResumo {
   fc_media: number | null;
   fc_maxima: number | null;
   teve_problemas: boolean;
+  participacao_familiares: boolean;
   nome_exercicio: string;
   id_prescricao?: string | null;
   nome_plano?: string | null;
@@ -375,6 +376,7 @@ export class PacientesService {
         fc_media: fcMedia,
         fc_maxima: fcMaxima,
         teve_problemas: teveProblemas,
+        participacao_familiares: listaSessoes.some((item) => item.participacao_familiares),
         nome_exercicio: prescricao?.nome || principal.id_exercicio?.nome_exercicio || 'Exercício',
         id_prescricao: prescricao?.id_prescricao ?? null,
         nome_plano: prescricao?.nome ?? null,

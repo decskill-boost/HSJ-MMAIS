@@ -385,7 +385,7 @@ const ExercicioPlayer = ({
           <div className="absolute inset-0 flex flex-col items-center justify-center gap-6 bg-tinta/85 backdrop-blur-sm">
             <span className="animate-bounce text-7xl">✅</span>
             <h3 className="px-4 text-center font-display text-4xl tracking-wide text-papel">
-              {`Treino ${exercicioNumero} concluído!`}
+              {`Exercício ${exercicioNumero} concluído!`}
             </h3>
             <div className="rounded-2xl border-2 border-papel/20 bg-papel/10 px-8 py-4 text-center backdrop-blur-sm">
               <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-[#EAEFFF]">
@@ -396,14 +396,14 @@ const ExercicioPlayer = ({
               </p>
             </div>
             <p className="px-4 text-center text-sm text-papel/80">
-              A seguir: <span className="font-bold text-papel">próximo treino</span>
+              A seguir: <span className="font-bold text-papel">próximo exercício</span>
             </p>
             <button
               onClick={handleProximoExercicio}
               disabled={isSaving}
               className="mt-2 flex items-center gap-3 rounded-(--radius-vinheta) border-[3px] border-tinta bg-raio px-10 py-5 font-display text-xl tracking-wide text-tinta shadow-vinheta transition hover:brightness-105 active:scale-95 active:shadow-none disabled:opacity-50"
             >
-              {isSaving ? "A guardar..." : "Próximo treino →"}
+              {isSaving ? "A guardar..." : "Próximo exercício →"}
             </button>
           </div>
         )}

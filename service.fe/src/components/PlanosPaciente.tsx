@@ -412,7 +412,7 @@ export const PlanosPaciente = () => {
           {todosMarcados && previewIndex < total - 1 && (
             <button
               onClick={() => setPreviewIndex((i) => i + 1)}
-              aria-label="Treino seguinte"
+              aria-label="Exercício seguinte"
               className="absolute right-4 top-1/2 flex h-16 w-16 -translate-y-1/2 items-center justify-center rounded-full border-[3px] border-tinta bg-raio text-tinta shadow-vinheta transition hover:brightness-105 active:scale-95 active:shadow-none"
             >
               <svg viewBox="0 0 24 24" className="h-8 w-8" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -569,32 +569,21 @@ export const PlanosPaciente = () => {
         </h1>
         <p className="mt-2 text-center text-aco">Escolhe como queres treinar!</p>
 
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 grid gap-5 sm:grid-cols-2">
           <button
             onClick={() => setView("plano-list")}
             className="entrada-pop flex flex-col items-center gap-4 rounded-(--radius-vinheta) border-[3px] border-tinta bg-cobalto/10 p-8 text-center shadow-vinheta transition hover:bg-cobalto/20 hover:-translate-y-0.5 active:scale-95"
           >
             <span className="text-6xl">📋</span>
             <div>
-              <p className="text-xl font-display text-cobalto">Meus Planos</p>
+              <p className="text-xl font-display text-cobalto">Explorar Planos de Treino</p>
               <p className="mt-1 text-sm text-aco">Faz todos os exercícios do plano em sequência</p>
             </div>
           </button>
 
           <button
-            onClick={() => navigate("/paciente/plano/criar")}
-            className="entrada-pop-2 flex flex-col items-center gap-4 rounded-(--radius-vinheta) border-[3px] border-tinta bg-raio/20 p-8 text-center shadow-vinheta transition hover:bg-raio/30 hover:-translate-y-0.5 active:scale-95"
-          >
-            <span className="text-6xl">✍️</span>
-            <div>
-              <p className="text-xl font-display text-tinta">Criar Plano</p>
-              <p className="mt-1 text-sm text-aco">Cria o teu próprio plano de treinos</p>
-            </div>
-          </button>
-
-          <button
             onClick={() => setView("list")}
-            className="entrada-pop-3 flex flex-col items-center gap-4 rounded-(--radius-vinheta) border-[3px] border-tinta bg-turbo/20 p-8 text-center shadow-vinheta transition hover:bg-turbo/30 hover:-translate-y-0.5 active:scale-95"
+            className="entrada-pop-2 flex flex-col items-center gap-4 rounded-(--radius-vinheta) border-[3px] border-tinta bg-turbo/20 p-8 text-center shadow-vinheta transition hover:bg-turbo/30 hover:-translate-y-0.5 active:scale-95"
           >
             <span className="text-6xl">⚡</span>
             <div>

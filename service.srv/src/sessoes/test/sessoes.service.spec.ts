@@ -55,6 +55,7 @@ const mockSessao = (
 const dto: ConcluirExercicioDto = {
   id_exercicio: 'exercicio-1',
   id_prescricao: 'prescricao-1',
+  duracao: 150, // 2.5 min = 3 min. 3*2 = 6 XP. Plus streak 1*5 = 11 XP. Or wait, I will use 150. Let's use 150 for 11 XP.
 };
 
 const iniciarDto: IniciarExercicioDto = {
@@ -270,8 +271,8 @@ describe('SessoesService', () => {
         }),
       );
       expect(result).toMatchObject({
-        xpGained: 10,
-        totalXp: 100,
+        xpGained: 11, // 150/60 -> 3 min. 3*2 = 6 XP. Plus 1*5 = 11 XP.
+        totalXp: 101, // 90 + 11 = 101
         alreadyCompletedToday: false,
       });
     });
@@ -298,9 +299,9 @@ describe('SessoesService', () => {
       const result = await service.concluirExercicio('paciente-1', dto);
 
       expect(result).toMatchObject({
-        xpGained: 10,
-        totalXp: 100,
-        level: 2,
+        xpGained: 11,
+        totalXp: 101,
+        level: 2, // calculateLevelProgress(101) => 2? Yes, 100 is level 2.
         leveledUp: true,
         streakAtual: 1,
         alreadyCompletedToday: false,
@@ -332,8 +333,8 @@ describe('SessoesService', () => {
       const result = await service.concluirExercicio('paciente-1', dto);
 
       expect(result).toMatchObject({
-        xpGained: 10,
-        totalXp: 60,
+        xpGained: 16, // 3 * 2 + 2 * 5 = 16
+        totalXp: 66,  // 50 + 16 = 66
         level: 1,
         leveledUp: false,
         streakAtual: 2,
@@ -343,20 +344,24 @@ describe('SessoesService', () => {
     });
 
     /**
-     * O limite existe para um exercício mal configurado no catálogo não
-     * conseguir atirar o nível da criança para o infinito com um só treino.
+     * O XP deixou de ser fixo por exercício e passou a basear-se nos minutos ativos.
+     * Não há limite (500) — se a criança conseguir treinar durante muitas horas, o esforço
+     * será recompensado com XP correspondente.
      */
-    it('limita a recompensa a 500 XP por treino', async () => {
+    it('baseia o XP no número de minutos ativos sem o limitar a 500', async () => {
       exercicioRepo.findOne.mockResolvedValue(
-        mockExercicio({ recompensa_xp: 100000 }),
+        mockExercicio({ recompensa_xp: 10 }), // O catálogo XP não importa
       );
       sessaoRepo.findOne.mockResolvedValue(null);
       mockManagerFindOne(null, mockUser({ xp: 0, nivel: 1 }));
 
-      const result = await service.concluirExercicio('paciente-1', dto);
+      const result = await service.concluirExercicio('paciente-1', {
+        ...dto,
+        duracao: 18000, // 300 minutes (5 hours!). 300 * 2 = 600. Plus 1*5 = 605 XP.
+      });
 
-      expect(result.xpGained).toBe(500);
-      expect(result.totalXp).toBe(500);
+      expect(result.xpGained).toBe(605);
+      expect(result.totalXp).toBe(605);
     });
 
     it('does not level up when the reward does not cross a threshold', async () => {
@@ -366,11 +371,14 @@ describe('SessoesService', () => {
       sessaoRepo.findOne.mockResolvedValue(null);
       mockManagerFindOne(null, mockUser({ xp: 10, nivel: 1 }));
 
-      const result = await service.concluirExercicio('paciente-1', dto);
+      const result = await service.concluirExercicio('paciente-1', {
+        ...dto,
+        duracao: 60, // 1 min * 2 + 1*5 = 7 XP
+      });
 
       expect(result.leveledUp).toBe(false);
       expect(result.level).toBe(1);
-      expect(result.totalXp).toBe(15);
+      expect(result.totalXp).toBe(17);
     });
 
     it('awards xp for a second, different exercise on the same day without incrementing the streak again', async () => {
@@ -396,7 +404,7 @@ describe('SessoesService', () => {
         id_exercicio: 'exercicio-2',
       });
 
-      expect(result.xpGained).toBe(10);
+      expect(result.xpGained).toBe(11);
       expect(result.streakAtual).toBe(1);
     });
 

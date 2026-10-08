@@ -32,6 +32,7 @@ interface SessaoRealizadaInfo {
   fc_media: number | null;
   fc_maxima: number | null;
   teve_problemas: boolean | null;
+  participacao_familiares: boolean | null;
   duracao: number | null;
   nome_exercicio: string | null;
   id_prescricao?: string | null;
@@ -212,7 +213,7 @@ const PacienteDetalhe = () => {
     } catch (err) {
       // Mostrar a falha em vez de uma tabela vazia: um histórico que não
       // carregou não pode passar por "esta criança ainda não treinou".
-      setErro(mensagemDeErro(err, "Erro ao carregar o paciente."));
+      setErro(mensagemDeErro(err, "Erro ao carregar o doente."));
     } finally {
       setLoading(false);
     }
@@ -243,6 +244,43 @@ const PacienteDetalhe = () => {
     return Math.round(soma / comFc.length) + " bpm";
   }, [sessoes]);
 
+  const minutosAtivosTotais = useMemo(() => {
+    const somaSegundos = sessoes.reduce((acc, s) => acc + (s.duracao ?? 0), 0);
+    return Math.round(somaSegundos / 60);
+  }, [sessoes]);
+
+  // Estatísticas da última semana (últimos 7 dias)
+  const sessoesUltimaSemana = useMemo(() => {
+    const seteDiasAtras = new Date();
+    seteDiasAtras.setDate(seteDiasAtras.getDate() - 7);
+    return sessoes.filter((s) => new Date(s.data_hora) >= seteDiasAtras);
+  }, [sessoes]);
+
+  const totalTreinosSemana = sessoesUltimaSemana.length;
+
+  const esforcoMedioSemana = useMemo(() => {
+    const comEsforco = sessoesUltimaSemana.filter(
+      (s) => s.esforco_1_a_10 !== null && s.esforco_1_a_10 !== undefined,
+    );
+    if (comEsforco.length === 0) return "-";
+    const soma = comEsforco.reduce((acc, s) => acc + s.esforco_1_a_10!, 0);
+    return (soma / comEsforco.length).toFixed(1) + "/10";
+  }, [sessoesUltimaSemana]);
+
+  const fcMediaSemana = useMemo(() => {
+    const comFc = sessoesUltimaSemana.filter(
+      (s) => s.fc_media !== null && s.fc_media !== undefined && s.fc_media > 0,
+    );
+    if (comFc.length === 0) return "-";
+    const soma = comFc.reduce((acc, s) => acc + s.fc_media!, 0);
+    return Math.round(soma / comFc.length) + " bpm";
+  }, [sessoesUltimaSemana]);
+
+  const minutosAtivosSemana = useMemo(() => {
+    const somaSegundos = sessoesUltimaSemana.reduce((acc, s) => acc + (s.duracao ?? 0), 0);
+    return Math.round(somaSegundos / 60);
+  }, [sessoesUltimaSemana]);
+
   const sessoesPaginadas = useMemo(() => {
     const inicio = (paginaSessoes - 1) * sessoesPorPagina;
     return sessoes.slice(inicio, inicio + sessoesPorPagina);
@@ -253,7 +291,7 @@ const PacienteDetalhe = () => {
   if (loading) {
     return (
       <div className="mx-auto w-full max-w-6xl px-4 py-10">
-        <LoadingSpinner mensagem="A carregar detalhes do paciente..." />
+        <LoadingSpinner mensagem="A carregar detalhes do doente..." />
       </div>
     );
   }
@@ -270,7 +308,7 @@ const PacienteDetalhe = () => {
     return (
       <div className="mx-auto w-full max-w-6xl px-4 py-10">
         <div className="rounded-2xl bg-papel p-6 shadow-sm">
-          <p className="text-tinta">Paciente não encontrado.</p>
+          <p className="text-tinta">Doente não encontrado.</p>
           <BtnGlobal
             onClick={() => navigate("/dashboard/medico/pacientes")}
             className="mt-4 rounded-xl bg-tinta px-4 py-2 text-sm font-semibold text-papel"
@@ -290,7 +328,7 @@ const PacienteDetalhe = () => {
             {pacienteInfo.nome}
           </h1>
           <p className="mt-1 text-sm text-aco">
-            Acompanhamento e histórico de treinos deste paciente.
+            Acompanhamento e histórico de treinos deste doente.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -303,7 +341,18 @@ const PacienteDetalhe = () => {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-4">
+        <article className="painel p-5 bg-cobalto/10 border-cobalto/30">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-cobalto">
+            Minutos Ativos
+          </p>
+          <p className="mt-4 text-3xl font-bold text-tinta">
+            {minutosAtivosTotais}
+          </p>
+          <p className="mt-2 text-sm text-aco">
+            Acumulados no programa.
+          </p>
+        </article>
         <article className="painel p-5">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
             Treinos Concluídos
@@ -312,7 +361,7 @@ const PacienteDetalhe = () => {
             {totalTreinos}
           </p>
           <p className="mt-2 text-sm text-aco">
-            Total de sessões realizadas por esta criança.
+            Total de sessões.
           </p>
         </article>
         <article className="painel p-5">
@@ -323,18 +372,65 @@ const PacienteDetalhe = () => {
             {esforcoMedio}
           </p>
           <p className="mt-2 text-sm text-aco">
-            Perceção de esforço média relatada.
+            Perceção de esforço.
           </p>
         </article>
         <article className="painel p-5">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
-            Frequência Cardíaca Média
+            FC Média
           </p>
           <p className="mt-4 text-3xl font-bold text-tinta">
             {fcMediaGlobal}
           </p>
           <p className="mt-2 text-sm text-aco">
-            Frequência cardíaca média global.
+            Frequência cardíaca.
+          </p>
+        </article>
+      </div>
+
+      <div className="mt-4 grid gap-6 lg:grid-cols-4 opacity-90">
+        <article className="painel p-5 border-dashed">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
+            Minutos Ativos (7d)
+          </p>
+          <p className="mt-4 text-3xl font-bold text-tinta">
+            {minutosAtivosSemana}
+          </p>
+          <p className="mt-2 text-sm text-aco">
+            Na última semana.
+          </p>
+        </article>
+        <article className="painel p-5 border-dashed">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
+            Treinos Concluídos (7d)
+          </p>
+          <p className="mt-4 text-3xl font-bold text-tinta">
+            {totalTreinosSemana}
+          </p>
+          <p className="mt-2 text-sm text-aco">
+            Na última semana.
+          </p>
+        </article>
+        <article className="painel p-5 border-dashed">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
+            Esforço Médio (7d)
+          </p>
+          <p className="mt-4 text-3xl font-bold text-tinta">
+            {esforcoMedioSemana}
+          </p>
+          <p className="mt-2 text-sm text-aco">
+            Na última semana.
+          </p>
+        </article>
+        <article className="painel p-5 border-dashed">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-aco">
+            FC Média (7d)
+          </p>
+          <p className="mt-4 text-3xl font-bold text-tinta">
+            {fcMediaSemana}
+          </p>
+          <p className="mt-2 text-sm text-aco">
+            Na última semana.
           </p>
         </article>
       </div>
@@ -605,11 +701,30 @@ const PacienteDetalhe = () => {
                 </div>
               </div>
 
-              <div className="rounded-2xl bg-papel p-4 border border-tinta/10">
-                <p className="text-xs font-bold uppercase tracking-wider text-aco mb-1">
-                  Intercorrências / Alertas
-                </p>
-                <div>{renderAlertas(sessaoDetalhada.teve_problemas, true)}</div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="rounded-2xl bg-papel p-4 border border-tinta/10">
+                  <p className="text-xs font-bold uppercase tracking-wider text-aco mb-1">
+                    Intercorrências / Alertas
+                  </p>
+                  <div>{renderAlertas(sessaoDetalhada.teve_problemas, true)}</div>
+                </div>
+
+                <div className="rounded-2xl bg-papel p-4 border border-tinta/10">
+                  <p className="text-xs font-bold uppercase tracking-wider text-aco mb-1">
+                    Envolvimento Familiar
+                  </p>
+                  <div>
+                    {sessaoDetalhada.participacao_familiares ? (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-turbo/30 bg-turbo/10 px-2.5 py-0.5 text-xs font-semibold text-turbo-escuro">
+                        👥 Acompanhado
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-aco/20 bg-aco/10 px-2.5 py-0.5 text-xs font-semibold text-tinta">
+                        👤 Sozinho
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {sessaoDetalhada.exercicios_plano && sessaoDetalhada.exercicios_plano.length > 0 && (

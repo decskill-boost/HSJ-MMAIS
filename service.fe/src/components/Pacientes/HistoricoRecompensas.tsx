@@ -93,6 +93,13 @@ const HistoricoRecompensas = () => {
     ? Math.min(100, Math.round((xpTotal / xpParaProxima.xp_necessario) * 100))
     : 100;
 
+  const minutosTotal = Math.round(sessoes.reduce((acc, s) => acc + (s.duracao ?? 0), 0) / 60);
+  const seteDiasAtras = new Date();
+  seteDiasAtras.setDate(seteDiasAtras.getDate() - 7);
+  const minutosSemana = Math.round(sessoes.filter(s => new Date(s.data_hora) >= seteDiasAtras).reduce((acc, s) => acc + (s.duracao ?? 0), 0) / 60);
+  const hoje = new Date().toDateString();
+  const minutosHoje = Math.round(sessoes.filter(s => new Date(s.data_hora).toDateString() === hoje).reduce((acc, s) => acc + (s.duracao ?? 0), 0) / 60);
+
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10">
       <div className="mb-6">
@@ -177,7 +184,23 @@ const HistoricoRecompensas = () => {
             </p>
           </div>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-6">
+            <div className="grid grid-cols-3 gap-3">
+              <div className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-turbo/20 p-4 text-center shadow-vinheta">
+                <p className="text-3xl font-display text-tinta">{minutosHoje}</p>
+                <p className="text-[11px] font-bold uppercase tracking-wide text-aco">Min. Hoje</p>
+              </div>
+              <div className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-cobalto/20 p-4 text-center shadow-vinheta">
+                <p className="text-3xl font-display text-tinta">{minutosSemana}</p>
+                <p className="text-[11px] font-bold uppercase tracking-wide text-aco">Min. (7d)</p>
+              </div>
+              <div className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-raio/30 p-4 text-center shadow-vinheta">
+                <p className="text-3xl font-display text-tinta">{minutosTotal}</p>
+                <p className="text-[11px] font-bold uppercase tracking-wide text-aco">Min. Total</p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
             {sessoes.map((s, idx) => (
               <div
                 key={s.id_sessao}

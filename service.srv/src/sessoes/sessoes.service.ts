@@ -220,17 +220,30 @@ export class SessoesService {
       },
     });
 
-    // REGRA MUDADA (PR #76): repetir o mesmo exercício no mesmo dia volta a
-    // dar XP. Antes era `alreadyCompleted ? 0 : recompensa_xp` — e era essa a
-    // razão de o XP «não subir» quando a criança repetia um treino.
-    //
-    // O `alreadyCompleted` continua a ser calculado e devolvido, porque o ecrã
-    // usa-o para não festejar duas vezes a mesma conquista. O valor é limitado
-    // a [0, 500] para um exercício mal configurado no catálogo não conseguir
-    // atirar o nível da criança para o infinito.
-    const xpGained = Math.min(Math.max(0, exercicio.recompensa_xp ?? 0), 500);
+    // REGRA MUDADA: O XP passa a depender do esforço real: minutos ativos * 2 + bónus de streak (5 XP por dia).
+    // O `alreadyCompleted` continua a ser calculado e devolvido, para o frontend 
+    // não festejar duas vezes a mesma conquista.
+    // O valor não tem limite, recompensa o treino longo.
 
     return this.dataSource.transaction(async (manager) => {
+      const user = await manager.findOne(Utilizador, {
+        where: { id_user: cleanPacienteId },
+      });
+      if (!user) {
+        throw new NotFoundException('Utilizador não encontrado');
+      }
+
+      const streakResult = computeStreakUpdate(
+        {
+          streakAtual: user.streak_atual,
+          ultimaAtividade: user.streak_ultima_atividade,
+        },
+        now,
+      );
+      
+      const duracaoMinutos = Math.round((Number(dto.duracao) || 0) / 60);
+      const xpGained = duracaoMinutos * 2 + (streakResult.streakAtual * 5);
+
       const sessaoIniciada = await manager.findOne(SessaoRealizada, {
         where: {
           ...(cleanSessaoId ? { id_sessao: cleanSessaoId } : {}),
@@ -249,8 +262,7 @@ export class SessoesService {
         sessaoIniciada.diversao_1_a_5 = dto.diversao_1_a_5 as number;
         sessaoIniciada.duracao = dto.duracao as number;
         sessaoIniciada.teve_problemas = dto.teve_problemas ?? false;
-        sessaoIniciada.participacao_familiares =
-          dto.participacao_familiares ?? false;
+        sessaoIniciada.participacao_familiares = dto.participacao_familiares ?? false;
         sessaoIniciada.fc_maxima = dto.fc_maxima ?? null;
         sessaoIniciada.fc_media = dto.fc_media ?? null;
         sessaoIniciada.id_prescricao = cleanPrescricaoId
@@ -258,7 +270,6 @@ export class SessoesService {
           : null;
         sessao = await manager.save(sessaoIniciada);
       } else {
-        // Recurso para clientes que nunca chamaram /sessoes/iniciar (versões antigas).
         const novaSessao = manager.create(SessaoRealizada, {
           id_paciente: { id_user: cleanPacienteId } as Utilizador,
           id_exercicio: { id_exercicio: cleanExercicioId } as Exercicio,
@@ -279,8 +290,6 @@ export class SessoesService {
         sessao = await manager.save(novaSessao);
       }
 
-      // Hygiene: any of this patient's attempts left dangling from previous days
-      // are now definitively missed, not just "in progress".
       await manager.update(
         SessaoRealizada,
         {
@@ -291,27 +300,12 @@ export class SessoesService {
         { status: SessaoStatus.FALHADO },
       );
 
-      const user = await manager.findOne(Utilizador, {
-        where: { id_user: cleanPacienteId },
-      });
-      if (!user) {
-        throw new NotFoundException('Utilizador não encontrado');
-      }
-
       const oldLevel = user.nivel;
       const totalXp = user.xp + xpGained;
       const levelInfo = calculateLevelProgress(totalXp);
 
       user.xp = totalXp;
       user.nivel = levelInfo.level;
-
-      const streakResult = computeStreakUpdate(
-        {
-          streakAtual: user.streak_atual,
-          ultimaAtividade: user.streak_ultima_atividade,
-        },
-        now,
-      );
       user.streak_atual = streakResult.streakAtual;
       user.streak_ultima_atividade = streakResult.ultimaAtividade;
 
