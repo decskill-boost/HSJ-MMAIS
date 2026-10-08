@@ -1,5 +1,6 @@
 import { ValidationPipe } from '@nestjs/common';
 import { CreateExercicioDto } from '../dto/create-exercicio.dto';
+import { CriarUploadVideoDto } from '../dto/criar-upload-video.dto';
 import { UpdateExercicioDto } from '../dto/update-exercicio.dto';
 import { ExerciciosController } from '../exercicios.controller';
 
@@ -42,6 +43,31 @@ describe('Os DTOs do @Body() chegam ao ValidationPipe como classes', () => {
     expect(tipos).toContain(UpdateExercicioDto);
     expect(tipos).not.toContain(Object);
   });
+
+  it('criarUploadDeVideo declara o CriarUploadVideoDto, não Object', () => {
+    const tipos = tiposDe('criarUploadDeVideo');
+
+    expect(tipos).toContain(CriarUploadVideoDto);
+    expect(tipos).not.toContain(Object);
+  });
+});
+
+describe('Pedido de upload de vídeo com o ValidationPipe global', () => {
+  const validar = (corpo: object) =>
+    pipe.transform(corpo, { type: 'body', metatype: CriarUploadVideoDto });
+
+  it.each(['video/mp4', 'video/quicktime'])('aceita %s', async (tipo) => {
+    await expect(validar({ tipo })).resolves.toEqual({ tipo });
+  });
+
+  // O tipo vai para a assinatura e para a extensão do objeto: um `text/html`
+  // aceite aqui deixava servir páginas a partir do bucket público.
+  it.each(['text/html', 'image/svg+xml', '', undefined])(
+    'recusa %p',
+    async (tipo) => {
+      await expect(validar({ tipo })).rejects.toThrow();
+    },
+  );
 });
 
 /**
