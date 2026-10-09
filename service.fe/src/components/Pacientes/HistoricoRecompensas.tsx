@@ -222,6 +222,7 @@ const HistoricoRecompensas = () => {
                 </span>
               </div>
             ))}
+            </div>
           </div>
         )
       ) : (
