@@ -130,8 +130,22 @@ export const CriarPlanoPaciente = () => {
                       : "border-tinta bg-papel-claro shadow-vinheta hover:shadow-[4px_4px_0px_#18181b]"
                   }`}
                 >
-                  <div className="relative aspect-video w-full border-b-[3px] border-tinta bg-preto">
-                    <MiniaturaVideo url={ex.url_video ?? ""} />
+                  {/* `shrink-0` + `min-h-0`: a capa é sempre 16:9, aconteça o
+                      que acontecer ao resto do cartão. Sem isto, um exercício
+                      com vídeo vertical esticava a sua capa, a grelha punha
+                      todos os cartões da linha à mesma altura e os de vídeo
+                      horizontal ficavam com um vazio enorme entre o título e
+                      os selos. */}
+                  <div className="relative aspect-video w-full min-h-0 shrink-0 overflow-hidden border-b-[3px] border-tinta bg-papel">
+                    {ex.url_video ? (
+                      <MiniaturaVideo url={ex.url_video} />
+                    ) : (
+                      // Mesmo marcador de reserva da biblioteca: um exercício
+                      // sem vídeo mostrava uma caixa vazia com ar de erro.
+                      <div className="flex h-full w-full items-center justify-center text-tinta/30">
+                        <span className="text-4xl">🎬</span>
+                      </div>
+                    )}
                     {selecionado && (
                       <div className="absolute inset-0 flex items-center justify-center bg-cobalto/40 backdrop-blur-sm transition-all">
                         <div className="rounded-full bg-papel p-2 text-cobalto shadow-lg">
@@ -143,7 +157,9 @@ export const CriarPlanoPaciente = () => {
                     )}
                   </div>
                   <div className="flex flex-1 flex-col p-4">
-                    <h3 className="font-display text-lg tracking-wide text-tinta">
+                    {/* Dois nomes de comprimentos muito diferentes desalinhavam
+                        os selos de todos os cartões da linha. */}
+                    <h3 className="line-clamp-2 font-display text-lg tracking-wide text-tinta">
                       {ex.nome_exercicio}
                     </h3>
                     <div className="mt-auto pt-3 flex items-center justify-between">

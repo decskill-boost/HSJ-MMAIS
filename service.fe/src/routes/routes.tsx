@@ -1,6 +1,6 @@
-import { lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import { Layout } from "./Layout";
+import { lazyComRecarga } from "./lazyComRecarga";
 import { UserRole } from "../types/permissions";
 
 // Primeira pintura: carregadas de imediato
@@ -9,37 +9,39 @@ import PageNotFound from "../components/PageNotFound";
 import SemAutorizacao from "../components/SemAutorizacao";
 import Login from "../components/Login";
 
-// Restantes rotas: code-splitting — cada perfil só descarrega o que usa
-const ExperimentarPlanos = lazy(() => import("../components/ExperimentarPlanos"));
-const PersonalInfo = lazy(() => import("../components/PersonalInfo"));
-const DashboardPaciente = lazy(
+// Restantes rotas: code-splitting — cada perfil só descarrega o que usa.
+// `lazyComRecarga` e não `lazy`: depois de um deploy os ficheiros mudam de nome
+// e um separador antigo tem de recarregar (ver lazyComRecarga.ts).
+const ExperimentarPlanos = lazyComRecarga(() => import("../components/ExperimentarPlanos"));
+const PersonalInfo = lazyComRecarga(() => import("../components/PersonalInfo"));
+const DashboardPaciente = lazyComRecarga(
   () => import("../components/Dashboard/DashboardPaciente"),
 );
-const DashboardCorpoClinico = lazy(
+const DashboardCorpoClinico = lazyComRecarga(
   () => import("../components/Dashboard/DashboardCorpoClinico"),
 );
-const PlanosCorpoClinico = lazy(
+const PlanosCorpoClinico = lazyComRecarga(
   () => import("../components/Dashboard/PlanosCorpoClinico"),
 );
-const PacienteDetalhe = lazy(
+const PacienteDetalhe = lazyComRecarga(
   () => import("../components/Dashboard/PacienteDetalhe"),
 );
-const GestaoSite = lazy(
+const GestaoSite = lazyComRecarga(
   () => import("../components/Dashboard/GestaoSite"),
 );
-const DashboardAdmin = lazy(
+const DashboardAdmin = lazyComRecarga(
   () => import("../components/Dashboard/DashboardAdmin/DashboardAdmin"),
 );
-const ExerciciosPage = lazy(
+const ExerciciosPage = lazyComRecarga(
   () => import("../components/Exercicios/ExerciciosPage"),
 );
-const CriarPlano = lazy(() => import("../components/CriarPlano"));
-const GestaoPlanos = lazy(
+const CriarPlano = lazyComRecarga(() => import("../components/CriarPlano"));
+const GestaoPlanos = lazyComRecarga(
   () => import("../components/Dashboard/GestaoPlanos"),
 );
-const PlanosPaciente = lazy(() => import("../components/PlanosPaciente"));
-const CriarPlanoPaciente = lazy(() => import("../components/CriarPlanoPaciente"));
-const HistoricoRecompensas = lazy(
+const PlanosPaciente = lazyComRecarga(() => import("../components/PlanosPaciente"));
+const CriarPlanoPaciente = lazyComRecarga(() => import("../components/CriarPlanoPaciente"));
+const HistoricoRecompensas = lazyComRecarga(
   () => import("../components/Pacientes/HistoricoRecompensas"),
 );
 

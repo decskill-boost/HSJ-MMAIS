@@ -27,7 +27,16 @@ const MiniaturaVideo = ({ url }: { url: string }) => {
   }, [url]);
 
   return (
-    <div ref={ref} className="h-full w-full">
+    // `absolute inset-0`: a miniatura preenche o contentor sem NUNCA lhe ditar
+    // o tamanho. Em fluxo normal, um vídeo vertical impunha a sua altura
+    // intrínseca ao cartão — dentro de um `flex-col`, o `min-height: auto` de
+    // um item ganha ao `aspect-video` do contentor e a caixa esticava-se. Numa
+    // grelha, todos os cartões da linha cresciam com ele e os de vídeo
+    // horizontal ficavam com um vazio enorme. Fora de fluxo, isso não pode
+    // acontecer em contentor nenhum.
+    //
+    // Todos os sítios que a usam já têm `relative` no contentor.
+    <div ref={ref} className="absolute inset-0 overflow-hidden">
       {visivel && (
         // #t=0.1 força o browser a pintar um frame em vez de um retângulo preto
         <video

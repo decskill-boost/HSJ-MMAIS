@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import Modal from "../ui/Modal";
-import { supabase } from "../../services/supabaseClient";
 import { exerciciosService } from "../../services/exercicios";
+import { enviarVideo } from "../../services/videos";
 
 const FORMATOS_ACEITES = ["video/mp4", "video/quicktime"];
 const TAMANHO_MAXIMO_MB = 100;
@@ -113,20 +113,7 @@ export const CriarExercicioModal = ({ isOpen, onClose, onSucesso, categorias, ma
     try {
       let url_video = "";
       if (videoFile) {
-        const ext = videoFile.name.split(".").pop();
-        const fileName = `${Date.now()}.${ext}`;
-        let progress = 0;
-        const interval = setInterval(() => {
-          progress += 5;
-          if (progress >= 85) { clearInterval(interval); progress = 85; }
-          setUploadProgress(progress);
-        }, 200);
-        const { error } = await supabase.storage.from("exercise-videos").upload(fileName, videoFile);
-        clearInterval(interval);
-        setUploadProgress(100);
-        if (error) throw error;
-        const { data: publicData } = supabase.storage.from("exercise-videos").getPublicUrl(fileName);
-        url_video = publicData.publicUrl;
+        url_video = await enviarVideo(videoFile, setUploadProgress);
       }
 
       await exerciciosService.create({

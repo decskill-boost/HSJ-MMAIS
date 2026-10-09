@@ -1,5 +1,6 @@
 import { ValidationPipe } from '@nestjs/common';
 import { CreateExercicioDto } from '../dto/create-exercicio.dto';
+import { CriarUploadVideoDto } from '../dto/criar-upload-video.dto';
 import { UpdateExercicioDto } from '../dto/update-exercicio.dto';
 import { ExerciciosController } from '../exercicios.controller';
 
@@ -42,6 +43,59 @@ describe('Os DTOs do @Body() chegam ao ValidationPipe como classes', () => {
     expect(tipos).toContain(UpdateExercicioDto);
     expect(tipos).not.toContain(Object);
   });
+
+  it('criarUploadDeVideo declara o CriarUploadVideoDto, não Object', () => {
+    const tipos = tiposDe('criarUploadDeVideo');
+
+    expect(tipos).toContain(CriarUploadVideoDto);
+    expect(tipos).not.toContain(Object);
+  });
+});
+
+/**
+ * Com o bucket privado, o GET devolve um link assinado no `url_video` — com
+ * mais de 600 caracteres e válido só umas horas. O ecrã de edição manda-o de
+ * volta tal e qual: tem de chegar ao serviço como a referência `gs://`.
+ */
+describe('url_video assinado que volta numa escrita', () => {
+  const assinado =
+    'https://storage.googleapis.com/hsj-mmais/exercicios/abc.mp4' +
+    `?X-Goog-Algorithm=GOOG4-RSA-SHA256&X-Goog-Signature=${'a'.repeat(512)}`;
+
+  it.each([
+    ['UpdateExercicioDto', UpdateExercicioDto],
+    ['CreateExercicioDto', CreateExercicioDto],
+  ])('%s grava a referência gs://', async (_nome, metatype) => {
+    const saida = (await pipe.transform(
+      {
+        nome_exercicio: 'Saltar à corda',
+        categoria: 'Quadríceps',
+        duracao_segundos: 60,
+        url_video: assinado,
+      },
+      { type: 'body', metatype },
+    )) as { url_video: string };
+
+    expect(saida.url_video).toBe('gs://hsj-mmais/exercicios/abc.mp4');
+  });
+});
+
+describe('Pedido de upload de vídeo com o ValidationPipe global', () => {
+  const validar = (corpo: object) =>
+    pipe.transform(corpo, { type: 'body', metatype: CriarUploadVideoDto });
+
+  it.each(['video/mp4', 'video/quicktime'])('aceita %s', async (tipo) => {
+    await expect(validar({ tipo })).resolves.toEqual({ tipo });
+  });
+
+  // O tipo vai para a assinatura e para a extensão do objeto: um `text/html`
+  // aceite aqui deixava servir páginas a partir do bucket público.
+  it.each(['text/html', 'image/svg+xml', '', undefined])(
+    'recusa %p',
+    async (tipo) => {
+      await expect(validar({ tipo })).rejects.toThrow();
+    },
+  );
 });
 
 /**
