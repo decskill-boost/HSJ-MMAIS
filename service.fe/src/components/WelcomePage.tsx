@@ -110,16 +110,7 @@ const WelcomePage = () => {
         <div className="fundo-reticula absolute inset-0 opacity-50" aria-hidden="true" />
 
         <div className="relative">
-          {(content.logo_1_url || content.logo_2_url) && (
-            <div className="mb-6 flex items-center justify-center gap-6">
-              {content.logo_1_url && (
-                <img src={content.logo_1_url} alt="Logo 1" className="h-16 w-auto object-contain" />
-              )}
-              {content.logo_2_url && (
-                <img src={content.logo_2_url} alt="Logo 2" className="h-16 w-auto object-contain" />
-              )}
-            </div>
-          )}
+
           <CapitaoMais25D />
 
           <h1 className="texto-autocolante mt-6 font-display text-4xl tracking-wide sm:text-5xl">
