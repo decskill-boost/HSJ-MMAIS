@@ -262,6 +262,7 @@ export class SessoesService {
         sessaoIniciada.diversao_1_a_5 = dto.diversao_1_a_5 as number;
         sessaoIniciada.duracao = dto.duracao as number;
         sessaoIniciada.teve_problemas = dto.teve_problemas ?? false;
+        sessaoIniciada.descricao_problema = dto.descricao_problema ?? null;
         sessaoIniciada.participacao_familiares = dto.participacao_familiares ?? false;
         sessaoIniciada.fc_maxima = dto.fc_maxima ?? null;
         sessaoIniciada.fc_media = dto.fc_media ?? null;
@@ -281,6 +282,7 @@ export class SessoesService {
           diversao_1_a_5: dto.diversao_1_a_5,
           duracao: dto.duracao,
           teve_problemas: dto.teve_problemas ?? false,
+          descricao_problema: dto.descricao_problema ?? null,
           participacao_familiares: dto.participacao_familiares ?? false,
           fc_maxima: dto.fc_maxima ?? null,
           fc_media: dto.fc_media ?? null,

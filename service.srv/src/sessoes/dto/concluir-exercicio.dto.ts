@@ -6,6 +6,7 @@ import {
   Max,
   Min,
   ValidateIf,
+  IsString,
 } from 'class-validator';
 
 /**
@@ -56,10 +57,9 @@ export class ConcluirExercicioDto {
   @IsBoolean()
   teve_problemas?: boolean;
 
-  // Nota: o texto que a criança escreve a explicar o problema ainda NÃO tem
-  // coluna na tabela `sessoes_realizadas`. Ver
-  // service.srv/database/2026-07-25-descricao-problema.sql antes de o aceitar
-  // aqui — sem a coluna, aceitá-lo seria prometer guardar e deitar fora.
+  @IsOptional()
+  @IsString()
+  descricao_problema?: string;
 
   @IsOptional()
   @IsBoolean()

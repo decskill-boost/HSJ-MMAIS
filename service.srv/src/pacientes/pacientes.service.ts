@@ -65,6 +65,7 @@ export interface SessaoConcluidaResumo {
   fc_media: number | null;
   fc_maxima: number | null;
   teve_problemas: boolean;
+  descricao_problema: string | null;
   participacao_familiares: boolean;
   nome_exercicio: string;
   id_prescricao?: string | null;
@@ -362,6 +363,11 @@ export class PacientesService {
       const fcMaxima = fcsMaximas.length > 0 ? Math.max(...fcsMaximas) : null;
 
       const teveProblemas = listaSessoes.some((item) => item.teve_problemas);
+      
+      const descricoes = listaSessoes
+        .map(item => item.descricao_problema)
+        .filter((d): d is string => !!d && d.trim().length > 0);
+      const descricao_problema = descricoes.length > 0 ? descricoes.join(' | ') : null;
 
       const exerciciosPlano = prescricao
         ? exerciciosPorPrescricao.get(prescricao.id_prescricao) ?? []
@@ -376,6 +382,7 @@ export class PacientesService {
         fc_media: fcMedia,
         fc_maxima: fcMaxima,
         teve_problemas: teveProblemas,
+        descricao_problema: descricao_problema,
         participacao_familiares: listaSessoes.some((item) => item.participacao_familiares),
         nome_exercicio: prescricao?.nome || principal.id_exercicio?.nome_exercicio || 'Exercício',
         id_prescricao: prescricao?.id_prescricao ?? null,

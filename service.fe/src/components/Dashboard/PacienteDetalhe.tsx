@@ -32,6 +32,7 @@ interface SessaoRealizadaInfo {
   fc_media: number | null;
   fc_maxima: number | null;
   teve_problemas: boolean | null;
+  descricao_problema: string | null;
   participacao_familiares: boolean | null;
   duracao: number | null;
   nome_exercicio: string | null;
@@ -704,9 +705,17 @@ const PacienteDetalhe = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="rounded-2xl bg-papel p-4 border border-tinta/10">
                   <p className="text-xs font-bold uppercase tracking-wider text-aco mb-1">
-                    Intercorrências / Alertas
+                    Alertas
                   </p>
-                  <div>{renderAlertas(sessaoDetalhada.teve_problemas, true)}</div>
+                  {!sessaoDetalhada.descricao_problema && (
+                    <div>{renderAlertas(sessaoDetalhada.teve_problemas, true)}</div>
+                  )}
+                  {sessaoDetalhada.descricao_problema && (
+                    <div className="mt-1 border-l-[3px] border-capa pl-3 py-1">
+                      <p className="text-[11px] font-bold uppercase tracking-wider text-capa">A criança reportou:</p>
+                      <p className="mt-1 text-sm font-medium italic text-tinta/90">«{sessaoDetalhada.descricao_problema}»</p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="rounded-2xl bg-papel p-4 border border-tinta/10">

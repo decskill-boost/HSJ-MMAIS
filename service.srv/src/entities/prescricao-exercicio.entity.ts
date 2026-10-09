@@ -10,11 +10,11 @@ export class PrescricaoExercicio {
   @PrimaryColumn()
   id_exercicio: string;
 
-  @ManyToOne(() => Prescricao)
+  @ManyToOne(() => Prescricao, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_prescricao' })
   prescricao: Prescricao;
 
-  @ManyToOne(() => Exercicio)
+  @ManyToOne(() => Exercicio, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_exercicio' })
   exercicio: Exercicio;
 

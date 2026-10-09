@@ -148,12 +148,20 @@ const DashboardCorpoClinico = () => {
                   {loading ? "…" : pacientes.length}
                 </p>
               </div>
-              <button
-                onClick={() => navigate("/perfil")}
-                className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro px-4 py-2.5 text-sm font-bold text-tinta shadow-vinheta transition hover:bg-papel active:scale-95 active:shadow-none"
-              >
-                Informação pessoal
-              </button>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => navigate("/dashboard/medico/site")}
+                  className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro px-4 py-2.5 text-sm font-bold text-tinta shadow-vinheta transition hover:bg-papel active:scale-95 active:shadow-none"
+                >
+                  Gestão de Landing Page
+                </button>
+                <button
+                  onClick={() => navigate("/perfil")}
+                  className="rounded-(--radius-vinheta) border-[3px] border-tinta bg-papel-claro px-4 py-2.5 text-sm font-bold text-tinta shadow-vinheta transition hover:bg-papel active:scale-95 active:shadow-none"
+                >
+                  Informação pessoal
+                </button>
+              </div>
             </div>
           </div>
         </section>

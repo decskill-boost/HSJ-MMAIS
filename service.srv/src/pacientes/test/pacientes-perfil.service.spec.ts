@@ -217,6 +217,7 @@ describe('PacientesService — perfil, sessões e agregados', () => {
         fc_media: 110,
         fc_maxima: 140,
         teve_problemas: true,
+        descricao_problema: null,
         participacao_familiares: false,
         nome_exercicio: 'Saltos',
         // Campos acrescentados no PR #76: o histórico clínico passou a

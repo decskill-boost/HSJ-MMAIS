@@ -4,6 +4,8 @@ import BtnGlobal from "./BtnGlobal";
 import CapitaoMais25D from "./CapitaoMais25D";
 import CapitaoMais from "./CapitaoMais";
 import { useUser } from "../contexts/UserContext";
+import { conteudoService } from "../services/conteudoService";
+import type { LandingContent } from "../services/conteudoService";
 import quadroHeroi from "../assets/quadro-heroi.jpg";
 
 // Promessas do Capitão — voz da Academia: encorajamento, nunca cobrança.
@@ -48,6 +50,7 @@ const PILARES: {
 const WelcomePage = () => {
   const navigate = useNavigate();
   const { user } = useUser();
+  const [content, setContent] = useState<LandingContent>({});
 
   const isAuthenticated = !!user;
 
@@ -76,6 +79,13 @@ const WelcomePage = () => {
     return () => clearTimeout(t);
   }, []);
 
+  useEffect(() => {
+    conteudoService
+      .getLandingContent()
+      .then(setContent)
+      .catch((err) => console.error("Failed to fetch landing content:", err));
+  }, []);
+
   // Carrossel das promessas do Capitão — arranca pausado se o utilizador
   // pedir menos movimento, e pode sempre ser parado à mão.
   const [fraseAtual, setFraseAtual] = useState(0);
@@ -100,17 +110,34 @@ const WelcomePage = () => {
         <div className="fundo-reticula absolute inset-0 opacity-50" aria-hidden="true" />
 
         <div className="relative">
+          {(content.logo_1_url || content.logo_2_url) && (
+            <div className="mb-6 flex items-center justify-center gap-6">
+              {content.logo_1_url && (
+                <img src={content.logo_1_url} alt="Logo 1" className="h-16 w-auto object-contain" />
+              )}
+              {content.logo_2_url && (
+                <img src={content.logo_2_url} alt="Logo 2" className="h-16 w-auto object-contain" />
+              )}
+            </div>
+          )}
           <CapitaoMais25D />
 
           <h1 className="texto-autocolante mt-6 font-display text-4xl tracking-wide sm:text-5xl">
-            Bem-vindo ao MMAIS<span style={{ color: "#FFCE29" }}>+</span>!
+            {content.hero_titulo || (
+              <>
+                Bem-vindo ao MMAIS<span style={{ color: "#FFCE29" }}>+</span>!
+              </>
+            )}
           </h1>
 
           <p className="mt-3 font-display text-lg tracking-widest text-raio [text-shadow:2px_2px_0_#141F3C]">
-            Mais Minutos Ativos · A Academia de Heróis
+            {content.hero_subtitulo || "Mais Minutos Ativos · A Academia de Heróis"}
+          </p>
+          <p className="mt-1 font-bold text-xs uppercase tracking-[0.15em] text-[#EAEFFF]/80">
+            {content.hero_uls || "Uma aplicação do Serviço de Oncologia Pediátrica da ULS São João"}
           </p>
           <p className="mx-auto mt-2 max-w-md text-lg text-[#F0F3FF]">
-            Missões, conquistas e superpoderes — mais um passo, todos os dias.
+            {content.hero_frase || "Missões, conquistas e superpoderes — mais um passo, todos os dias."}
           </p>
 
           {/* As duas entradas lado a lado: entrar na conta ou experimentar já */}

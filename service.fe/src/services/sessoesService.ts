@@ -21,6 +21,7 @@ export interface AvaliacaoSessao {
   diversao_1_a_5?: number;
   esforco_1_a_10?: number;
   teve_problemas?: boolean;
+  descricao_problema?: string;
   participacao_familiares?: boolean;
   fc_maxima?: number;
   fc_media?: number;

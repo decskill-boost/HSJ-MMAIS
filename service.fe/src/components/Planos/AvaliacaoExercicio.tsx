@@ -58,11 +58,7 @@ const AvaliacaoExercicio = ({
   const [erroBpmMedio, setErroBpmMedio] = useState("");
   const [erroBpmMaximo, setErroBpmMaximo] = useState("");
   const [problemas, setProblemas] = useState<boolean | null>(null);
-  // ATENÇÃO: este texto ainda NÃO é enviado nem guardado — falta a coluna
-  // `descricao_problema` na tabela `sessoes_realizadas` (ver
-  // service.srv/database/2026-07-25-descricao-problema.sql). Até essa coluna
-  // existir, o que a criança escreve aqui perde-se: não prometer o contrário
-  // no ecrã.
+  // A criança pode descrever o problema que sentiu. Agora é enviado para a BD.
   const [descricaoProblema, setDescricaoProblema] = useState("");
   const [companhia, setCompanhia] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(false);
@@ -133,6 +129,7 @@ const AvaliacaoExercicio = ({
         fc_media: bpmMedio ? parseInt(bpmMedio) : undefined,
         fc_maxima: bpmMaximo ? parseInt(bpmMaximo) : undefined,
         teve_problemas: problemas ?? false,
+        descricao_problema: (problemas && descricaoProblema.trim()) ? descricaoProblema.trim() : undefined,
         participacao_familiares: companhia ?? false,
       });
       setXpGanho(resultado.xpGained);
@@ -406,7 +403,7 @@ const AvaliacaoExercicio = ({
                 Houve algo 😕
               </button>
               <button
-                onClick={() => { setProblemas(false); setDescricaoProblema(""); avancoAutomatico(); }}
+                onClick={() => { setProblemas(false); setDescricaoProblema(""); }}
                 className={`flex-1 rounded-2xl border-[3px] border-tinta py-5 font-display text-xl tracking-wide transition active:scale-95 ${problemas === false ? "bg-turbo text-tinta shadow-vinheta" : "bg-papel-claro/15 text-papel hover:bg-papel-claro/25"}`}
               >
                 Tudo bem! 👍

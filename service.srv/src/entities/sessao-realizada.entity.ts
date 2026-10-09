@@ -20,7 +20,7 @@ export class SessaoRealizada {
   @PrimaryGeneratedColumn('uuid')
   id_sessao: string;
 
-  @ManyToOne(() => Utilizador)
+  @ManyToOne(() => Utilizador, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_paciente' })
   id_paciente: Utilizador;
 
@@ -51,7 +51,7 @@ export class SessaoRealizada {
   })
   status: SessaoStatus;
 
-  @ManyToOne(() => Prescricao, { nullable: true })
+  @ManyToOne(() => Prescricao, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_prescricao' })
   id_prescricao: Prescricao | null;
 
@@ -66,4 +66,7 @@ export class SessaoRealizada {
 
   @Column({ type: 'int', nullable: true, default: null })
   fc_media: number | null;
+
+  @Column({ type: 'text', nullable: true, default: null })
+  descricao_problema: string | null;
 }

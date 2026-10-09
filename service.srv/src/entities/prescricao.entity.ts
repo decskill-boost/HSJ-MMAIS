@@ -16,11 +16,11 @@ export class Prescricao {
   @CreateDateColumn({ type: 'timestamp' })
   data_inicio: Date;
 
-  @ManyToOne(() => Utilizador, { nullable: true })
+  @ManyToOne(() => Utilizador, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_paciente' })
   id_paciente: Utilizador | null;
 
-  @ManyToOne(() => Utilizador)
+  @ManyToOne(() => Utilizador, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'id_medico' })
   id_medico: Utilizador;
 
